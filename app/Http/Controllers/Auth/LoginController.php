@@ -42,4 +42,9 @@ class LoginController extends Controller
     {
         return view('vendor.adminlte.auth.login');
     }
+
+    public function username()
+    {
+        return 'account';
+    }
 }
