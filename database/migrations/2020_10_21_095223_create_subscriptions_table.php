@@ -21,11 +21,13 @@ class CreateSubscriptionsTable extends Migration
             $table->boolean('recurrent')->default(true);
 
             $table->unsignedInteger('payment_id');
+            $table->unsignedInteger('customer_id');
 
             $table->timestamps();
             $table->softDeletes();
 
             $table->index('payment_id');
+            $table->index('customer_id');
         });
     }
 

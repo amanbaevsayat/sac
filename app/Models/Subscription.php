@@ -15,11 +15,17 @@ class Subscription extends Model
         'endedAt',
         'recurrent',
         'payment_id',
+        'customer_id',
     ];
 
     public function payment()
     {
         return $this->belongsTo(Payment::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function products()
