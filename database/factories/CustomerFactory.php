@@ -22,7 +22,7 @@ class CustomerFactory extends Factory
     public function definition()
     {
         return [
-            'phone' => $this->faker->phoneNumber,
+            'phone' => $this->faker->tollFreePhoneNumber,
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail
         ];
