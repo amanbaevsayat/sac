@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
         return [
             [
                 'account' => "sayat.a",
-                'role_id' => Role::findByCode('host')->id,
+                'role_id' => Role::findByCode('owner')->id,
                 'email' => "amanbaev.sayat@gmail.com",
                 'phone' => "+77763442424",
             ]

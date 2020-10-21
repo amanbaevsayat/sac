@@ -22,7 +22,7 @@ class RoleSeeder extends Seeder
     private function roles()
     {
         return [
-            ['code' => 'host', 'title' => 'Хост'],
+            ['code' => 'owner', 'title' => 'owner'],
         ];
     }
 }

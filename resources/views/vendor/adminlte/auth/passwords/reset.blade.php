@@ -1,77 +1,63 @@
-@extends('adminlte::auth.auth-page', ['auth_type' => 'login'])
+@extends('adminlte::master')
 
-@php( $password_reset_url = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset') )
+@section('body')
+<div class="login-page">
+    <div class="login-box">
+        <div class="card">
+            <div class="card-body login-card-body">
+                <p class="login-box-msg">
+                    Введите новый пароль
+                </p>
 
-@if (config('adminlte.use_route_url', false))
-    @php( $password_reset_url = $password_reset_url ? route($password_reset_url) : '' )
-@else
-    @php( $password_reset_url = $password_reset_url ? url($password_reset_url) : '' )
-@endif
+                <form action="{{ route('password.update') }}" method="post">
+                    @csrf
+                    <input type="hidden" name="token" value="{{ $token }}">
+                    <div class="input-group mb-3">
+                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus placeholder="Email">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-envelope"></span>
+                            </div>
+                        </div>
+                        @error('email')
+                        <span class="error invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                        @enderror
+                    </div>
+                    <div class="input-group mb-3">
+                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" placeholder="Новый пароль">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-lock"></span>
+                            </div>
+                        </div>
 
-@section('auth_header', __('adminlte::adminlte.password_reset_message'))
-
-@section('auth_body')
-    <form action="{{ $password_reset_url }}" method="post">
-        {{ csrf_field() }}
-
-        {{-- Token field --}}
-        <input type="hidden" name="token" value="{{ $token }}">
-
-        {{-- Email field --}}
-        <div class="input-group mb-3">
-            <input type="email" name="email" class="form-control {{ $errors->has('email') ? 'is-invalid' : '' }}"
-                   value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus>
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-envelope {{ config('adminlte.classes_auth_icon', '') }}"></span>
-                </div>
+                        @error('password')
+                        <span class="error invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                        @enderror
+                    </div>
+                    <div class="input-group mb-3">
+                        <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password" placeholder="Подтвердите пароль">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-lock"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-block">Обновить пароль</button>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </form>
             </div>
-            @if($errors->has('email'))
-                <div class="invalid-feedback">
-                    <strong>{{ $errors->first('email') }}</strong>
-                </div>
-            @endif
+            <!-- /.login-card-body -->
         </div>
-
-        {{-- Password field --}}
-        <div class="input-group mb-3">
-            <input type="password" name="password"
-                   class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
-                   placeholder="{{ __('adminlte::adminlte.password') }}">
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-lock {{ config('adminlte.classes_auth_icon', '') }}"></span>
-                </div>
-            </div>
-            @if($errors->has('password'))
-                <div class="invalid-feedback">
-                    <strong>{{ $errors->first('password') }}</strong>
-                </div>
-            @endif
-        </div>
-
-        {{-- Password confirmation field --}}
-        <div class="input-group mb-3">
-            <input type="password" name="password_confirmation"
-                   class="form-control {{ $errors->has('password_confirmation') ? 'is-invalid' : '' }}"
-                   placeholder="{{ trans('adminlte::adminlte.retype_password') }}">
-            <div class="input-group-append">
-                <div class="input-group-text">
-                    <span class="fas fa-lock {{ config('adminlte.classes_auth_icon', '') }}"></span>
-                </div>
-            </div>
-            @if($errors->has('password_confirmation'))
-                <div class="invalid-feedback">
-                    <strong>{{ $errors->first('password_confirmation') }}</strong>
-                </div>
-            @endif
-        </div>
-
-        {{-- Confirm password reset button --}}
-        <button type="submit" class="btn btn-block {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
-            <span class="fas fa-sync-alt"></span>
-            {{ __('adminlte::adminlte.reset_password') }}
-        </button>
-
-    </form>
+    </div>
+    <!-- /.login-box -->
+</div>
 @stop

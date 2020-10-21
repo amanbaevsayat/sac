@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes, ModelBase;
 
     protected $fillable = [
         'code',
@@ -18,10 +18,5 @@ class Role extends Model
     public function users()
     {
         return $this->hasMany(User::class);
-    }
-
-    public static function findByCode(string $code)
-    {
-        return self::firstWhere('code', $code);
     }
 }

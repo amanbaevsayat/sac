@@ -33,7 +33,7 @@
     @yield('adminlte_css')
 
     {{-- Favicon --}}
-    <link rel="shortcut icon" href="{{ asset('images/favicons/favicon.ico') }}" />
+    <link rel="shortcut icon" href="{{ asset('favicons/favicon.png') }}" />
 
 </head>
 
@@ -41,6 +41,14 @@
 
     {{-- Body Content --}}
     @yield('body')
+
+    <div id="loader" style="display: none;">
+        <span><i class="fa fa-spinner fa-spin"></i></span>
+    </div>
+
+    <div id="up-button" class="rounded-circle bg-secondary" style="display: none;">
+        <span><i class="fa fa-chevron-up"></i></span>
+    </div>
 
     {{-- Base Scripts --}}
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
