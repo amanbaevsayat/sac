@@ -244,6 +244,27 @@ return [
             'url'  => '/',
             'icon' => 'fa fa-users'
         ],
+
+        // products
+        [
+            'text' => 'Продукты',
+            'url'  => '/',
+            'icon' => 'fa fa-boxes'
+        ],
+
+        // subscriptions
+        [
+            'text' => 'Абонементы',
+            'url'  => '/',
+            'icon' => 'fa fa-calendar-check'
+        ],
+
+        // payments
+        [
+            'text' => 'Платежи',
+            'url'  => '/',
+            'icon' => 'fa fa-money-check-alt'
+        ],
     ],
 
     /*

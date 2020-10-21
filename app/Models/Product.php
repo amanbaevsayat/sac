@@ -17,4 +17,9 @@ class Product extends Model
         'price',
         'trial_price',
     ];
+
+    public function subscriptions()
+    {
+        return $this->belongsToMany(Subscription::class)->withTimestamps();
+    }
 }
