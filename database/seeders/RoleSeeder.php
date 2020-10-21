@@ -22,7 +22,9 @@ class RoleSeeder extends Seeder
     private function roles()
     {
         return [
-            ['code' => 'owner', 'title' => 'owner'],
+            ['code' => 'host', 'title' => 'Админ'],
+            ['code' => 'owner', 'title' => 'Владелец'],
+            ['code' => 'operator', 'title' => 'Оператор'],
         ];
     }
 }

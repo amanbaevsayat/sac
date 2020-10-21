@@ -237,6 +237,13 @@ return [
             'url'  => '/',
             'topnav' => true
         ],
+
+        // customers
+        [
+            'text' => 'Клиенты',
+            'url'  => '/',
+            'icon' => 'fa fa-users'
+        ],
     ],
 
     /*
