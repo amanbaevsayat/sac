@@ -2,19 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Services\SortService;
+use App\Models\Remark;
 
 class CustomerController extends Controller
 {
+    private $root;
+    private $perPage;
+    public $sortService;
+
+    public function __construct(SortService $sortService)
+    {
+        $this->root = 'customers';
+        $this->perPage = 1;
+        $this->sortService = $sortService;
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $customersQuery = Customer::query();
+        $customers = $customersQuery->paginate($this->perPage);
+        $remarks = Remark::all();
+
+        return view("{$this->root}.index", [
+            'customers' => $customers,
+            'sortService' => $this->sortService,
+            'remarks' => $remarks,
+        ]);
     }
 
     /**
@@ -24,18 +46,23 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        //
+        $remarks = Remark::all();
+
+        return view("{$this->root}.create", [
+            'remarks' => $remarks,
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  CreateCustomerRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CreateCustomerRequest $request, Customer $customer)
     {
-        //
+        $customer->create($request->all());
+        return redirect()->route('customers.index')->with('success', 'Клиент успешно создан.');
     }
 
     /**
@@ -46,7 +73,9 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        //
+        return view("{$this->root}.show", [
+            'customer' => $customer,
+        ]);
     }
 
     /**
@@ -57,19 +86,25 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        //
+        $remarks = Remark::all();
+
+        return view("{$this->root}.edit", [
+            'remarks' => $remarks,
+            'customer' => $customer,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  CreateCustomerRequest $request
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Customer $customer)
+    public function update(CreateCustomerRequest $request, Customer $customer)
     {
-        //
+        $customer->update($request->all());
+        return redirect()->to(route('customers.show', [$customer->id]))->with('success', 'Данные клиента успешно изменены.');
     }
 
     /**
@@ -80,6 +115,7 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        $customer->delete();
+        return redirect()->route('customers.index')->with('success', 'Клиент успешно удален.');
     }
 }
