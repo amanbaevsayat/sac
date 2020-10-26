@@ -20,7 +20,7 @@
             <div class="form-group row">
                 <label for="phone" class="col-sm-2 col-form-label">Телефон</label>
                 <div class="col-sm-10">
-                    <phone-mask phone-prop="{{ old('phone') }}" name-prop="phone"></phone-mask>
+                    <input type="text" class="form-control" id="phoneNumber" value="{{ old('phone') }}" name="phone">
                 </div>
             </div>
             <div class="form-group row">
@@ -73,5 +73,9 @@
         });
         @endforeach
     @endif
+</script>
+<script src="https://rawgit.com/RobinHerbots/jquery.inputmask/3.x/dist/jquery.inputmask.bundle.js"></script>
+<script>
+$('#phoneNumber').inputmask("+7(999) 999-9999");
 </script>
 @stop

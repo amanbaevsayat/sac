@@ -17,7 +17,7 @@ class CustomerController extends Controller
     public function __construct(SortService $sortService)
     {
         $this->root = 'customers';
-        $this->perPage = 1;
+        $this->perPage = 45;
         $this->sortService = $sortService;
     }
 

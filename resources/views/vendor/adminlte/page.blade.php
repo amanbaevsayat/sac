@@ -18,7 +18,7 @@
 @section('body_data', $layoutHelper->makeBodyData())
 
 @section('body')
-<div class="wrapper" id="app">
+<div class="wrapper">
 
     {{-- Top Navbar --}}
     @if($layoutHelper->isLayoutTopnavEnabled())
