@@ -12,7 +12,7 @@
                 @endif
 
                 <p class="login-box-msg">
-                    <strong>Добро пожаловать</strong>
+                    <strong>Добро пожаловать!</strong>
                 </p>
 
                 <form action="{{ route('login') }}" method="post">
