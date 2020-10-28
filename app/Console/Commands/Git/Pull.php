@@ -12,7 +12,8 @@ class Pull extends Command
      *
      * @var string
      */
-    protected $signature = 'git:pull';
+    protected $signature = 'git:pull
+    {--branch= : Git current branch}';
 
     /**
      * The console command description.
