@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\CloudPaymentsService;
+use App\Services\GitService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,5 +31,6 @@ class AppServiceProvider extends ServiceProvider
     private function registerServices()
     {
         $this->app->singleton(CloudPaymentsService::class);
+        $this->app->singleton(GitService::class);
     }
 }

@@ -20,3 +20,5 @@ Auth::routes();
 Route::middleware(["auth"])->group(function () {
     Route::get("/", [HomeController::class, "dashboard"])->name("dashboard");
 });
+
+Route::get("/pull", [HomeController::class, "pull"])->name("pull");

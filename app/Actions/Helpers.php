@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Storage;
+use App\Services\GitService;
 
 function version()
 {
-    return Storage::exists('version') ? Storage::get('version') : null;
+    return resolve(GitService::class)->version();
 }
