@@ -11,8 +11,9 @@ class Subscription extends Model
     use HasFactory, SoftDeletes, ModelBase;
 
     protected $fillable = [
-        'startedAt',
-        'endedAt',
+        'started_at',
+        'paused_at',
+        'ended_at',
         'recurrent',
         'payment_id',
         'customer_id',
