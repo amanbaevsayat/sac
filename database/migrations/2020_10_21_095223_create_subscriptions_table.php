@@ -16,8 +16,9 @@ class CreateSubscriptionsTable extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
 
-            $table->date('startedAt');
-            $table->date('endedAt');
+            $table->date('started_at');
+            $table->date('paused_at')->nullable(); // for freeze
+            $table->date('ended_at');
             $table->boolean('recurrent')->default(true);
 
             $table->unsignedInteger('payment_id');
