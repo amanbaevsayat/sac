@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,9 @@ Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
     Route::get("/", [HomeController::class, "dashboard"])->name("dashboard");
+    Route::resources([
+        'customers' => CustomerController::class,
+    ]);
 });
 
 Route::get("/pull", [HomeController::class, "pull"])->name("pull");

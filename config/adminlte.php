@@ -241,7 +241,7 @@ return [
         // customers
         [
             'text' => 'Клиенты',
-            'url'  => '/',
+            'url'  => '/customers',
             'icon' => 'fa fa-users'
         ],
 

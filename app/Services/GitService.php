@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class GitService
 {
-    private string $filename;
+    private $filename;
     private $productionURL;
     private $stagingURL;
     private $githash;

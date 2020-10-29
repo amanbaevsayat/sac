@@ -1,3 +1,7 @@
+require('./bootstrap');
+
+window.Vue = require('vue');
+
 var $loader = $("#loader");
 
 $.ajaxSetup({
@@ -33,3 +37,10 @@ $(document)
             .val($(this).is(":checked") ? 1 : 0);
     });
 })(jQuery);
+
+
+Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+
+const app = new Vue({
+    el: '#app',
+});
