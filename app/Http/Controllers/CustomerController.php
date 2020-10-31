@@ -15,7 +15,6 @@ class CustomerController extends Controller
     public function __construct()
     {
         $this->root = 'customers';
-        $this->perPage = 45;
     }
 
     /**
@@ -25,14 +24,7 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
-        $customersQuery = Customer::query();
-        $customers = $customersQuery->paginate($this->perPage);
-        $remarks = Remark::all();
-
-        return view("{$this->root}.index", [
-            'customers' => $customers,
-            'remarks' => $remarks,
-        ]);
+        return view("{$this->root}.index");
     }
 
     /**

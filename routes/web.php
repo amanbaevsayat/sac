@@ -21,7 +21,7 @@ Auth::routes();
 Route::middleware(["auth"])->group(function () {
     Route::get("/", [HomeController::class, "dashboard"])->name("dashboard");
     Route::resources([
-        'customers' => CustomerController::class,
+        'customers' => 'CustomerController',
     ]);
 });
 

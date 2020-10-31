@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class HomeController extends Controller
 {
-    private string $githash;
+    private $githash;
 
     function __construct()
     {
