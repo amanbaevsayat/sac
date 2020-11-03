@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
+use App\Models\Remark;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CustomerFactory extends Factory
@@ -21,10 +22,13 @@ class CustomerFactory extends Factory
      */
     public function definition()
     {
+        $remark = Remark::inRandomOrder()->first();
+
         return [
             'phone' => $this->faker->tollFreePhoneNumber,
             'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail
+            'email' => $this->faker->unique()->safeEmail,
+            'remark_id' => $remark->id,
         ];
     }
 }
