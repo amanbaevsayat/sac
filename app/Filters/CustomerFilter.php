@@ -28,7 +28,12 @@ class CustomerFilter extends BaseFilter
 
     public function remarkId($value)
     {
-        return $this->builder->whereIn('remark_id', $value);
+        if (is_int($value)) {
+            $this->builder->where('remark_id', $value);
+        } else if (is_array($value)) {
+            $this->builder->whereIn('remark_id', $value);
+        }
+        return $this->builder;
     }
 
     public function sort($value)

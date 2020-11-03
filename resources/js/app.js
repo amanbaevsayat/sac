@@ -41,6 +41,7 @@ $(document)
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('index-component', require('./components/IndexComponent.vue').default);
+Vue.component('pulse-loader', require('vue-spinner/src/PulseLoader.vue').default);
 
 import VueToast from 'vue-toast-notification';
 // Import one of available themes

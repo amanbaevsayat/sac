@@ -10,7 +10,6 @@ use App\Models\Remark;
 class CustomerController extends Controller
 {
     private $root;
-    private $perPage;
 
     public function __construct()
     {

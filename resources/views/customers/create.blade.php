@@ -20,7 +20,7 @@
             <div class="form-group row">
                 <label for="phone" class="col-sm-2 col-form-label">Телефон</label>
                 <div class="col-sm-10">
-                    <phone-mask phone-prop="{{ old('phone') }}" name-prop="phone"></phone-mask>
+                    <input type="text" class="form-control" id="phone" value="{{ old('phone') }}" name="phone">
                 </div>
             </div>
             <div class="form-group row">

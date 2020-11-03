@@ -21,7 +21,7 @@
             <div class="form-group row">
                 <label for="phone" class="col-sm-2 col-form-label">Телефон</label>
                 <div class="col-sm-10">
-                    <example-component></example-component>
+                    <input type="text" class="form-control" id="phone" value="{{ $customer->phone }}" name="phone">
                 </div>
             </div>
             <div class="form-group row">

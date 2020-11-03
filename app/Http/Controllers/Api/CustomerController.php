@@ -12,10 +12,17 @@ use App\Http\Requests\CustomerUpdateApiRequest;
 
 class CustomerController extends Controller
 {
+    private $perPage;
+
+    public function __construct()
+    {
+        $this->perPage = 45;
+    }
+
     public function index(CustomerFilter $filters)
     {
         $query = Customer::query();
-        $customers = $query->filter($filters)->paginate(1)->appends(request()->all());
+        $customers = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new CustomerCollection($customers), 200);
     }
