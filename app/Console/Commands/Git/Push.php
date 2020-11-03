@@ -26,7 +26,7 @@ class Push extends Command
     protected $description = 'Push changes to git';
 
 
-    private GitService $gitService;
+    private $gitService;
 
     /**
      * Create a new command instance.
