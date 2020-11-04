@@ -6,14 +6,61 @@ use App\Http\Requests\CreateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use App\Models\Remark;
+use App\Filters\CustomerFilter;
+use App\Http\Resources\CustomerCollection;
 
 class CustomerController extends Controller
 {
     private $root;
+    private $perPage;
 
     public function __construct()
     {
         $this->root = 'customers';
+        $this->perPage = 45;
+    }
+
+    public function getList(CustomerFilter $filters)
+    {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
+        $query = Customer::query();
+        $customers = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+
+        return response()->json(new CustomerCollection($customers), 200);
+    }
+
+    public function getFilters()
+    {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
+        $remarks = Remark::pluck('title', 'id')->toArray();
+
+        $data = [
+            [
+                'name' => 'name',
+                'title' => 'Имя',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'phone',
+                'title' => 'Телефон',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'email',
+                'title' => 'E-mail',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'remark_id',
+                'title' => 'Метки',
+                'type' => 'select',
+                'options' => $remarks,
+            ],
+        ];
+
+        return response()->json($data, 200);
     }
 
     /**
@@ -23,6 +70,8 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         return view("{$this->root}.index");
     }
 
@@ -33,6 +82,8 @@ class CustomerController extends Controller
      */
     public function create()
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         $remarks = Remark::all();
 
         return view("{$this->root}.create", [
@@ -48,8 +99,10 @@ class CustomerController extends Controller
      */
     public function store(CreateCustomerRequest $request, Customer $customer)
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         $customer->create($request->all());
-        return redirect()->route('customers.index')->with('success', 'Клиент успешно создан.');
+        return redirect()->route("{$this->root}.index")->with('success', 'Клиент успешно создан.');
     }
 
     /**
@@ -60,6 +113,8 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         return view("{$this->root}.show", [
             'customer' => $customer,
         ]);
@@ -73,6 +128,8 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         $remarks = Remark::all();
 
         return view("{$this->root}.edit", [
@@ -90,8 +147,10 @@ class CustomerController extends Controller
      */
     public function update(CreateCustomerRequest $request, Customer $customer)
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         $customer->update($request->all());
-        return redirect()->to(route('customers.show', [$customer->id]))->with('success', 'Данные клиента успешно изменены.');
+        return redirect()->to(route("{$this->root}.show", [$customer->id]))->with('success', 'Данные клиента успешно изменены.');
     }
 
     /**
@@ -102,7 +161,9 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
         $customer->delete();
-        return redirect()->route('customers.index')->with('success', 'Клиент успешно удален.');
+        return redirect()->route("{$this->root}.index")->with('success', 'Клиент успешно удален.');
     }
 }

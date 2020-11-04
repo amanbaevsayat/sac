@@ -2,14 +2,16 @@
 
 namespace App\Filters;
 
-class CustomerFilter extends BaseFilter
+class ProductFilter extends BaseFilter
 {
     public function defaultFilter($filter, $value)
     {
         $data = [
-            'name',
-            'phone',
-            'email',
+            'code',
+            'title',
+            'description',
+            'price',
+            'trial_price',
         ];
 
         if (in_array($filter, $data)) {
@@ -24,15 +26,5 @@ class CustomerFilter extends BaseFilter
     public function page($value)
     {
         
-    }
-
-    public function remarkId($value)
-    {
-        if (is_int($value)) {
-            $this->builder->where('remark_id', $value);
-        } else if (is_array($value)) {
-            $this->builder->whereIn('remark_id', $value);
-        }
-        return $this->builder;
     }
 }

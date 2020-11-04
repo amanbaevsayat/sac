@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Filters\CustomerFilter;
+use App\Filters\ProductFilter;
 
 class Product extends Model
 {
@@ -21,5 +23,10 @@ class Product extends Model
     public function subscriptions()
     {
         return $this->belongsToMany(Subscription::class)->withTimestamps();
+    }
+
+    public function scopeFilter($query, ProductFilter $filters)
+    {
+        $filters->apply($query);
     }
 }

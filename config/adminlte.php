@@ -248,7 +248,7 @@ return [
         // products
         [
             'text' => 'Продукты',
-            'url'  => '/',
+            'url'  => '/products',
             'icon' => 'fa fa-boxes'
         ],
 

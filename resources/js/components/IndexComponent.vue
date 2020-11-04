@@ -161,7 +161,7 @@
                     data[name] = items[name].value;
                 });
                 this.spinnerData.loading = true;
-                axios.post(`/api/${this.prefix}/${id}`, data)
+                axios.put(`/${this.prefix}/${id}`, data)
                     .then(response => {
                         this.spinnerData.loading = false;
                         if (response.data.message) {
@@ -232,7 +232,7 @@
             },
             getData() {
                 this.spinnerData.loading = true;
-                axios.get(`/api/${this.prefixProp}`, { params: this.queryParams }).then(response => {
+                axios.get(`/${this.prefixProp}/list`, { params: this.queryParams }).then(response => {
                     this.data = response.data.data;
                     this.dataTitles = response.data.dataTitles;
                     this.others = response.data.others;
@@ -242,7 +242,7 @@
             },
             getFilters() {
                 this.spinnerData.loading = true;
-                axios.get(`/api/${this.prefixProp}/filter`).then(response => {
+                axios.get(`/${this.prefixProp}/filter`).then(response => {
                     this.filters = response.data;
                     this.spinnerData.loading = false;
                 });

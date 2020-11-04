@@ -2111,7 +2111,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         data[name] = items[name].value;
       });
       this.spinnerData.loading = true;
-      axios.post("/api/".concat(this.prefix, "/").concat(id), data).then(function (response) {
+      axios.put("/".concat(this.prefix, "/").concat(id), data).then(function (response) {
         _this.spinnerData.loading = false;
 
         if (response.data.message) {
@@ -2186,7 +2186,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this2 = this;
 
       this.spinnerData.loading = true;
-      axios.get("/api/".concat(this.prefixProp), {
+      axios.get("/".concat(this.prefixProp, "/list"), {
         params: this.queryParams
       }).then(function (response) {
         _this2.data = response.data.data;
@@ -2200,7 +2200,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this3 = this;
 
       this.spinnerData.loading = true;
-      axios.get("/api/".concat(this.prefixProp, "/filter")).then(function (response) {
+      axios.get("/".concat(this.prefixProp, "/filter")).then(function (response) {
         _this3.filters = response.data;
         _this3.spinnerData.loading = false;
       });

@@ -11,7 +11,6 @@ abstract class BaseFilter
     protected $request;
     protected $builder;
 
-
     /**
      * Filter constructor.
      * @param Request $request
@@ -43,5 +42,18 @@ abstract class BaseFilter
     public function filters()
     {
         return $this->request->all();
+    }
+
+    public function sort($value)
+    {
+        $builder = $this->builder;
+        preg_match('#\((.*?)\)#', $value, $match);
+        $name = preg_replace("/\([^)]+\)/", "", $value);
+        if ($match[1] == 'asc') {
+            $builder->orderBy($name);
+        } elseif ($match[1] == 'desc') {
+            $builder->orderByDesc($name);
+        }
+        return $builder;
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CustomerResource extends JsonResource
+class ProductResource extends JsonResource
 {
     /**
      * @param  Request $request
@@ -18,22 +18,25 @@ class CustomerResource extends JsonResource
             'id' => [
                 'value' => $this->id,
             ],
-            'name' => [
+            'code' => [
                 'type' => 'input',
-                'value' => $this->name,
+                'value' => $this->code,
             ],
-            'phone' => [
+            'title' => [
                 'type' => 'input',
-                'value' => $this->phone,
+                'value' => $this->title,
             ],
-            'email' => [
+            'description' => [
                 'type' => 'input',
-                'value' => $this->email,
+                'value' => $this->description,
             ],
-            'remark_id' => [
-                'type' => 'select',
-                'collection' => 'remarks',
-                'value' => $this->remark_id,
+            'price' => [
+                'type' => 'input',
+                'value' => $this->price,
+            ],
+            'trial_price' => [
+                'type' => 'input',
+                'value' => $this->trial_price,
             ],
         ];
     }

@@ -20,8 +20,16 @@ Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
     Route::get("/", [HomeController::class, "dashboard"])->name("dashboard");
+
+    Route::get('customers/list', 'CustomerController@getList');
+    Route::get('customers/filter', 'CustomerController@getFilters');
+
+    Route::get('products/list', 'ProductController@getList');
+    Route::get('products/filter', 'ProductController@getFilters');
+
     Route::resources([
         'customers' => 'CustomerController',
+        'products' => 'ProductController',
     ]);
 });
 
