@@ -152,9 +152,16 @@ class ProductController extends Controller
     public function update(CreateProductRequest $request, Product $product)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
         $product->update($request->all());
-        return redirect()->to(route("{$this->root}.show", [$product->id]))->with('success', 'Данные продукта успешно изменены.');
+
+        $message = 'Данные продукта успешно изменены.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->to(route("{$this->root}.show", [$product->id]))->with('success', $message);
+        }
     }
 
     /**

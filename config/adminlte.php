@@ -255,14 +255,14 @@ return [
         // subscriptions
         [
             'text' => 'Абонементы',
-            'url'  => '/',
+            'url'  => '/subscriptions',
             'icon' => 'fa fa-calendar-check'
         ],
 
         // payments
         [
             'text' => 'Платежи',
-            'url'  => '/',
+            'url'  => '/payments',
             'icon' => 'fa fa-money-check-alt'
         ],
     ],

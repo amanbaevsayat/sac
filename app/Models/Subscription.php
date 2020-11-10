@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Filters\SubscriptionFilter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,18 +11,35 @@ class Subscription extends Model
 {
     use HasFactory, SoftDeletes, ModelBase;
 
+    const STATUSES = [
+        'trial' => 'Пробная версия',
+        'active' => 'Активный',
+        'deactive' => 'Неактивен'
+    ];
+
     protected $fillable = [
         'started_at',
         'paused_at',
         'ended_at',
-        'recurrent',
-        'payment_id',
+        'product_id',
+        'amount',
+        'description',
+        'status',
         'customer_id',
     ];
 
-    public function payment()
+    protected $dates = [
+        'started_at',
+        'paused_at',
+        'ended_at',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    public function product()
     {
-        return $this->belongsTo(Payment::class);
+        return $this->belongsTo(Product::class);
     }
 
     public function customer()
@@ -29,8 +47,13 @@ class Subscription extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function products()
+    public function scopeFilter($query, SubscriptionFilter $filters)
     {
-        return $this->belongsToMany(Product::class)->withTimestamps();
+        $filters->apply($query);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'subscription_id');
     }
 }

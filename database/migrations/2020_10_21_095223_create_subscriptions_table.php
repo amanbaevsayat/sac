@@ -16,19 +16,21 @@ class CreateSubscriptionsTable extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
 
-            $table->date('started_at');
-            $table->date('paused_at')->nullable(); // for freeze
-            $table->date('ended_at');
-            $table->boolean('recurrent')->default(true);
-
-            $table->unsignedInteger('payment_id');
+            $table->dateTime('started_at');
+            $table->dateTime('paused_at')->nullable(); // for freeze
+            $table->dateTime('ended_at');
+            
             $table->unsignedInteger('customer_id');
-
+            $table->unsignedInteger('product_id');
+            
             $table->timestamps();
             $table->softDeletes();
-
-            $table->index('payment_id');
+            
             $table->index('customer_id');
+            $table->index('product_id');
+            $table->unsignedBigInteger('amount'); // Сумма
+            $table->text('description')->nullable();
+            $table->text('status');
         });
     }
 

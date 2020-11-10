@@ -19,9 +19,19 @@ class Customer extends Model
         'remark_id',
     ];
 
+    public function getNameWithPhoneAttribute()
+    {
+        return "{$this->name} {$this->phone}";
+    }
+
     public function remark()
     {
         return $this->belongsTo(Remark::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class, 'customer_id');
     }
 
     public function scopeFilter($query, CustomerFilter $filters)

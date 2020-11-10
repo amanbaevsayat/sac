@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="row">
+        <div class="row" v-if="filters.length > 0">
             <div class="col-11">
                 <div class="card mb-2" id="filter">
                     <div class="card-header py-1">
@@ -17,7 +17,7 @@
                                 <div class="form-group">
                                     <label for="subscriptionStatus">{{ filter.title }}</label>
                                     <div v-if="filter.type == 'select'">
-                                        <select class="form-control" :id="filter.name" :name="filter.name" multiple v-model="queryParams[filter.name]">
+                                        <select v-model="queryParams[filter.name]" :name="filter.name" :id="filter.name" class="form-control selectpicker" data-show-subtext="true" data-live-search="true">
                                             <option v-for="(option, optionIndex) in filter.options" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
                                     </div>
@@ -28,6 +28,7 @@
                             </div>
                         </div>
                         <button type="button" class="btn btn-primary" @click="applyFilter()">Применить фильтр</button>
+                        <button type="button" class="btn btn-danger" @click="resetFilter()">Сброс фильтра</button>
                     </div>
                 </div>
             </div>
@@ -49,7 +50,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="(items, itemsIndex) in data" :key="itemsIndex" :data-id="itemsIndex">
-                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type }">
+                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link' }">
                             <div v-if="item.type == 'select'">
                                 <select :name="name" v-model="item.value" class="form-control form-control-sm">
                                     <option v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
@@ -59,6 +60,19 @@
                             </div>
                             <div v-else-if="item.type == 'input'">
                                 <input type="text" class="form-control form-control-sm" v-model="item.value" />
+                            </div>
+                            <div v-else-if="item.type == 'link'">
+                                <a class="btn btn-primary" :href="item.value" role="button">{{ item.title }}</a>
+                            </div>
+                            <div v-else-if="item.type == 'date'">
+                                <datetime
+                                    type="datetime"
+                                    v-model="item.value"
+                                    input-class="my-class form-control"
+                                    valueZone="Asia/Almaty"
+                                    zone="Asia/Almaty"
+                                    format="yyyy-MM-dd HH:mm:ss"
+                                ></datetime>
                             </div>
                             <div v-else>
                                 {{ item.value }}
@@ -136,12 +150,12 @@
         data() {
             return {
                 prefix: this.prefixProp,
-                filters: [],
-                data: [],
-                dataTitles: [],
-                others: [],
-                pagination: [],
-                queryParams: [],
+                filters: {},
+                data: {},
+                dataTitles: {},
+                others: {},
+                pagination: {},
+                queryParams: {},
                 spinnerData: {
                     loading: false,
                     color: '#6cb2eb',
@@ -150,9 +164,13 @@
             }
         },
         mounted() {
+            // let externalScript = document.createElement('script');
+            // externalScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments');
+            // document.head.appendChild(externalScript);
+            this.spinnerData.loading = true;
             this.setQueryParams();
-            this.getData();
             this.getFilters();
+            this.getData();
         },
         methods: {
             saveItem(items, id) {
@@ -190,6 +208,11 @@
                 this.setAddressBar();
                 this.getData();
             },
+            resetFilter() {
+                this.queryParams = {},
+                this.setAddressBar();
+                this.getData();
+            },
             changeSortQueryParams(key) {
                 if ('sort' in this.queryParams) {
                     let sortType = '';
@@ -212,13 +235,14 @@
                 this.getData();
             },
             changeFilterValue(e, filterName) {
-                console.log(e.target.value);
                 this.queryParams[filterName] = e.target.value;
             },
             setAddressBar() {
                 if (Object.keys(this.queryParams).length > 0) {
                     let strQueryParams = new URLSearchParams(this.queryParams).toString()
                     history.pushState('', '', '?' + strQueryParams);
+                } else {
+                    history.pushState('', '', location.origin + location.pathname);
                 }
             },
             setQueryParams() {

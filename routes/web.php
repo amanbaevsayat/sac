@@ -27,9 +27,17 @@ Route::middleware(["auth"])->group(function () {
     Route::get('products/list', 'ProductController@getList');
     Route::get('products/filter', 'ProductController@getFilters');
 
+    Route::get('subscriptions/list', 'SubscriptionController@getList');
+    Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
+
+    Route::get('payments/list', 'PaymentController@getList');
+    Route::get('payments/filter', 'PaymentController@getFilters');
+
     Route::resources([
         'customers' => 'CustomerController',
         'products' => 'ProductController',
+        'subscriptions' => 'SubscriptionController',
+        'payments' => 'PaymentController',
     ]);
 });
 

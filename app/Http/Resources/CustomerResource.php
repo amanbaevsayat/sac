@@ -35,6 +35,11 @@ class CustomerResource extends JsonResource
                 'collection' => 'remarks',
                 'value' => $this->remark_id,
             ],
+            'subscriptions' => [
+                'title' => 'Подписки',
+                'type' => 'link',
+                'value' => route('subscriptions.index', ['customer_id' => $this->id]),
+            ],
         ];
     }
 }

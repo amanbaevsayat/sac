@@ -148,9 +148,16 @@ class CustomerController extends Controller
     public function update(CreateCustomerRequest $request, Customer $customer)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
         $customer->update($request->all());
-        return redirect()->to(route("{$this->root}.show", [$customer->id]))->with('success', 'Данные клиента успешно изменены.');
+
+        $message = 'Данные клиента успешно изменены.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->to(route("{$this->root}.show", [$customer->id]))->with('success', $message);
+        }
     }
 
     /**
