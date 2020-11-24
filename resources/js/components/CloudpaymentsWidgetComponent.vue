@@ -23,19 +23,30 @@
                 price: this.priceProp,
                 publicId: this.publicIdProp,
                 data: {},
+                interval: 0,
+                counterStop: false,
             }
         },
-        mounted() {
+        created() {
+            console.log('Created');
             let recaptchaScript = document.createElement('script')
             recaptchaScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments')
             document.head.appendChild(recaptchaScript);
         },
+        mounted() {
+            this.interval = setInterval(() => {
+                console.log(123);
+                if (! this.counterStop) {
+                    this.pay();
+                }
+            }, 2000);
+        },
         methods: {
             pay() {
                 this.fillInData();
-
                 let widget = new cp.CloudPayments();
                 
+                this.counterStop = true;
 
                 widget.charge({ // options
                     publicId: this.publicId, //id из личного кабинета
@@ -52,6 +63,9 @@
                 function (reason, options) { // fail
                     //действие при неуспешной оплате
                 });
+                console.log(123);
+                clearInterval(this.interval);
+                this.counterStop = true;
             },
             fillInData() {
                 if (this.payment.recurrent) {

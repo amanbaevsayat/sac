@@ -18,7 +18,7 @@ class PaymentResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'status' => $this->status,
-            'check' => $this->data['check'],
+            'check' => $this->data['check'] ?? null,
             'link' => route('cloudpayments.show_widget', ['slug' => $this->slug]),
             'quantity' => $this->quantity,
             'recurrent' => [
