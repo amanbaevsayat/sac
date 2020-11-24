@@ -95,9 +95,7 @@ class PaymentController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
         $data = $request->all();
-        dd($data);
         $data['slug'] = Str::uuid();
-        $data['amunt'] = 1000;
         $data['recurrent'] = $request->get('recurrent') == 'on' ? true : false;
         $data['status'] = 'new';
         $data['data'] = [

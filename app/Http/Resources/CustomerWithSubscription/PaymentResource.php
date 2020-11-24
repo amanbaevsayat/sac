@@ -40,7 +40,7 @@ class PaymentResource extends JsonResource
             if ($this->status == 'new') {
                 $title = "{$this->created_at} ожидаю оплату переводом на сумму {$this->subscription->price->price} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$this->updated_at} прямой перевод на сумму {$this->subscription->price->price} тг (чек оплаты)";
+                $title = "{$this->updated_at} прямой перевод на сумму {$this->subscription->price->price} тг";
             } elseif ($this->status == 'Declined') {
                 $title = "{$this->updated_at} не оплатил переводом на сумму {$this->subscription->price->price} тг";
             }

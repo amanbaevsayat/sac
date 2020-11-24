@@ -17,6 +17,10 @@ class CloudPaymentsController extends Controller
 
         return view('cloudpayments.show-widget', [
             'payment' => $payment,
+            'customer' => $payment->customer,
+            'subscription' => $payment->subscription,
+            'product' => $payment->subscription->product,
+            'price' => $payment->subscription->product->price,
             'publicId' => $publicId,
         ]);
     }

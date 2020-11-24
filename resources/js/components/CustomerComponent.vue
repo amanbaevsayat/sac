@@ -98,9 +98,10 @@
                 <div class="form-group row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'">
                     <div class="recurrent_block">
                         <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
+                        <input type="hidden" :id="'recurrent-link-' + subIndex" :value="subscription.recurrent.link">
                     </div>
                     <div class="recurrent_button-block">
-                        <button class="btn btn-info" @click="copyRecurrentLink(subscription.recurrent.link)">Копировать</button>
+                        <button class="btn btn-info" @click="copyRecurrentLink(subIndex)">Копировать</button>
                     </div>
                 </div>
 
@@ -156,7 +157,7 @@ export default {
             quantities: {},
         }
     },
-    watch: { 
+    watch: {
         customerIdProp: function(newVal, oldVal) { // watch it
             console.log('Prop changed: ', newVal, ' | was: ', oldVal);
             this.customerId = newVal;
@@ -173,6 +174,47 @@ export default {
         this.getOptions();
     },
     methods: {
+        copyRecurrentLink(index) {
+            var input = $('#recurrent-link-' + index);
+            console.log(input);
+            var success   = true,
+                range     = document.createRange(),
+                selection;
+
+            // For IE.
+            if (window.clipboardData) {
+                window.clipboardData.setData("Text", input.val());        
+            } else {
+                // Create a temporary element off screen.
+                var tmpElem = $('<div>');
+                tmpElem.css({
+                position: "absolute",
+                left:     "-1000px",
+                top:      "-1000px",
+                });
+                // Add the input value to the temp element.
+                tmpElem.text(input.val());
+                $("body").append(tmpElem);
+                // Select temp element.
+                range.selectNodeContents(tmpElem.get(0));
+                selection = window.getSelection ();
+                selection.removeAllRanges ();
+                selection.addRange (range);
+                // Lets copy.
+                try { 
+                    success = document.execCommand("copy", false, null);
+                }
+                catch (e) {
+                    copyToClipboardFF(input.val());
+                }
+                if (success) {
+                    Vue.$toast.success('Ссылка скопирована!');
+
+                    // remove temp element.
+                    tmpElem.remove();
+                }
+            }
+        },
         getCustomerWithData() {
             axios.get('/customers/' + this.customerId + '/with-data').then(response => {
                 let data = response.data.data;
@@ -216,6 +258,7 @@ export default {
 
                     this.subscriptions = customer.subscriptions;
                 }
+                Vue.$toast.success(response.data.message);
             })
             .catch(err => {
                 this.spinnerData.loading = false;
@@ -289,5 +332,8 @@ export default {
 .recurrent_block {
     padding: 20px;
     border: 1px solid #3490dc;
+}
+.recurrent_button-block {
+    margin: 20px;
 }
 </style>
