@@ -1,17 +1,15 @@
 @extends('adminlte::page')
 
-@section('title', 'Подписки')
+@section('title', 'Абонементы')
 
 @section('content_header')
-<h1>Подписки</h1>
+<h1>Абонементы</h1>
 @stop
 
 @section('content')
 <div class="row">
     <div class="col-1">
-        <a href="{{ route('subscriptions.create') }}" class="btn btn-info btn-block text-white mb-2" title="Создать подписку">
-            <i class="fa fa-plus"></i>
-        </a>
+        <button-customer-component><button-customer-component>
     </div>
 </div>
 <div class="table-responsive bg-white">

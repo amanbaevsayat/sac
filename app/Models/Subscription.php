@@ -12,9 +12,16 @@ class Subscription extends Model
     use HasFactory, SoftDeletes, ModelBase;
 
     const STATUSES = [
-        'trial' => 'Пробная версия',
-        'active' => 'Активный',
-        'deactive' => 'Неактивен'
+        'paid' => 'Оплачено',
+        'refused' => 'Отказался',
+        'tries' => 'Пробует',
+        'waiting' => 'Жду оплату',
+    ];
+
+    const PAYMENT_TYPE = [
+        'tries' => 'Пробная версия',
+        'cloudpayments' => 'Подписка',
+        'transfer' => 'Прямой перевод',
     ];
 
     protected $fillable = [
@@ -22,10 +29,11 @@ class Subscription extends Model
         'paused_at',
         'ended_at',
         'product_id',
-        'amount',
+        'customer_id',
+        'price_id',
         'description',
         'status',
-        'customer_id',
+        'payment_type',
     ];
 
     protected $dates = [
@@ -34,12 +42,24 @@ class Subscription extends Model
         'ended_at',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
+
+    protected static function boot() {
+        parent::boot();
+    
+        static::deleting(function($subscription) {
+            $subscription->payments()->delete();
+        });
+    }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function price()
+    {
+        return $this->belongsTo(Price::class);
     }
 
     public function customer()
@@ -47,13 +67,23 @@ class Subscription extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'subscription_id');
+    }
+
     public function scopeFilter($query, SubscriptionFilter $filters)
     {
         $filters->apply($query);
     }
 
-    public function payments()
+    public function daysLeft()
     {
-        return $this->hasMany(Payment::class, 'subscription_id');
+        if (!$this->ended_at) return '';
+        $now = time();
+        $end_date = strtotime($this->ended_at);
+        $datediff = $end_date - $now;
+
+        return round($datediff / (60 * 60 * 24));
     }
 }

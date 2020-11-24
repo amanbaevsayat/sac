@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,35 +19,37 @@ class SubscriptionResource extends JsonResource
             'id' => [
                 'value' => $this->id,
             ],
-            'product' => [
-                'title' => $this->product->title,
-                'type' => 'link',
-                'value' => route('products.show', [$this->product->id]),
+            'customer' => [
+                'id' => $this->customer->id,
+                'title' => $this->customer->name,
+                'type' => 'customer-link',
+                'value' => route('customers.show', [$this->customer->id]),
             ],
-            'started_at' => [
-                'type' => 'date',
-                'value' => $this->started_at,
+            'customers.phone' => [
+                'value' => $this->customer->phone,
+                'type' => 'input',
             ],
-            'paused_at' => [
-                'type' => 'date',
-                'value' => $this->paused_at,
+            'days_left' => [
+                'value' => $this->daysLeft(),
+            ],
+            'payment_type' => [
+                'type' => 'select',
+                'collection' => 'payment_types',
+                'value' => $this->payment_type,
             ],
             'ended_at' => [
                 'type' => 'date',
                 'value' => $this->ended_at,
             ],
-            'amount' => [
-                'type' => 'input',
-                'value' => $this->amount,
-            ],
-            'description' => [
-                'type' => 'input',
-                'value' => $this->description,
-            ],
             'status' => [
                 'type' => 'select',
                 'collection' => 'statuses',
                 'value' => $this->status,
+            ],
+            'product' => [
+                'title' => $this->product->title ?? null,
+                'type' => 'link',
+                'value' => $this->product_id ? route('products.show', [$this->product_id]) : null,
             ],
             'payments' => [
                 'title' => 'Платежи',

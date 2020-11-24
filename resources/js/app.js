@@ -42,12 +42,18 @@ $(document)
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('index-component', require('./components/IndexComponent.vue').default);
 Vue.component('pulse-loader', require('vue-spinner/src/PulseLoader.vue').default);
+Vue.component('payment-show-recurrent', require('./components/PaymentShowRecurrentComponent.vue').default);
+Vue.component('upload-file', require('./components/UploadFileComponent.vue').default);
+Vue.component('cloudpayments-widget', require('./components/CloudpaymentsWidgetComponent.vue').default);
+Vue.component('customer-component', require('./components/CustomerComponent.vue').default);
+Vue.component('button-customer-component', require('./components/ButtonCustomerComponent.vue').default);
 
 import VueToast from 'vue-toast-notification';
 import PortalVue from 'portal-vue'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-// Import one of available themes
+import VModal from 'vue-js-modal/dist/ssr.nocss'
 import 'vue-toast-notification/dist/theme-default.css';
+Vue.use(VModal, {})
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 Vue.use(PortalVue);
 Vue.use(VueToast, {

@@ -25,6 +25,7 @@ class SubscriptionFactory extends Factory
     {
         $customer = Customer::inRandomOrder()->first();
         $product = Product::inRandomOrder()->first();
+        $price = $product->prices()->inRandomOrder()->first();
         $statuses = Subscription::STATUSES;
 
         $pausedAt = [
@@ -36,11 +37,12 @@ class SubscriptionFactory extends Factory
             'started_at' => $this->faker->dateTimeBetween('-2 month', 'now'),
             'paused_at' => $pausedAt[array_rand($pausedAt)],
             'ended_at' => $this->faker->dateTimeBetween('-1 week', '+3 month'),
-            'customer_id' => $customer->id,
             'product_id' => $product->id,
-            'amount' => $product->price,
+            'customer_id' => $customer->id,
+            'price_id' => $price->id,
             'description' => 'Подписка ' . $product->title,
             'status' => array_rand($statuses),
+            'payment_type' => array_rand(Subscription::PAYMENT_TYPE)
         ];
     }
 }

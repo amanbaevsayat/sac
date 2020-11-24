@@ -8,9 +8,8 @@ use Illuminate\Http\Request;
 use App\Filters\PaymentFilter;
 use App\Http\Resources\PaymentCollection;
 use App\Models\Customer;
-use App\Models\Product;
 use App\Models\Subscription;
-
+use Illuminate\Support\Str;
 class PaymentController extends Controller
 {
     private $root;
@@ -77,8 +76,13 @@ class PaymentController extends Controller
     public function create()
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        $customers = Customer::get();
+        $subscriptions = Subscription::get();
 
-        return view("{$this->root}.create");
+        return view("{$this->root}.create", [
+            'subscriptions' => $subscriptions,
+            'customers' => $customers,
+        ]);
     }
 
     /**
@@ -90,8 +94,17 @@ class PaymentController extends Controller
     public function store(CreatePaymentRequest $request, Payment $payment)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        $data = $request->all();
+        dd($data);
+        $data['slug'] = Str::uuid();
+        $data['amunt'] = 1000;
+        $data['recurrent'] = $request->get('recurrent') == 'on' ? true : false;
+        $data['status'] = 'new';
+        $data['data'] = [
+            'check' => $request->get('image'),
+        ];
 
-        $payment->create($request->all());
+        $payment->create($data);
         return redirect()->route("{$this->root}.index")->with('success', 'Платеж успешно создан.');
     }
 

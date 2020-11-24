@@ -16,22 +16,42 @@ class Customer extends Model
         'phone',
         'email',
         'comments',
-        'remark_id',
     ];
+
+    protected $dates = ['deleted_at'];
+
+    protected static function boot() {
+        parent::boot();
+    
+        static::deleting(function($customer) {
+            $customer->subscriptions()->delete();
+            $customer->payments()->delete();
+        });
+
+        // static::restoring(function($customer) {
+        //     $customer->subscriptions()->withTrashed()->where('deleted_at', '>=', $customer->deleted_at)->restore();
+        //     $customer->payments()->withTrashed()->where('deleted_at', '>=', $customer->deleted_at)->restore();
+        // });
+
+        // static::restored(function($customer) {
+        //     $customer->subscriptions()->withTrashed()->where('deleted_at', '>=', $customer->deleted_at)->restore();
+        //     $customer->payments()->withTrashed()->where('deleted_at', '>=', $customer->deleted_at)->restore();
+        // });
+    }
 
     public function getNameWithPhoneAttribute()
     {
         return "{$this->name} {$this->phone}";
     }
 
-    public function remark()
-    {
-        return $this->belongsTo(Remark::class);
-    }
-
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class, 'customer_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'customer_id');
     }
 
     public function scopeFilter($query, CustomerFilter $filters)

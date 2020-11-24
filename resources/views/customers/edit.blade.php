@@ -36,24 +36,9 @@
                     <textarea type="comments" class="form-control" id="comments" value="" name="comments">{{ $customer->comments }}</textarea>
                 </div>
             </div>
-            <div class="form-group row">
-                <label for="remark_id" class="col-sm-2 col-form-label">Ремарка</label>
-                <div class="col-sm-10">
-                    <select name="remark_id" id="remark_id" class="form-control" name="remark_id">
-                        @foreach($remarks as $remark)
-                        <option value="{{$remark->id}}" 
-                            @if(isset($customer->remark))    
-                                @if($remark->id == $customer->remark->id)
-                                    selected
-                                @endif
-                            @endif
-                        >
-                            {{$remark->title}}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
+            
+
+            
 
 
             <div class="form-group">

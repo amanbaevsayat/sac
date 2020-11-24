@@ -35,12 +35,31 @@ class SubscriptionController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
         $customers = Customer::get()->pluck('name_with_phone', 'id');
+        $products = Product::get()->pluck('title', 'id');
         $data = [
             [
                 'name' => 'customer_id',
                 'title' => 'Клиенты',
                 'type' => 'select',
                 'options' => $customers,
+            ],
+            [
+                'name' => 'product_id',
+                'title' => 'Услуги',
+                'type' => 'select',
+                'options' => $products,
+            ],
+            [
+                'name' => 'payment_type',
+                'title' => 'Тип',
+                'type' => 'select',
+                'options' => Subscription::PAYMENT_TYPE,
+            ],
+            [
+                'name' => 'status',
+                'title' => 'Метка',
+                'type' => 'select',
+                'options' => Subscription::STATUSES,
             ],
         ];
 
@@ -115,9 +134,13 @@ class SubscriptionController extends Controller
     public function edit(Subscription $subscription)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        $products = Product::get();
+        $customers = Customer::get();
 
         return view("{$this->root}.edit", [
             'subscription' => $subscription,
+            'products' => $products,
+            'customers' => $customers,
         ]);
     }
 

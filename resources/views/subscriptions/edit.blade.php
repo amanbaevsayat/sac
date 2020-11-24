@@ -9,46 +9,105 @@
 @section('content')
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('customers.update', [$customer->id]) }}" method="POST">
+        <form action="{{ route('subscriptions.update', [$subscription->id]) }}" method="POST">
         {{ csrf_field() }}
         {{ method_field('PATCH') }}
-            <div class="form-group row">
-                <label for="name" class="col-sm-2 col-form-label">Имя</label>
+        <div class="form-group row">
+                <label for="customer_id" class="col-sm-2 col-form-label">Выбрать клиента</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" id="name" value="{{ $customer->name }}" name="name">
+                    <select name="customer_id" id="customer_id" class="form-control selectpicker" name="customer_id" data-show-subtext="true" data-live-search="true">
+                        @foreach($customers as $item)
+                        <option value="{{ $item->id }}" data-subtext="{{ $item->phone }}" {{ $item->id == $subscription->customer_id ? 'selected' : '' }}>
+                            {{ $item->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="products" class="col-sm-2 col-form-label">Выбрать продукт</label>
+                <div class="col-sm-10">
+                    <select id="product_id" class="form-control selectpicker" name="product_id"  data-show-subtext="true" data-live-search="true">
+                        @foreach($products as $product)
+                        <option value="{{ $product->id }}" data-subtext="{{ $product->price }}" {{ $product->id == $subscription->product_id ? 'selected' : '' }}>
+                            {{ $product->title }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="description" class="col-sm-2 col-form-label">Описание подписки</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" id="description" name="description">{{ $subscription->description }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="amount" class="col-sm-2 col-form-label">Цена</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="amount" value="{{ $subscription->amount }}" name="amount">
+                </div>
+            </div>
+            @php
+                
+                $startedAt = $subscription->started_at ? Carbon\Carbon::parse($subscription->started_at)->toW3cString() : null;
+                $pausedAt = $subscription->paused_at ? Carbon\Carbon::parse($subscription->paused_at)->toW3cString() : null;
+                $endedAt = $subscription->ended_at ? Carbon\Carbon::parse($subscription->ended_at)->toW3cString() : null;
+            @endphp
+            <div class="form-group row">
+                <label for="started_at" class="col-sm-2 col-form-label">Дата старта</label>
+                <div class="col-sm-10">
+                    <datetime
+                        name="started_at"
+                        value="{{ $startedAt }}"
+                        type="datetime"
+                        input-class="form-control"
+                        valueZone="Asia/Almaty"
+                        zone="Asia/Almaty"
+                        format="yyyy-MM-dd HH:mm:ss"
+                    ></datetime>
                 </div>
             </div>
             <div class="form-group row">
-                <label for="phone" class="col-sm-2 col-form-label">Телефон</label>
+                <label for="paused_at" class="col-sm-2 col-form-label">Дата заморозки</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" id="phone" value="{{ $customer->phone }}" name="phone">
+                    <datetime
+                        name="paused_at"
+                        value="{{ $pausedAt }}"
+                        type="datetime"
+                        input-class="form-control"
+                        valueZone="Asia/Almaty"
+                        zone="Asia/Almaty"
+                        format="yyyy-MM-dd HH:mm:ss"
+                    ></datetime>
                 </div>
             </div>
             <div class="form-group row">
-                <label for="email" class="col-sm-2 col-form-label">Email</label>
+                <label for="ended_at" class="col-sm-2 col-form-label">Дата окончания</label>
                 <div class="col-sm-10">
-                    <input type="email" class="form-control" id="email" value="{{ $customer->email }}" name="email">
+                    <datetime
+                        name="ended_at"
+                        value="{{ $endedAt }}"
+                        type="datetime"
+                        input-class="form-control"
+                        valueZone="Asia/Almaty"
+                        zone="Asia/Almaty"
+                        format="yyyy-MM-dd HH:mm:ss"
+                    ></datetime>
                 </div>
             </div>
+
+            
             <div class="form-group row">
-                <label for="comments" class="col-sm-2 col-form-label">Комментарий</label>
+                <label for="status" class="col-sm-2 col-form-label">Статус</label>
                 <div class="col-sm-10">
-                    <textarea type="comments" class="form-control" id="comments" value="" name="comments">{{ $customer->comments }}</textarea>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="remark_id" class="col-sm-2 col-form-label">Ремарка</label>
-                <div class="col-sm-10">
-                    <select name="remark_id" id="remark_id" class="form-control" name="remark_id">
-                        @foreach($remarks as $remark)
-                        <option value="{{$remark->id}}" 
-                            @if(isset($customer->remark))    
-                                @if($remark->id == $customer->remark->id)
-                                    selected
-                                @endif
-                            @endif
-                        >
-                            {{$remark->title}}
+                    <select id="status" class="form-control selectpicker" name="status">
+                        @foreach(\App\Models\Subscription::STATUSES as $key=>$title)
+                        <option value="{{ $key }}" {{ $key == $subscription->status ? 'selected' : '' }}>
+                            {{ $title }}
                         </option>
                         @endforeach
                     </select>
@@ -60,7 +119,7 @@
                 <input type="submit" value="Сохранить" class="btn btn-success" />
             </div>
         </form>
-        <a href="{{ route('customers.index') }}">К списку</a>
+        <a href="{{ route('subscriptions.index') }}">К списку</a>
     </div>
 </div>
 @stop

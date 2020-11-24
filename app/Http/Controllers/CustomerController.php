@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateCustomerRequest;
+use App\Http\Requests\CreateCustomerWithDataRequest;
 use App\Models\Customer;
 use Illuminate\Http\Request;
-use App\Models\Remark;
 use App\Filters\CustomerFilter;
 use App\Http\Resources\CustomerCollection;
+use App\Http\Resources\CustomerResource;
+use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWithSubscriptionResource;
+use App\Models\Subscription;
+use App\Models\Payment;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
@@ -18,6 +23,87 @@ class CustomerController extends Controller
     {
         $this->root = 'customers';
         $this->perPage = 45;
+    }
+
+    public function getCustomerWithData($customerId)
+    {
+        $customer = Customer::whereId($customerId)->firstOr(function () use ($customerId) {
+            throw new \Exception('Клиент не найден', 404);
+        });
+
+        return response()->json([
+            'data' => new CustomerWithSubscriptionResource($customer),
+            'message' => 'Успешно'
+        ], 200);
+    }
+
+    public function getOptions()
+    {
+        return response()->json([
+            'quantities' => Payment::QUANTITIES, 
+            'paymentTypes' => Subscription::PAYMENT_TYPE, 
+            'statuses' => Subscription::STATUSES,
+        ], 200);
+    }
+
+    public function createWithData(CreateCustomerWithDataRequest $request)
+    {
+        $data = $request->all();
+
+        $customer = Customer::updateOrCreate([
+            'phone' => $data['customer']['phone'], 
+        ],[
+            'name' => $data['customer']['name'], 
+            'email' => $data['customer']['email'], 
+            'comments' => $data['customer']['comments'], 
+        ]);
+
+        foreach ($data['subscriptions'] as $item) {
+            $subscription = $customer->subscriptions()->updateOrCreate([
+                'product_id' => $item['product_id'],
+            ], [
+                'price_id' => $item['price_id'],
+                'payment_type' => $item['payment_type'],
+                'started_at' => $item['started_at'],
+                'ended_at' => $item['ended_at'],
+                'status' => $item['status'],
+            ]);
+
+            if ($subscription->payment_type == 'cloudpayments') {
+                if ($subscription->payments()->where('status', 'new')->where('type', 'cloudpayments')->doesntExist()) {
+                    $payment = $subscription->payments()->create([
+                        'customer_id' => $customer->id,
+                        'type' => 'cloudpayments',
+                        'slug' => Str::uuid(),
+                        'status' => 'new',
+                        'recurrent' => true,
+                        'start_date' => $item['started_at'], // TODO
+                        'interval' => 'Month',
+                        'period' => 1,
+                    ]);
+                }
+            } elseif ($subscription->payment_type == 'transfer') {
+                if (isset($item['newPayment']['check'])) {
+                    $paymentStatus = $subscription->status == 'paid' ? 'Completed' : 'new';
+    
+                    $payment = $subscription->payments()->create([
+                        'customer_id' => $customer->id,
+                        'type' => 'transfer',
+                        'slug' => Str::uuid(),
+                        'status' => $paymentStatus,
+                        'quantity' => $item['newPayment']['quantity'] ?? 1,
+                        'data' => [
+                            'check' => $item['newPayment']['check'],
+                        ],
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'customer' => new CustomerWithSubscriptionResource($customer),
+            'message' => 'Клиент успешно создан или обновлен'
+        ], 200);
     }
 
     public function getList(CustomerFilter $filters)
@@ -34,8 +120,6 @@ class CustomerController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $remarks = Remark::pluck('title', 'id')->toArray();
-
         $data = [
             [
                 'name' => 'name',
@@ -51,12 +135,6 @@ class CustomerController extends Controller
                 'name' => 'email',
                 'title' => 'E-mail',
                 'type' => 'input',
-            ],
-            [
-                'name' => 'remark_id',
-                'title' => 'Метки',
-                'type' => 'select',
-                'options' => $remarks,
             ],
         ];
 
@@ -84,11 +162,7 @@ class CustomerController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $remarks = Remark::all();
-
-        return view("{$this->root}.create", [
-            'remarks' => $remarks,
-        ]);
+        return view("{$this->root}.create");
     }
 
     /**
@@ -130,10 +204,7 @@ class CustomerController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $remarks = Remark::all();
-
         return view("{$this->root}.edit", [
-            'remarks' => $remarks,
             'customer' => $customer,
         ]);
     }

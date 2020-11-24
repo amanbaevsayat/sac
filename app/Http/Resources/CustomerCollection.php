@@ -16,7 +16,6 @@ class CustomerCollection extends ResourceCollection
         return [
             'data' => CustomerResource::collection($this->collection),
             'others' => [
-                'remarks' => Remark::pluck('title', 'id'),
             ],
             'dataTitles' => [
                 [
@@ -34,10 +33,6 @@ class CustomerCollection extends ResourceCollection
                 [
                     'title' => 'E-mail',
                     'key' => 'email',
-                ],
-                [
-                    'title' => 'Метки',
-                    'key' => 'remark_id',
                 ],
             ],
             'pagination' => [

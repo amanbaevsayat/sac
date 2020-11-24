@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Создать подписку')
+@section('title', 'Создать абонемент')
 
 @section('content_header')
-<h1>Создать подписку</h1>
+<h1>Создать абонемент</h1>
 @stop
 
 @section('content')
@@ -29,7 +29,7 @@
                 <div class="col-sm-10">
                     <select id="product_id" class="form-control selectpicker" name="product_id"  data-show-subtext="true" data-live-search="true">
                         @foreach($products as $product)
-                        <option value="{{ $product->id }}" {{ $product->id == old('product_id') ? 'selected' : '' }}>
+                        <option value="{{ $product->id }}" data-subtext="{{ $product->price }}" {{ $product->id == old('product_id') ? 'selected' : '' }}>
                             {{ $product->title }}
                         </option>
                         @endforeach
@@ -38,7 +38,7 @@
             </div>
 
             <div class="form-group row">
-                <label for="description" class="col-sm-2 col-form-label">Описание подписки</label>
+                <label for="description" class="col-sm-2 col-form-label">Описание абонемента</label>
                 <div class="col-sm-10">
                     <textarea class="form-control" id="description" name="description">{{ old('description') }}</textarea>
                 </div>
@@ -53,8 +53,8 @@
             @php
                 $now = date("Y-m-d H:i:s");
                 $startedAt = Carbon\Carbon::parse(old('started_at') ?? $now)->toW3cString();
-                $pausedAt = Carbon\Carbon::parse(old('paused_at') ?? $now)->toW3cString();
-                $endedAt = Carbon\Carbon::parse(old('ended_at') ?? $now)->toW3cString();
+                $pausedAt = null;
+                $endedAt = null;
             @endphp
             <div class="form-group row">
                 <label for="started_at" class="col-sm-2 col-form-label">Дата старта</label>

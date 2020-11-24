@@ -24,13 +24,7 @@ class PaymentFactory extends Factory
      */
     public function definition()
     {
-        $customer = Customer::inRandomOrder()->first();
         $subscription = Subscription::inRandomOrder()->first();
-        $types = [
-            'cloudpayments',
-            'kaspibank',
-            'sberbank',
-        ];
         
         $intervals = [
             'Day',
@@ -40,10 +34,10 @@ class PaymentFactory extends Factory
 
         return [
             'subscription_id' => $subscription->id,
-            'customer_id' => $customer->id,
-            'type' => $types[array_rand($types)],
+            'customer_id' => $subscription->customer->id,
+            'type' => array_rand(Subscription::PAYMENT_TYPE),
             'slug' => Str::uuid(),
-            'amount' => $this->faker->numberBetween(1000, 10000),
+            'quantity' => $this->faker->numberBetween(1, 3),
             'status' => array_rand(Payment::STATUSES),
             'recurrent' => rand(0,1), // Для рекуррентных платежей
             'start_date' => $this->faker->dateTimeBetween('-2 month', 'now'), // Для рекуррентных платежей

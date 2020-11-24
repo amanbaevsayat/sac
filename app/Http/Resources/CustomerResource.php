@@ -30,11 +30,6 @@ class CustomerResource extends JsonResource
                 'type' => 'input',
                 'value' => $this->email,
             ],
-            'remark_id' => [
-                'type' => 'select',
-                'collection' => 'remarks',
-                'value' => $this->remark_id,
-            ],
             'subscriptions' => [
                 'title' => 'Подписки',
                 'type' => 'link',

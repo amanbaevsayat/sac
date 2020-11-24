@@ -177,4 +177,28 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
     }
+
+    public function withPrices()
+    {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+
+        $products = Product::get();
+        $data = [];
+        foreach ($products as $product) {
+            $data[$product->id] = [
+                'title' => $product->title,
+                'prices' => [],
+            ];
+            if (count($product->prices) > 0) {
+                $prices = [];
+                foreach ($product->prices as $price) {
+                    $prices[$price->id] = $price->price;
+                }
+                // dd($prices);
+                $data[$product->id]['prices'] = $prices;
+            }
+        }
+
+        return response()->json($data, 200);
+    }
 }

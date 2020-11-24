@@ -1,0 +1,293 @@
+<template>
+    <div>
+        <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
+        <b-modal :id="'modal-customer-' + type" title="Добавить клиента" size="xl" hide-footer>
+            <b-card>
+                <div class="row">
+                    <div class="form-group col-sm-6">
+                        <label for="name" class="col-sm-4 col-form-label">Имя</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="name" v-model="customer.name" name="name" required>
+                        </div>
+                        <label for="phone" class="col-sm-4 col-form-label">Телефон</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="phone" v-model="customer.phone" name="phone" required>
+                        </div>
+                        <label for="email" class="col-sm-4 col-form-label">E-mail</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="email" v-model="customer.email" name="email">
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-6">
+                        <label for="comments" class="col-sm-4 col-form-label">Примечания</label>
+                        <div class="col-sm-8">
+                            <textarea class="form-control" v-model="customer.comments" name="comments" id="" cols="30" rows="10"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </b-card>
+            
+            <b-card v-for="(subscription, subIndex) in subscriptions" :key="subIndex" border-variant="secondary">
+                <button type="button" @click="removeProduct(subIndex)" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <div class="form-group row">
+                    <label for="product_id" class="col-sm-2 col-form-label">Услуга</label>
+                    <div class="col-sm-4">
+                        <select v-model="subscription.product_id" name="product_id" id="product_id" class="form-control">
+                            <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
+                        </select>
+                    </div>
+                    <label for="price_id" class="col-sm-1 col-form-label">Цена</label>
+                    <div class="col-sm-4">
+                        <select v-model="subscription.price_id" name="price_id" id="price_id" class="form-control">
+                            <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="payment_type" class="col-sm-2 col-form-label">Тип оплаты</label>
+                    <div class="col-sm-4">
+                        <select v-model="subscription.payment_type" name="payment_type" id="payment_type" class="form-control">
+                            <option v-for="(option, optionIndex) in paymentTypes" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                        </select>
+                    </div>
+                    <label for="status" class="col-sm-1 col-form-label">Метка</label>
+                    <div class="col-sm-4">
+                        <select v-model="subscription.status" name="status" id="status" class="form-control">
+                            <option v-for="(option, optionIndex) in statuses" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="started_at" class="col-sm-2 col-form-label">Дата старта</label>
+                    <div class="col-sm-4">
+                        <datetime
+                            type="datetime"
+                            v-model="subscription.started_at"
+                            input-class="my-class form-control"
+                            valueZone="Asia/Almaty"
+                            zone="Asia/Almaty"
+                            format="dd/MM/yyyy"
+                        ></datetime>
+                    </div>
+                    <div v-if="subscription.payment_type == 'tries'" style="display: contents">
+                        <label for="ended_at" class="col-sm-1 col-form-label">Дата окончания</label>
+                        <div class="col-sm-4">
+                            <datetime
+                                type="datetime"
+                                v-model="subscription.ended_at"
+                                input-class="my-class form-control"
+                                valueZone="Asia/Almaty"
+                                zone="Asia/Almaty"
+                                format="dd/MM/yyyy"
+                            ></datetime>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row" v-if="subscription.payment_type == 'transfer'">
+                    <label for="check" class="col-sm-2 col-form-label">Загрузить чек</label>
+                    <div class="col-sm-4">
+                        <upload-file :value-prop="subscription.newPayment.check" @file='setFileToSubscription($event, subIndex)'></upload-file>
+                    </div>
+                    <label for="quantity" class="col-sm-1 col-form-label">Период</label>
+                    <div class="col-sm-4">
+                        <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="form-control">
+                            <option v-for="(option, optionIndex) in quantities" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'">
+                    <div class="recurrent_block">
+                        <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
+                    </div>
+                    <div class="recurrent_button-block">
+                        <button class="btn btn-info" @click="copyRecurrentLink(subscription.recurrent.link)">Копировать</button>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <p style="width: 100%" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
+                        {{ payment.title }}
+                        <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
+                    </p>
+                </div>
+            </b-card>
+            <div style="text-align: center">
+                <a @click="addProduct()" class="btn btn-primary">
+                    Добавить услугу
+                </a>
+            </div>
+            <footer class="modal-footer">
+                <button @click="$bvModal.hide('modal-customer-' + type)" type="button" class="btn btn-secondary">Отмена</button>
+                <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button>
+            </footer>
+        </b-modal>
+    </div>
+</template>
+<script>
+export default {
+    props: [
+        'typeProp',
+        'nameProp',
+        'customerIdProp',
+        // 'paymentTypesProp',
+        // 'statusesProp',
+        // 'quantitiesProp',
+    ],
+    data() {
+        return {
+            customerId: this.customerIdProp,
+            type: this.typeProp,
+            name: this.nameProp,
+            spinnerData: {
+                loading: false,
+                color: '#6cb2eb',
+                size: '100px',
+            },
+            customer: {
+                name: '',
+                phone: '',
+                email: '',
+                comments: '',
+            },
+            products: {},
+            subscriptions: [],
+            paymentTypes: {},
+            statuses: {},
+            quantities: {},
+        }
+    },
+    watch: { 
+        customerIdProp: function(newVal, oldVal) { // watch it
+            console.log('Prop changed: ', newVal, ' | was: ', oldVal);
+            this.customerId = newVal;
+            this.getCustomerWithData();
+        }
+    },
+    mounted() {
+        if (this.type == 'create') {
+            this.addProduct();
+        } else if (this.type == 'edit') {
+
+        }
+
+        this.getOptions();
+    },
+    methods: {
+        getCustomerWithData() {
+            axios.get('/customers/' + this.customerId + '/with-data').then(response => {
+                let data = response.data.data;
+                if (response.data.data) {
+                    this.customer = data;
+                    this.subscriptions = data.subscriptions;
+                }
+            })
+            .catch(err => {
+                throw err;
+            });
+        },
+        getOptions() {
+            axios.get('/customers/get-options').then(response => {
+                this.paymentTypes = response.data.paymentTypes;
+                this.statuses = response.data.statuses;
+                this.quantities = response.data.quantities;
+            });
+        },
+        setFileToSubscription(value, index) {
+            this.subscriptions[index].newPayment.check = value;
+        },
+        submit() {
+            this.spinnerData.loading = true;
+            let data = {
+                customer: this.customer,
+                subscriptions: this.subscriptions,
+            };
+
+            axios.post('/customers/update-with-data', data).then(response => {
+                this.spinnerData.loading = false;
+                console.log(response.data.customer);
+                let customer = response.data.customer;
+                if (response.data.customer) {
+                    this.customer = {
+                        name: customer.name,
+                        phone: customer.phone,
+                        email: customer.email,
+                        comments: customer.comments,
+                    };
+
+                    this.subscriptions = customer.subscriptions;
+                }
+            })
+            .catch(err => {
+                this.spinnerData.loading = false;
+                if (err.response.status === 422) {
+                    let errors = err.response.data.errors;
+                    if (errors) {
+                        Object.keys(errors).forEach(function(name) {
+                            Vue.$toast.error(errors[name][0]);
+                        });
+                    }
+                }
+                throw err;
+            });
+        },
+        removeProduct(subIndex) {
+            if (subIndex > -1) {
+                if (this.subscriptions.length > 1) {
+                    this.subscriptions.splice(subIndex, 1);
+                }
+            }
+        },
+        addProduct() {
+            var now = new Date();
+            now.setDate(now.getDate()+parseInt(7));
+
+            this.subscriptions.push({
+                product_id: null,
+                price_id: null,
+                payment_type: null,
+                started_at: new Date().toISOString(),
+                paused_at: null,
+                ended_at: now.toISOString(),
+                status: null,
+                description: null,
+                newPayment: {
+                    quantity: null,
+                    check: null,
+                },
+                product: {
+                    id: null,
+                    title: null,
+                    price: null,
+                },
+            });
+        },
+        getProductsWithPrices() {
+            axios.get(`/products/with-prices`).then(response => {
+                this.products = response.data;
+            });
+        },
+        getPrices(productId) {
+            if (productId) {
+                return this.products[productId]['prices'];
+            }
+            return [];
+        }
+    },
+    created() {
+        this.getProductsWithPrices();
+    },
+}
+</script>
+<style scoped>
+.v-spinner {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    position: absolute;
+    background: #00000017;
+}
+.recurrent_block {
+    padding: 20px;
+    border: 1px solid #3490dc;
+}
+</style>

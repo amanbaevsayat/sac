@@ -22,13 +22,10 @@ class CustomerFactory extends Factory
      */
     public function definition()
     {
-        $remark = Remark::inRandomOrder()->first();
-
         return [
-            'phone' => $this->faker->tollFreePhoneNumber,
+            'phone' => $this->faker->e164PhoneNumber,
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            'remark_id' => $remark->id,
         ];
     }
 }

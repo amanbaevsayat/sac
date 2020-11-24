@@ -24,10 +24,9 @@ class CreateSubscriptionRequest extends FormRequest
     public function rules()
     {
         return [
-            'started_at' => 'date|required',
-            'paused_at' => 'date',
-            'ended_at' => 'date|required',
-            'amount' => 'required',
+            'started_at' => 'date',
+            'paused_at' => 'date|nullable',
+            'ended_at' => 'date|nullable',
             'status' => 'required',
         ];
     }

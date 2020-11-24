@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Http;
 class CloudPaymentsService
 {
     private $http;
-    private string $baseURL;
-    private string $username;
-    private string $password;
-    private string $timezone;
+    private $baseURL;
+    private $username;
+    private $password;
+    private $timezone;
 
     function __construct()
     {

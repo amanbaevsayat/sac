@@ -16,6 +16,7 @@ class SubscriptionCollection extends ResourceCollection
         return [
             'data' => SubscriptionResource::collection($this->collection),
             'others' => [
+                'payment_types' => Subscription::PAYMENT_TYPE,
                 'statuses' => Subscription::STATUSES,
             ],
             'dataTitles' => [
@@ -24,32 +25,32 @@ class SubscriptionCollection extends ResourceCollection
                     'key' => 'id',
                 ],
                 [
-                    'title' => 'Продукт',
-                    'key' => 'product_id',
+                    'title' => 'Клиенты',
+                    'key' => 'customer_id',
                 ],
                 [
-                    'title' => 'Дата старта',
-                    'key' => 'started_at',
+                    'title' => 'Телефон',
+                    'key' => 'customers.phone',
                 ],
                 [
-                    'title' => 'Дата заморозки',
-                    'key' => 'paused_at',
+                    'title' => 'Ост. дней',
+                    'key' => 'ended_at',
+                ],
+                [
+                    'title' => 'Тип оплаты',
+                    'key' => 'payment_type',
                 ],
                 [
                     'title' => 'Дата окончания',
                     'key' => 'ended_at',
                 ],
                 [
-                    'title' => 'Цена',
-                    'key' => 'amount',
-                ],
-                [
-                    'title' => 'Описание',
-                    'key' => 'description',
-                ],
-                [
-                    'title' => 'Статус',
+                    'title' => 'Метка',
                     'key' => 'status',
+                ],
+                [
+                    'title' => 'Услуга',
+                    'key' => 'product_id',
                 ],
             ],
             'pagination' => [

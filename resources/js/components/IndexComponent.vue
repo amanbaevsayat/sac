@@ -61,8 +61,11 @@
                             <div v-else-if="item.type == 'input'">
                                 <input type="text" class="form-control form-control-sm" v-model="item.value" />
                             </div>
+                            <div v-else-if="item.type == 'customer-link'">
+                                <a class="custom-link" role="button" @click="openModal(item.id)">{{ item.title }}</a>
+                            </div>
                             <div v-else-if="item.type == 'link'">
-                                <a class="btn btn-primary" :href="item.value" role="button">{{ item.title }}</a>
+                                <a class="custom-link" :href="item.value" role="button">{{ item.title }}</a>
                             </div>
                             <div v-else-if="item.type == 'date'">
                                 <datetime
@@ -75,7 +78,9 @@
                                 ></datetime>
                             </div>
                             <div v-else>
-                                {{ item.value }}
+                                <div class="custom-text">
+                                    {{ item.value }}
+                                </div>
                             </div>
                         </td>
                         <td class="text-right">
@@ -141,14 +146,18 @@
                 </li>
             </ul>
         </nav>
+        <customer-component type-prop="edit" :customer-id-prop="customerId"></customer-component>
     </div>
 </template>
 
 <script>
+import CustomerComponent from './CustomerComponent.vue';
     export default {
+  components: { CustomerComponent },
         props: ['prefixProp'],
         data() {
             return {
+                customerId: null,
                 prefix: this.prefixProp,
                 filters: {},
                 data: {},
@@ -173,6 +182,10 @@
             this.getData();
         },
         methods: {
+            openModal(customerId) {
+                this.customerId = customerId;
+                this.$bvModal.show('modal-customer-edit');
+            },
             saveItem(items, id) {
                 let data = {};
                 Object.keys(items).forEach(function(name) {
@@ -288,5 +301,15 @@
     text-align: center;
     position: absolute;
     background: #00000017;
+}
+.custom-link {
+    padding: 5px 0px;
+    display: inline-block;
+    text-decoration: underline;
+}
+.custom-text {
+    text-align: center;
+    display: block;
+    padding: 5px 0;
 }
 </style>

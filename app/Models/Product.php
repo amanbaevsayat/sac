@@ -25,6 +25,11 @@ class Product extends Model
         return $this->belongsToMany(Subscription::class)->withTimestamps();
     }
 
+    public function prices()
+    {
+        return $this->hasMany(Price::class, 'product_id');
+    }
+
     public function scopeFilter($query, ProductFilter $filters)
     {
         $filters->apply($query);

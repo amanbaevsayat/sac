@@ -15,7 +15,7 @@
                     @csrf
                     @method('DELETE')
                     <h5>
-                        {{$subscription->name}}
+                        {{$subscription->customer->name }} - {{ $subscription->product->title }}
                         <small class="float-right">
                             <a href="#" id="deletesubscriptionFormButton" class="btn btn-danger btn-sm">Удалить</a>
                         </small>
@@ -25,11 +25,12 @@
             <div class="card-body">
                 <a href="{{ route('subscriptions.edit', [$subscription->id]) }}" class="btn btn-warning btn-sm float-right">Изменить</a>
 
-                Телефон: {{$subscription->phone}} <br>
-                Email: {{$subscription->email}} <br>
-                @if (isset($subscription->remark))
-                Метка: {{$subscription->remark->title}} <br>
-                @endif
+                Описание подписки: {{ $subscription->description }} <br>
+                Цена: {{ $subscription->amount }} <br>
+                Дата старта: {{ $subscription->started_at }} <br>
+                Дата заморозки: {{ $subscription->paused_at }} <br>
+                Дата окончания: {{ $subscription->ended_at }} <br>
+                Статус: {{ $subscription->status }} <br>
             </div>
             <div class="card-footer">
                 <a href="{{ route('subscriptions.index') }}">К списку</a>

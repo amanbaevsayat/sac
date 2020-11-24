@@ -17,11 +17,9 @@ class CreateCustomersTable extends Migration
             $table->id();
 
             $table->string('name');
-            $table->string('phone');
+            $table->string('phone')->unique();
             $table->string('email')->nullable();
             $table->text('comments')->nullable();
-
-            $table->unsignedInteger('remark_id');
 
             $table->timestamps();
             $table->softDeletes();
@@ -29,7 +27,6 @@ class CreateCustomersTable extends Migration
             $table->index('name');
             $table->index('phone');
             $table->index('email');
-            $table->index('remark_id');
         });
     }
 

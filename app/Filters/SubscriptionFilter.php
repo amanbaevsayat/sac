@@ -7,7 +7,7 @@ class SubscriptionFilter extends BaseFilter
     public function defaultFilter($filter, $value)
     {
         $data = [
-            'customer_id',
+            // 'customer_id',
         ];
 
         if (in_array($filter, $data)) {

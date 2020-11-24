@@ -20,17 +20,17 @@ class CreateSubscriptionsTable extends Migration
             $table->dateTime('paused_at')->nullable(); // for freeze
             $table->dateTime('ended_at');
             
-            $table->unsignedInteger('customer_id');
             $table->unsignedInteger('product_id');
-            
-            $table->timestamps();
-            $table->softDeletes();
-            
+            $table->foreignId('customer_id')->onDelete('cascade');
+            $table->unsignedInteger('price_id');
+
             $table->index('customer_id');
             $table->index('product_id');
-            $table->unsignedBigInteger('amount'); // Сумма
             $table->text('description')->nullable();
             $table->text('status');
+            $table->text('payment_type');
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateRemarksTable extends Migration
+class CreatePricesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,12 @@ class CreateRemarksTable extends Migration
      */
     public function up()
     {
-        Schema::create('remarks', function (Blueprint $table) {
+        Schema::create('prices', function (Blueprint $table) {
             $table->id();
-
-            $table->string('code')->unique();
-            $table->string('title');
-
+            $table->unsignedBigInteger('price');
+            $table->unsignedInteger('product_id');
+            $table->boolean('is_active');
             $table->timestamps();
-            $table->softDeletes();
-
-            $table->index('code');
         });
     }
 
@@ -33,6 +29,6 @@ class CreateRemarksTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('remarks');
+        Schema::dropIfExists('prices');
     }
 }
