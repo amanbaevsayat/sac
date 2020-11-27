@@ -16,6 +16,11 @@ class Customer extends Model
         'phone',
         'email',
         'comments',
+        'data',
+    ];
+
+    protected $casts = [
+        'data' => 'array',
     ];
 
     protected $dates = ['deleted_at'];

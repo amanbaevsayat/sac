@@ -27,8 +27,10 @@
 
                 Код: {{ $product->code}} <br>
                 Описание: {{ $product->description }} <br>
-                Цена: {{ $product->price }} <br>
-                Пробная цена: {{ $product->trial_price }} <br>
+                Цены: <br>
+                @foreach($product->prices as $price)
+                    {{ $price->price }} тг <br>
+                @endforeach
             </div>
             <div class="card-footer">
                 <a href="{{ route('products.index') }}">К списку</a>

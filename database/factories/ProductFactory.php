@@ -25,8 +25,6 @@ class ProductFactory extends Factory
             'code' => $this->faker->unique()->word,
             'title' => $this->faker->sentence(3),
             'description' => $this->faker->text,
-            'price' => $this->faker->numberBetween(1000, 10000),
-            'trial_price' => $this->faker->numberBetween(100, 1000),
         ];
     }
 }

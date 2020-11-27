@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="title" class="col-sm-2 col-form-label">Заголовок</label>
+                <label for="title" class="col-sm-2 col-form-label">Название</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="title" value="{{ $product->title }}" name="title">
                 </div>
@@ -31,15 +31,9 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="price" class="col-sm-2 col-form-label">Цена</label>
+                <label for="prices" class="col-sm-2 col-form-label">Доступные цены</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" id="price" value="{{ $product->price }}" name="price">
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="trial_price" class="col-sm-2 col-form-label">Пробная цена</label>
-                <div class="col-sm-10">
-                    <input type="text" class="form-control" id="trial_price" value="{{ $product->trial_price }}" name="trial_price">
+                    <product-price-component :prices-prop="{{ json_encode($productPrices) }}"></product-price-component>
                 </div>
             </div>
 

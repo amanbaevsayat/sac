@@ -47,6 +47,7 @@ Vue.component('upload-file', require('./components/UploadFileComponent.vue').def
 Vue.component('cloudpayments-widget', require('./components/CloudpaymentsWidgetComponent.vue').default);
 Vue.component('customer-component', require('./components/CustomerComponent.vue').default);
 Vue.component('button-customer-component', require('./components/ButtonCustomerComponent.vue').default);
+Vue.component('product-price-component', require('./components/ProductPriceComponent.vue').default);
 
 import VueToast from 'vue-toast-notification';
 import PortalVue from 'portal-vue'

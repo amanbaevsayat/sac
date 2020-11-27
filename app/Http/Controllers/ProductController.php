@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use App\Models\Remark;
 use App\Filters\ProductFilter;
 use App\Http\Resources\ProductCollection;
+use App\Models\Price;
 
 class ProductController extends Controller
 {
@@ -34,32 +34,10 @@ class ProductController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $remarks = Remark::pluck('title', 'id')->toArray();
-
         $data = [
-            [
-                'name' => 'code',
-                'title' => 'Код',
-                'type' => 'input',
-            ],
             [
                 'name' => 'title',
                 'title' => 'Заголовок',
-                'type' => 'input',
-            ],
-            [
-                'name' => 'description',
-                'title' => 'Описание',
-                'type' => 'input',
-            ],
-            [
-                'name' => 'price',
-                'title' => 'Цена',
-                'type' => 'input',
-            ],
-            [
-                'name' => 'trial_price',
-                'title' => 'Пробная цена',
                 'type' => 'input',
             ],
         ];
@@ -88,11 +66,7 @@ class ProductController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $remarks = Remark::all();
-
-        return view("{$this->root}.create", [
-            'remarks' => $remarks,
-        ]);
+        return view("{$this->root}.create");
     }
 
     /**
@@ -104,8 +78,20 @@ class ProductController extends Controller
     public function store(CreateProductRequest $request, Product $product)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        $product = $product->create($request->all());
+        $priceIds = [];
+        $prices = $request->get('prices', []);
 
-        $product->create($request->all());
+        foreach ($prices as $item) {
+            if ($item) {
+                $price = Price::updateOrCreate([
+                    'price' => $item,
+                    'product_id' => $product->id,
+                ]);
+                $priceIds[] = $price->id;
+            }
+        }
+        $product->prices()->whereNotIn('id', $priceIds)->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно создан.');
     }
 
@@ -133,12 +119,10 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
-        $remarks = Remark::all();
-
+        $productPrices = $product->prices()->pluck('price');
         return view("{$this->root}.edit", [
-            'remarks' => $remarks,
             'product' => $product,
+            'productPrices' => $productPrices,
         ]);
     }
 
@@ -152,7 +136,20 @@ class ProductController extends Controller
     public function update(CreateProductRequest $request, Product $product)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        $priceIds = [];
+        $prices = $request->get('prices', []);
         $product->update($request->all());
+
+        foreach ($prices as $item) {
+            if ($item) {
+                $price = Price::updateOrCreate([
+                    'price' => $item,
+                    'product_id' => $product->id,
+                ]);
+                $priceIds[] = $price->id;
+            }
+        }
+        $product->prices()->whereNotIn('id', $priceIds)->delete();
 
         $message = 'Данные продукта успешно изменены.';
         if ($request->ajax()) {
@@ -194,7 +191,6 @@ class ProductController extends Controller
                 foreach ($product->prices as $price) {
                     $prices[$price->id] = $price->price;
                 }
-                // dd($prices);
                 $data[$product->id]['prices'] = $prices;
             }
         }

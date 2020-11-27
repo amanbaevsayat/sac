@@ -30,15 +30,9 @@
                 </div>
             </div>
             <div class="form-group row">
-                <label for="price" class="col-sm-2 col-form-label">Цена</label>
+                <label for="prices" class="col-sm-2 col-form-label">Цена</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" id="price" value="{{ old('price') }}" name="price">
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="trial_price" class="col-sm-2 col-form-label">Пробная цена</label>
-                <div class="col-sm-10">
-                    <input type="text" class="form-control" id="trial_price" value="{{ old('trial_price') }}" name="trial_price">
+                    <product-price-component :prices-prop="{{ json_encode(old('prices') ?? []) }}"></product-price-component>
                 </div>
             </div>
             <div class="form-group">

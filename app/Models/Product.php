@@ -16,8 +16,6 @@ class Product extends Model
         'code',
         'title',
         'description',
-        'price',
-        'trial_price',
     ];
 
     public function subscriptions()

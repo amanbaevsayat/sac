@@ -17,7 +17,6 @@ class CreatePricesTable extends Migration
             $table->id();
             $table->unsignedBigInteger('price');
             $table->unsignedInteger('product_id');
-            $table->boolean('is_active');
             $table->timestamps();
         });
     }

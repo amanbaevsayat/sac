@@ -63,11 +63,11 @@
                     <datetime
                         name="started_at"
                         value="{{ $startedAt }}"
-                        type="datetime"
+                        type="date"
                         input-class="form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="yyyy-MM-dd HH:mm:ss"
+                        format="DDD"
                     ></datetime>
                 </div>
             </div>
@@ -77,11 +77,11 @@
                     <datetime
                         name="paused_at"
                         value="{{ $pausedAt }}"
-                        type="datetime"
+                        type="date"
                         input-class="form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="yyyy-MM-dd HH:mm:ss"
+                        format="DDD"
                     ></datetime>
                 </div>
             </div>
@@ -91,11 +91,11 @@
                     <datetime
                         name="ended_at"
                         value="{{ $endedAt }}"
-                        type="datetime"
+                        type="date"
                         input-class="form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="yyyy-MM-dd HH:mm:ss"
+                        format="DDD"
                     ></datetime>
                 </div>
             </div>

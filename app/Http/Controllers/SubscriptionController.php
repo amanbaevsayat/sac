@@ -179,4 +179,23 @@ class SubscriptionController extends Controller
         $subscription->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Подписка успешно удалена.');
     }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function delete(Request $request)
+    {
+        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        $id = $request->get('id');
+        $subscription = Subscription::whereId($id)->firstOr(function () use ($id) {
+            throw new \Exception('Абонемент не найден. ID: ' . $id, 404);
+        });
+        $subscription->delete();
+        return response()->json([
+            'message' => 'Абонемент успешно удален.'
+        ], 200);
+    }
 }

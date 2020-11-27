@@ -20,9 +20,9 @@ class CreatePaymentsTable extends Migration
             $table->foreignId('customer_id')->onDelete('cascade');;
             $table->string('type')->default('cloudpayment'); // cloudpayment или перевод
             $table->string('slug')->unique(); // Если тип платежа cloudpayment, то ссылка для клиента (uuid)
-            $table->unsignedInteger('quantity')->nullable();
+            $table->unsignedInteger('quantity')->default(1);
             $table->string('status'); // Статус платежа
-
+            $table->unsignedBigInteger('amount')->nullable();
             $table->boolean('recurrent')->default(false);
             $table->date('start_date')->nullable(); // Для рекуррентных платежей (Дата списание денег)
             $table->string('interval')->nullable(); // Day, Week, Month

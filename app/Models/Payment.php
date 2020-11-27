@@ -57,13 +57,14 @@ class Payment extends Model
         'quantity',
         'type',
         'slug',
+        'amount',
         'status',
         'recurrent', // Для рекуррентных платежей
         'start_date', // Для рекуррентных платежей
         'interval', // Для рекуррентных платежей
         'period', // Для рекуррентных платежей
-        'data',
         'paided_at',
+        'data',
     ];
 
     protected $dates = [

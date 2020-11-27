@@ -20,10 +20,10 @@ class ProductCollection extends ResourceCollection
                     'title' => 'ID',
                     'key' => 'id',
                 ],
-                [
-                    'title' => 'Код',
-                    'key' => 'code',
-                ],
+                // [
+                //     'title' => 'Код',
+                //     'key' => 'code',
+                // ],
                 [
                     'title' => 'Заголовок',
                     'key' => 'title',
@@ -31,14 +31,6 @@ class ProductCollection extends ResourceCollection
                 [
                     'title' => 'Описание',
                     'key' => 'description',
-                ],
-                [
-                    'title' => 'Цена',
-                    'key' => 'price',
-                ],
-                [
-                    'title' => 'Пробная цена',
-                    'key' => 'trial_price',
                 ],
             ],
             'pagination' => [

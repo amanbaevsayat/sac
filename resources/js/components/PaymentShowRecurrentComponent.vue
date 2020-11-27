@@ -11,13 +11,13 @@
                 <label for="recurrent" class="col-sm-2 col-form-label">Рекуррентный платеж</label>
                 <div class="col-sm-10">
                     <datetime
-                        type="datetime"
+                        type="date"
                         name="start_date"
                         v-model="data.start_date"
                         input-class="my-class form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="yyyy-MM-dd HH:mm:ss"
+                        format="DDD"
                     ></datetime>
                 </div>
             </div>

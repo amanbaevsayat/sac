@@ -11,7 +11,6 @@
             'subscriptionProp',
             'customerProp',
             'productProp',
-            'priceProp',
             'publicIdProp',
         ],
         data() {
@@ -20,7 +19,6 @@
                 subscription: this.subscriptionProp,
                 customer: this.customerProp,
                 product: this.productProp,
-                price: this.priceProp,
                 publicId: this.publicIdProp,
                 data: {},
                 interval: 0,
@@ -35,7 +33,6 @@
         },
         mounted() {
             this.interval = setInterval(() => {
-                console.log(123);
                 if (! this.counterStop) {
                     this.pay();
                 }
@@ -51,7 +48,7 @@
                 widget.charge({ // options
                     publicId: this.publicId, //id из личного кабинета
                     description: this.subscription.description, //назначение
-                    amount: this.price, //сумма
+                    amount: this.payment.amount * this.payment.quantity, //сумма
                     currency: 'KZT', //валюта
                     invoiceId: this.payment.id, //номер заказа  (необязательно)
                     accountId: this.customer.phone, //идентификатор плательщика (обязательно для создания подписки)
@@ -73,9 +70,9 @@
                         Items: [//товарные позиции
                             {
                                 label: this.product.title, //наименование товара
-                                price: this.price, //цена
-                                quantity: 1, //количество
-                                amount: this.price, //сумма
+                                price: this.payment.amount, //цена
+                                quantity: this.payment.quantity, //количество
+                                amount: this.payment.amount * this.payment.quantity, //сумма
                                 vat: 0, //ставка НДС
                                 method: 0, // тег-1214 признак способа расчета - признак способа расчета
                                 object: 0, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета

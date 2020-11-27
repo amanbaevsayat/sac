@@ -62,7 +62,7 @@ class CustomerController extends Controller
             $subscription = $customer->subscriptions()->updateOrCreate([
                 'product_id' => $item['product_id'],
             ], [
-                'price_id' => $item['price_id'],
+                'price' => $item['price'],
                 'payment_type' => $item['payment_type'],
                 'started_at' => $item['started_at'],
                 'ended_at' => $item['ended_at'],

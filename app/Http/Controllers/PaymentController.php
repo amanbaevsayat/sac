@@ -39,16 +39,16 @@ class PaymentController extends Controller
         
         $data = [
             [
-                'name' => 'subscription_id',
-                'title' => 'Подписки',
-                'type' => 'select',
-                'options' => $subscriptions,
-            ],
-            [
                 'name' => 'customer_id',
                 'title' => 'Клиенты',
                 'type' => 'select',
                 'options' => $customers,
+            ],
+            [
+                'name' => 'subscription_id',
+                'title' => 'Подписки',
+                'type' => 'select',
+                'options' => $subscriptions,
             ],
         ];
 

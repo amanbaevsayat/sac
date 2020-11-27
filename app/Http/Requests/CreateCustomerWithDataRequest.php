@@ -34,7 +34,7 @@ class CreateCustomerWithDataRequest extends FormRequest
             'customer.email' => 'email|nullable',
             'subscriptions' => 'required|array',
             'subscriptions.*.product_id' => 'required|exists:products,id',
-            'subscriptions.*.price_id' => 'required|exists:prices,id',
+            // 'subscriptions.*.price_id' => 'required|exists:prices,id',
             'subscriptions.*.payment_type' => 'required|in:' . implode(',', array_keys(Subscription::PAYMENT_TYPE)),
             'subscriptions.*.status' => 'required|in:' . implode(',', array_keys(Subscription::STATUSES)),
             'subscriptions.*.period' => 'nullable|in:' . implode(',', array_keys(Payment::QUANTITIES)),

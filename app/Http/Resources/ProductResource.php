@@ -18,10 +18,10 @@ class ProductResource extends JsonResource
             'id' => [
                 'value' => $this->id,
             ],
-            'code' => [
-                'type' => 'input',
-                'value' => $this->code,
-            ],
+            // 'code' => [
+            //     'type' => 'input',
+            //     'value' => $this->code,
+            // ],
             'title' => [
                 'type' => 'input',
                 'value' => $this->title,
@@ -29,14 +29,6 @@ class ProductResource extends JsonResource
             'description' => [
                 'type' => 'input',
                 'value' => $this->description,
-            ],
-            'price' => [
-                'type' => 'input',
-                'value' => $this->price,
-            ],
-            'trial_price' => [
-                'type' => 'input',
-                'value' => $this->trial_price,
             ],
         ];
     }

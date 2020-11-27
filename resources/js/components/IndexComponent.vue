@@ -69,12 +69,12 @@
                             </div>
                             <div v-else-if="item.type == 'date'">
                                 <datetime
-                                    type="datetime"
+                                    type="date"
                                     v-model="item.value"
                                     input-class="my-class form-control"
                                     valueZone="Asia/Almaty"
                                     zone="Asia/Almaty"
-                                    format="yyyy-MM-dd HH:mm:ss"
+                                    format="DDD"
                                 ></datetime>
                             </div>
                             <div v-else>

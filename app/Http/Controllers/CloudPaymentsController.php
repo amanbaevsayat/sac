@@ -20,7 +20,7 @@ class CloudPaymentsController extends Controller
             'customer' => $payment->customer,
             'subscription' => $payment->subscription,
             'product' => $payment->subscription->product,
-            'price' => $payment->subscription->product->price,
+            'price' => $payment->subscription->price,
             'publicId' => $publicId,
         ]);
     }

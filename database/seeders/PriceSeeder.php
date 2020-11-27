@@ -20,7 +20,6 @@ class PriceSeeder extends Seeder
             for ($x = 0; $x <= 2; $x++) {
                 $product->prices()->create([
                     'product_id' => $product->id,
-                    'is_active' => true,
                     'price' => rand(30, 80) * 100,
                 ]);
             }

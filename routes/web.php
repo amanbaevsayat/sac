@@ -27,6 +27,7 @@ Route::middleware(["auth"])->group(function () {
     Route::get('customers/get-options', 'CustomerController@getOptions');
     Route::get('customers/{customerId}/with-data', 'CustomerController@getCustomerWithData');
     Route::get('customers/filter', 'CustomerController@getFilters');
+    Route::post('subscriptions/delete', 'SubscriptionController@delete');
 
     Route::get('products/list', 'ProductController@getList');
     Route::get('products/filter', 'ProductController@getFilters');

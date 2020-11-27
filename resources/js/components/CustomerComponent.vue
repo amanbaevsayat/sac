@@ -28,7 +28,7 @@
             </b-card>
             
             <b-card v-for="(subscription, subIndex) in subscriptions" :key="subIndex" border-variant="secondary">
-                <button type="button" @click="removeProduct(subIndex)" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" @click="removeProduct(subscription.id, subIndex)" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <div class="form-group row">
                     <label for="product_id" class="col-sm-2 col-form-label">Услуга</label>
                     <div class="col-sm-4">
@@ -36,10 +36,11 @@
                             <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
                         </select>
                     </div>
-                    <label for="price_id" class="col-sm-1 col-form-label">Цена</label>
+                    <label for="price" class="col-sm-1 col-form-label">Цена</label>
                     <div class="col-sm-4">
-                        <select v-model="subscription.price_id" name="price_id" id="price_id" class="form-control">
-                            <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                        <select v-model="subscription.price" name="price" id="price" class="form-control">
+                            <option v-if="subscription.price != null" :value="subscription.price" selected>{{ subscription.price }}</option>
+                            <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="option" v-if="option != subscription.price">{{ option }}</option>
                         </select>
                     </div>
                 </div>
@@ -61,24 +62,24 @@
                     <label for="started_at" class="col-sm-2 col-form-label">Дата старта</label>
                     <div class="col-sm-4">
                         <datetime
-                            type="datetime"
+                            type="date"
                             v-model="subscription.started_at"
                             input-class="my-class form-control"
                             valueZone="Asia/Almaty"
                             zone="Asia/Almaty"
-                            format="dd/MM/yyyy"
+                            format="DDD"
                         ></datetime>
                     </div>
-                    <div v-if="subscription.payment_type == 'tries'" style="display: contents">
+                    <div v-if="subscription.payment_type == 'tries' || subscription.payment_type == 'transfer'" style="display: contents">
                         <label for="ended_at" class="col-sm-1 col-form-label">Дата окончания</label>
                         <div class="col-sm-4">
                             <datetime
-                                type="datetime"
+                                type="date"
                                 v-model="subscription.ended_at"
                                 input-class="my-class form-control"
                                 valueZone="Asia/Almaty"
                                 zone="Asia/Almaty"
-                                format="dd/MM/yyyy"
+                                format="DDD"
                             ></datetime>
                         </div>
                     </div>
@@ -118,7 +119,7 @@
                 </a>
             </div>
             <footer class="modal-footer">
-                <button @click="$bvModal.hide('modal-customer-' + type)" type="button" class="btn btn-secondary">Отмена</button>
+                <button @click="closeModal()" type="button" class="btn btn-secondary">Отмена</button>
                 <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button>
             </footer>
         </b-modal>
@@ -174,6 +175,16 @@ export default {
         this.getOptions();
     },
     methods: {
+        closeModal() {
+            this.customer = {
+                name: '',
+                phone: '',
+                email: '',
+                comments: '',
+            };
+            this.subscriptions = [];
+            this.$bvModal.hide('modal-customer-' + this.type);
+        },
         copyRecurrentLink(index) {
             var input = $('#recurrent-link-' + index);
             console.log(input);
@@ -273,10 +284,37 @@ export default {
                 throw err;
             });
         },
-        removeProduct(subIndex) {
-            if (subIndex > -1) {
-                if (this.subscriptions.length > 1) {
-                    this.subscriptions.splice(subIndex, 1);
+        removeProduct(id, subIndex) {
+            console.log(id, subIndex);
+            if (this.type == 'create' || !id) {
+                if (subIndex > -1) {
+                    if (this.subscriptions.length > 1) {
+                        this.subscriptions.splice(subIndex, 1);
+                    }
+                }
+            } else if (this.type == 'edit') {
+                let result = confirm('Удалить подписку?');
+                if (result) {
+                    axios.post('/subscriptions/delete', {
+                        id: id,
+                    }).then(response => {
+                        let message = response.data.message;
+                        if (response.data.message) {
+                            this.subscriptions.splice(subIndex, 1);
+                            Vue.$toast.success(message);
+                        }
+                    })
+                    .catch(err => {
+                        if (err.response.status === 422) {
+                            let errors = err.response.data.errors;
+                            if (errors) {
+                                Object.keys(errors).forEach(function(name) {
+                                    Vue.$toast.error(errors[name][0]);
+                                });
+                            }
+                        }
+                        throw err;
+                    });
                 }
             }
         },
@@ -285,8 +323,9 @@ export default {
             now.setDate(now.getDate()+parseInt(7));
 
             this.subscriptions.push({
+                id: null,
                 product_id: null,
-                price_id: null,
+                price: null,
                 payment_type: null,
                 started_at: new Date().toISOString(),
                 paused_at: null,

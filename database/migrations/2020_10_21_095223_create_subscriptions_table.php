@@ -22,13 +22,15 @@ class CreateSubscriptionsTable extends Migration
             
             $table->unsignedInteger('product_id');
             $table->foreignId('customer_id')->onDelete('cascade');
-            $table->unsignedInteger('price_id');
+            $table->unsignedBigInteger('price');
+            // $table->unsignedInteger('price_id');
 
             $table->index('customer_id');
             $table->index('product_id');
             $table->text('description')->nullable();
             $table->text('status');
             $table->text('payment_type');
+            $table->json('data')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

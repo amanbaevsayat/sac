@@ -19,7 +19,7 @@ class SubscriptionResource extends JsonResource
         $data = [
             'id' => $this->id,
             'product_id'    => $this->product_id,
-            'price_id'      => $this->price_id,
+            'price'      => $this->price,
             'payment_type'  => $this->payment_type,
             'started_at'    => $this->started_at,
             'paused_at'     => $this->paused_at,
@@ -30,7 +30,7 @@ class SubscriptionResource extends JsonResource
             'product'       => [
                 'id'    => $this->product->id,
                 'title' => $this->product->title,
-                'price' => $this->price->price,
+                'price' => $this->price,
             ],
             'newPayment' => [ // Шаблон для фронта
                 'quantity' => 1,

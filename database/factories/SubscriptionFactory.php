@@ -39,7 +39,8 @@ class SubscriptionFactory extends Factory
             'ended_at' => $this->faker->dateTimeBetween('-1 week', '+3 month'),
             'product_id' => $product->id,
             'customer_id' => $customer->id,
-            'price_id' => $price->id,
+            // 'price_id' => $price->id,
+            'price' => $this->faker->numberBetween(100, 900) * 100,
             'description' => 'Подписка ' . $product->title,
             'status' => array_rand($statuses),
             'payment_type' => array_rand(Subscription::PAYMENT_TYPE)

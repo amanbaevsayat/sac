@@ -30,10 +30,11 @@ class Subscription extends Model
         'ended_at',
         'product_id',
         'customer_id',
-        'price_id',
+        'price',
         'description',
         'status',
         'payment_type',
+        'data',
     ];
 
     protected $dates = [
@@ -42,6 +43,10 @@ class Subscription extends Model
         'ended_at',
         'created_at',
         'updated_at',
+    ];
+
+    protected $casts = [
+        'data' => 'array',
     ];
 
     protected static function boot() {
@@ -55,11 +60,6 @@ class Subscription extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function price()
-    {
-        return $this->belongsTo(Price::class);
     }
 
     public function customer()

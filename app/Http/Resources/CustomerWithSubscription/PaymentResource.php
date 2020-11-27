@@ -30,19 +30,19 @@ class PaymentResource extends JsonResource
         ];
         if ($this->type == 'cloudpayments') {
             if ($this->status == 'new') {
-                $title = "{$this->created_at} создана подписка оператором на сумму {$this->subscription->price->price} тг";
+                $title = "{$this->created_at} создана подписка оператором на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$this->paided_at} оплата по подписке успешно {$this->subscription->price->price} тг";
+                $title = "{$this->paided_at} оплата по подписке успешно {$this->subscription->price} тг";
             } elseif ($this->status == 'Declined') {
-                $title = "{$this->updated_at} ошибка при оплате подписки на сумму {$this->subscription->price->price} тг (Ошибка: TODO)";
+                $title = "{$this->updated_at} ошибка при оплате подписки на сумму {$this->subscription->price} тг (Ошибка: TODO)";
             }
         } elseif ($this->type == 'transfer') {
             if ($this->status == 'new') {
-                $title = "{$this->created_at} ожидаю оплату переводом на сумму {$this->subscription->price->price} тг";
+                $title = "{$this->created_at} ожидаю оплату переводом на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$this->updated_at} прямой перевод на сумму {$this->subscription->price->price} тг";
+                $title = "{$this->updated_at} прямой перевод на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Declined') {
-                $title = "{$this->updated_at} не оплатил переводом на сумму {$this->subscription->price->price} тг";
+                $title = "{$this->updated_at} не оплатил переводом на сумму {$this->subscription->price} тг";
             }
         } else {
             $title = '';
