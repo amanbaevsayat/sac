@@ -77,6 +77,7 @@ class CustomerController extends Controller
                         'slug' => Str::uuid(),
                         'status' => 'new',
                         'recurrent' => true,
+                        'amount' => $subscription->price,
                         'start_date' => $item['started_at'], // TODO
                         'interval' => 'Month',
                         'period' => 1,
@@ -92,6 +93,7 @@ class CustomerController extends Controller
                         'slug' => Str::uuid(),
                         'status' => $paymentStatus,
                         'quantity' => $item['newPayment']['quantity'] ?? 1,
+                        'amount' => $subscription->price,
                         'data' => [
                             'check' => $item['newPayment']['check'],
                         ],
