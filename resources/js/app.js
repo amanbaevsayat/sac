@@ -50,21 +50,21 @@ Vue.component('button-customer-component', require('./components/ButtonCustomerC
 Vue.component('product-price-component', require('./components/ProductPriceComponent.vue').default);
 
 import VueToast from 'vue-toast-notification';
-import PortalVue from 'portal-vue'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-import VModal from 'vue-js-modal/dist/ssr.nocss'
+// import PortalVue from 'portal-vue'
+// import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+// import VModal from 'vue-js-modal/dist/ssr.nocss'
 import 'vue-toast-notification/dist/theme-default.css';
-Vue.use(VModal, {})
-import 'bootstrap-vue/dist/bootstrap-vue.css'
-Vue.use(PortalVue);
+// Vue.use(VModal, {})
+// import 'bootstrap-vue/dist/bootstrap-vue.css'
+// Vue.use(PortalVue);
 Vue.use(VueToast, {
     position: 'top',
     duration: 7000,
 });
 // Install BootstrapVue
-Vue.use(BootstrapVue)
+// Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
-Vue.use(IconsPlugin)
+// Vue.use(IconsPlugin)
 
 import { Datetime } from 'vue-datetime'
 // You need a specific loader for CSS files
@@ -72,6 +72,14 @@ import 'vue-datetime/dist/vue-datetime.css'
  
 Vue.use(Datetime)
 Vue.component('datetime', Datetime);
+
+
+// Vue select start
+import Vue from 'vue'
+import vSelect from 'vue-select'
+Vue.component('v-select', vSelect)
+import 'vue-select/dist/vue-select.css';
+// Vue select end
 
 const app = new Vue({
     el: '#app',

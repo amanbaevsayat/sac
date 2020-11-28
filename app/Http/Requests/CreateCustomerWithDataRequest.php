@@ -34,7 +34,7 @@ class CreateCustomerWithDataRequest extends FormRequest
             'customer.email' => 'email|nullable',
             'subscriptions' => 'required|array',
             'subscriptions.*.product_id' => 'required|exists:products,id',
-            // 'subscriptions.*.price_id' => 'required|exists:prices,id',
+            'subscriptions.*.price' => 'required',
             'subscriptions.*.payment_type' => 'required|in:' . implode(',', array_keys(Subscription::PAYMENT_TYPE)),
             'subscriptions.*.status' => 'required|in:' . implode(',', array_keys(Subscription::STATUSES)),
             'subscriptions.*.period' => 'nullable|in:' . implode(',', array_keys(Payment::QUANTITIES)),
@@ -59,7 +59,8 @@ class CreateCustomerWithDataRequest extends FormRequest
             'size' => 'Длина :attribute должен быть ровно :size.',
             'integer' => ':attribute должен быть числовым значением.',
             'min' => 'Выберите правилный :attribute.',
-            'max' => ':attribute не может превышать :max символов.'
+            'max' => ':attribute не может превышать :max символов.',
+            'regex' => ':attribute заполнен не корректно.',
         ];
     }
 
@@ -71,11 +72,15 @@ class CreateCustomerWithDataRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name' => 'Имя',
-            'phone' => 'Телефон',
-            'email' => 'Email',
-            'comments' => 'Комментарий',
-            'remark_id' => 'Ремарка',
+            'customer.name' => 'Имя',
+            'customer.phone' => 'Телефон',
+            'customer.email' => 'Email',
+            'customer.comments' => 'Комментарий',
+            'subscriptions.*.product_id' => 'Услуга',
+            'subscriptions.*.payment_type' => 'Тип оплаты',
+            'subscriptions.*.status' => 'Статус',
+            'subscriptions.*.started_at' => 'Дата старта',
+            'subscriptions.*.price' => 'Цена',
         ];
     }
 }

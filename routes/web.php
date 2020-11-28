@@ -21,6 +21,7 @@ Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
     Route::get("/", [HomeController::class, "dashboard"])->name("dashboard");
+    Route::get("/search", 'SearchController@search')->name("search");
 
     Route::post('customers/update-with-data', 'CustomerController@createWithData');
     Route::get('customers/list', 'CustomerController@getList');

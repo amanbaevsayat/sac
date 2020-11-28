@@ -40,7 +40,8 @@ class SubscriptionController extends Controller
             [
                 'name' => 'customer_id',
                 'title' => 'Клиенты',
-                'type' => 'select',
+                'type' => 'select-search',
+                'key' => 'customer',
                 'options' => $customers,
             ],
             [

@@ -17,9 +17,26 @@
                                 <div class="form-group">
                                     <label for="subscriptionStatus">{{ filter.title }}</label>
                                     <div v-if="filter.type == 'select'">
-                                        <select v-model="queryParams[filter.name]" :name="filter.name" :id="filter.name" class="form-control selectpicker" data-show-subtext="true" data-live-search="true">
+                                        <select v-model="queryParams[filter.name]" :name="filter.name" :id="filter.name" class="form-control" data-live-search="true" data-dropdown-align-right="true" data-style="select-with-transition" data-size="7">
                                             <option v-for="(option, optionIndex) in filter.options" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
+                                    </div>
+                                    <div v-if="filter.type == 'select-search'">
+                                        <v-select v-model="queryParams[filter.name]" :reduce="field => field.value" :filterable="false" :options="options[filter.key]" @search="onSearch(...arguments, filter.key)">
+                                            <template slot="no-options">
+                                            Введите для поиска
+                                            </template>
+                                            <template slot="option" slot-scope="option">
+                                                <div class="d-center">
+                                                    {{ option.label }}
+                                                    </div>
+                                            </template>
+                                            <template slot="selected-option" slot-scope="option">
+                                                <div class="selected d-center">
+                                                    {{ option.label }}
+                                                </div>
+                                            </template>
+                                        </v-select>
                                     </div>
                                     <div v-if="filter.type == 'input'">
                                         <input class="form-control" type="text" :name="filter.name" :value="queryParams[filter.name]" @change="changeFilterValue($event, filter.name)">
@@ -62,7 +79,7 @@
                                 <input type="text" class="form-control form-control-sm" v-model="item.value" />
                             </div>
                             <div v-else-if="item.type == 'customer-link'">
-                                <a class="custom-link" role="button" @click="openModal(item.id)">{{ item.title }}</a>
+                                <a class="custom-link" role="button" @click="openModal(item.id)" data-toggle="modal" data-target="#modal-customer-edit">{{ item.title }}</a>
                             </div>
                             <div v-else-if="item.type == 'link'">
                                 <a class="custom-link" :href="item.value" role="button">{{ item.title }}</a>
@@ -157,6 +174,9 @@ import CustomerComponent from './CustomerComponent.vue';
         props: ['prefixProp'],
         data() {
             return {
+                options: {
+                    customer: [],
+                },
                 customerId: null,
                 prefix: this.prefixProp,
                 filters: {},
@@ -173,18 +193,33 @@ import CustomerComponent from './CustomerComponent.vue';
             }
         },
         mounted() {
+            this.$nextTick(function(){
+                this.spinnerData.loading = true;
+                this.setQueryParams();
+                this.getFilters();
+                this.getData();
+            });
             // let externalScript = document.createElement('script');
             // externalScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments');
             // document.head.appendChild(externalScript);
-            this.spinnerData.loading = true;
-            this.setQueryParams();
-            this.getFilters();
-            this.getData();
         },
         methods: {
+            onSearch(search, loading, key) {
+                console.log(search, loading, key);
+                loading(true);
+                console.log('123');
+                this.search(loading, search, this, key);               
+            },
+            search: _.debounce((loading, search, vm, key) => {
+                fetch(
+                    '/search?' + $.param({key: key, text: search})
+                ).then(res => {
+                    res.json().then(json => (vm.options[key] = json.data));
+                    loading(false);
+                });
+            }, 350),
             openModal(customerId) {
                 this.customerId = customerId;
-                this.$bvModal.show('modal-customer-edit');
             },
             saveItem(items, id) {
                 let data = {};
