@@ -26,7 +26,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = RouteServiceProvider::HOME;
+    protected $redirectTo = '/subscriptions?sort=ended_at%28desc%29';
 
     /**
      * Create a new controller instance.

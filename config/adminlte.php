@@ -255,7 +255,7 @@ return [
         // subscriptions
         [
             'text' => 'Абонементы',
-            'url'  => '/subscriptions',
+            'url'  => '/subscriptions?sort=ended_at%28desc%29',
             'icon' => 'fa fa-calendar-check'
         ],
 
