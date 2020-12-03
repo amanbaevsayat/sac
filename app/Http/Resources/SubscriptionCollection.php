@@ -45,7 +45,7 @@ class SubscriptionCollection extends ResourceCollection
                     'key' => 'ended_at',
                 ],
                 [
-                    'title' => 'Метка',
+                    'title' => 'Статус абонемента',
                     'key' => 'status',
                 ],
                 [

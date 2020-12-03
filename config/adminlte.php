@@ -234,7 +234,7 @@ return [
         // websites menu
         [
             'text' => 'Strela Academy',
-            'url'  => '/',
+            'url'  => '/dashboard',
             'topnav' => true
         ],
 
@@ -247,7 +247,7 @@ return [
 
         // products
         [
-            'text' => 'Продукты',
+            'text' => 'Услуги',
             'url'  => '/products',
             'icon' => 'fa fa-boxes'
         ],

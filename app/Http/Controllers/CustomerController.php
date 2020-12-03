@@ -122,7 +122,7 @@ class CustomerController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $data = [
+        $data['main'] = [
             [
                 'name' => 'name',
                 'title' => 'Имя',

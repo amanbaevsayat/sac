@@ -17,12 +17,10 @@ class PriceSeeder extends Seeder
         $products = Product::get();
 
         foreach ($products as $product) {
-            for ($x = 0; $x <= 2; $x++) {
-                $product->prices()->create([
-                    'product_id' => $product->id,
-                    'price' => rand(30, 80) * 100,
-                ]);
-            }
+            $product->prices()->create([
+                'product_id' => $product->id,
+                'price' => 3000,
+            ]);
         }
     }
 }

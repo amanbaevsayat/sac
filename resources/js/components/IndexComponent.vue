@@ -1,25 +1,34 @@
 <template>
     <div>
-        <div class="row" v-if="filters.length > 0">
+        <div class="row" v-if="mainFilters.length > 0">
             <div class="col-11">
                 <div class="card mb-2" id="filter">
                     <div class="card-header py-1">
                         Фильтр
                         <small class="float-right">
-                            <a href="#" id="filter-toggle" class="btn btn-default btn-sm" title="Скрыть/показать">
-                                <i class="fa fa-toggle-off"></i>
+                            <a @click="filterOpen = !filterOpen" id="filter-toggle" class="btn btn-default btn-sm" title="Скрыть/показать">
+                                <i class="fa fa-toggle-off " :class="{'fa-toggle-on': filterOpen}"></i>
                             </a>
                         </small>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" v-show="filterOpen" :class="{slide: filterOpen}">
                         <div class="row">
-                            <div class="col-4" v-for="(filter, filterIndex) in filters" :key="filterIndex">
+                            <div class="col-3" v-for="(filter, filterIndex) in mainFilters" :key="filterIndex">
                                 <div class="form-group">
                                     <label for="subscriptionStatus">{{ filter.title }}</label>
                                     <div v-if="filter.type == 'select'">
-                                        <select v-model="queryParams[filter.name]" :name="filter.name" :id="filter.name" class="form-control" data-live-search="true" data-dropdown-align-right="true" data-style="select-with-transition" data-size="7">
+                                        <select @change.capture="changeSelect($event, filter.name)" v-model="queryParams[filter.name]" :name="filter.name" :id="filter.name" class="form-control" data-live-search="true" data-dropdown-align-right="true" data-style="select-with-transition" data-size="7">
                                             <option v-for="(option, optionIndex) in filter.options" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
+                                    </div>
+                                    <div v-if="filter.type == 'select-multiple'">
+                                        <!-- <select v-model="queryParams[filter.name]" :name="filter.name" :id="filter.name" class="form-control" multiple>
+                                            <option v-for="option in filter.options" :key="option.value" :value="option.value">{{ option.text }}</option>
+                                        </select> -->
+                                        <b-form-select class="select-multiple" v-model="queryParams[filter.name]" :options="filter.options" multiple :select-size="4"></b-form-select>
+                                        <!-- <v-select v-model="queryParams[filter.name]" :options="filter.options" multiple :reduce="field => field.value" :filterable="false">
+                                            
+                                        </v-select> -->
                                     </div>
                                     <div v-if="filter.type == 'select-search'">
                                         <v-select v-model="queryParams[filter.name]" :reduce="field => field.value" :filterable="false" :options="options[filter.key]" @search="onSearch(...arguments, filter.key)">
@@ -39,15 +48,32 @@
                                         </v-select>
                                     </div>
                                     <div v-if="filter.type == 'input'">
-                                        <input class="form-control" type="text" :name="filter.name" :value="queryParams[filter.name]" @change="changeFilterValue($event, filter.name)">
+                                        <input class="form-control" type="text" :name="filter.name" :value="queryParams[filter.name]" @change="changeFilterValue($event, filter.name, filter.type)">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary" @click="applyFilter()">Применить фильтр</button>
-                        <button type="button" class="btn btn-danger" @click="resetFilter()">Сброс фильтра</button>
+                        <button type="button" class="btn btn-success btn-sm" @click="applyFilter()">Найти</button>
+                        <button type="button" class="btn btn-dark btn-sm" @click="resetFilter()">Сброс фильтра</button>
                     </div>
                 </div>
+            </div>
+            <div class="col-1">
+                <button-customer-component></button-customer-component>
+            </div>
+        </div>
+        <div class="mb-2" v-for="(filter, filterIndex) in secondFilters" :key="filterIndex">
+            <div class="input-group" v-if="filter.type == 'input-search'">
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    :name="filter.name" 
+                    :value="queryParams[filter.name]" 
+                    @input="inputSearch($event, filter.name, filter.type)"
+                    :placeholder="filter.placeholder" 
+                    aria-label="search" 
+                    aria-describedby="search-icon"
+                >
             </div>
         </div>
         <div class="table-responsive bg-white">
@@ -91,7 +117,7 @@
                                     input-class="my-class form-control"
                                     valueZone="Asia/Almaty"
                                     zone="Asia/Almaty"
-                                    format="DDD"
+                                    format="dd LLLL"
                                 ></datetime>
                             </div>
                             <div v-else>
@@ -169,17 +195,20 @@
 
 <script>
 import CustomerComponent from './CustomerComponent.vue';
+import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
     export default {
   components: { CustomerComponent },
         props: ['prefixProp'],
         data() {
             return {
+                filterOpen: false,
                 options: {
                     customer: [],
                 },
                 customerId: null,
                 prefix: this.prefixProp,
-                filters: {},
+                mainFilters: {},
+                secondFilters: {},
                 data: {},
                 dataTitles: {},
                 others: {},
@@ -195,8 +224,8 @@ import CustomerComponent from './CustomerComponent.vue';
         mounted() {
             this.$nextTick(function(){
                 this.spinnerData.loading = true;
-                this.setQueryParams();
                 this.getFilters();
+                // this.setQueryParams();
                 this.getData();
             });
             // let externalScript = document.createElement('script');
@@ -204,11 +233,20 @@ import CustomerComponent from './CustomerComponent.vue';
             // document.head.appendChild(externalScript);
         },
         methods: {
+            inputSearch(event, filterName, filterType) {
+                this.queryParams[filterName] = event.target.value;
+                if (event.target.value.length > 1) {
+                    this.setAddressBar();
+                    this.getData();
+                }
+            },
+            changeSelect(e, index) {
+                console.log(123);
+            },
             onSearch(search, loading, key) {
-                console.log(search, loading, key);
+                console.log(search, key);
                 loading(true);
-                console.log('123');
-                this.search(loading, search, this, key);               
+                this.search(loading, search, this, key);
             },
             search: _.debounce((loading, search, vm, key) => {
                 fetch(
@@ -260,6 +298,15 @@ import CustomerComponent from './CustomerComponent.vue';
                 this.queryParams = {},
                 this.setAddressBar();
                 this.getData();
+
+                let multipleSelects = $(".select-multiple");
+                [].forEach.call(multipleSelects, function (select) {
+                    
+                    let element = select.options;
+                    for(var i = 0; i < element.length; i++){
+                        element[i].selected = false;
+                    }
+                });
             },
             changeSortQueryParams(key) {
                 if ('sort' in this.queryParams) {
@@ -282,7 +329,7 @@ import CustomerComponent from './CustomerComponent.vue';
                 this.setAddressBar();
                 this.getData();
             },
-            changeFilterValue(e, filterName) {
+            changeFilterValue(e, filterName, filterType) {
                 this.queryParams[filterName] = e.target.value;
             },
             setAddressBar() {
@@ -300,9 +347,29 @@ import CustomerComponent from './CustomerComponent.vue';
                     (acc, val) => ({ ...acc, [val]: params.get(val) }),
                     {}
                 );
-                this.queryParams = paramsObj;
+                let selectMultipleNames = [];
+                this.mainFilters.forEach(function(filter) {
+                    if (filter.type == 'select-multiple') {
+                        selectMultipleNames.push(filter.name);
+                    }
+                });
+                let data = paramsObj;
+                Object.keys(data).map(function(key, index) {
+                    let value = null;
+                    if (data[key].includes(",")) {
+                        value = data[key].split(",");
+                    } else {
+                        value = data[key];
+                    }
+                    
+                    if (typeof value === 'string' && selectMultipleNames.includes(key)) {
+                        value = [value];
+                    }
+                    data[key] = value;
+                });
+                this.queryParams = data;
             },
-            getData() {
+            getData: _.debounce(function () {
                 this.spinnerData.loading = true;
                 axios.get(`/${this.prefixProp}/list`, { params: this.queryParams }).then(response => {
                     this.data = response.data.data;
@@ -311,12 +378,31 @@ import CustomerComponent from './CustomerComponent.vue';
                     this.pagination = response.data.pagination;
                     this.spinnerData.loading = false;
                 });
-            },
+            }, 500),
             getFilters() {
                 this.spinnerData.loading = true;
-                axios.get(`/${this.prefixProp}/filter`).then(response => {
-                    this.filters = response.data;
+                Promise.all([axios.get(`/${this.prefixProp}/filter`).then(response => {
                     this.spinnerData.loading = false;
+                    this.mainFilters = response.data.main.map(function(item, key) {
+                        let data = item;
+                        data.options = Object.keys(item.options).map(function(key, index) {
+                            return { value: key, text: item.options[key] };
+                        });
+                        return data;
+                    });
+
+                    this.secondFilters = response.data.second.map(function(item, key) {
+                        let data = item;
+                        data.options = Object.keys(item.options).map(function(key, index) {
+                            return { value: key, text: item.options[key] };
+                        });
+                        return data;
+                    });
+
+                })])
+                .then((allResults) => {
+                    console.log(123123);
+                    this.setQueryParams();
                 });
             }
         }
@@ -347,4 +433,19 @@ import CustomerComponent from './CustomerComponent.vue';
     display: block;
     padding: 5px 0;
 }
+
+.vs__search::placeholder,
+  .vs__dropdown-toggle,
+  .vs__dropdown-menu {
+    background: #dfe5fb;
+    border: none;
+    color: #afb7e4;
+    text-transform: lowercase;
+    font-variant: small-caps;
+  }
+
+  .vs__clear,
+  .vs__open-indicator {
+    fill: #394066;
+  }
 </style>

@@ -16,11 +16,12 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 
 Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
-    Route::get("/", [HomeController::class, "dashboard"])->name("dashboard");
+    Route::get("/dashboard", [HomeController::class, "dashboard"])->name("dashboard");
     Route::get("/search", 'SearchController@search')->name("search");
 
     Route::post('customers/update-with-data', 'CustomerController@createWithData');

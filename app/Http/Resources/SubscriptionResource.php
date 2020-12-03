@@ -47,9 +47,9 @@ class SubscriptionResource extends JsonResource
                 'value' => $this->status,
             ],
             'product' => [
-                'title' => $this->product->title ?? null,
-                'type' => 'link',
-                'value' => $this->product_id ? route('products.show', [$this->product_id]) : null,
+                'value' => $this->product->title ?? null,
+                // 'type' => 'link',
+                // 'value' => $this->product_id ? route('products.show', [$this->product_id]) : null,
             ],
             'payments' => [
                 'title' => 'Платежи',

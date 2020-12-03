@@ -72,7 +72,7 @@
                                             input-class="my-class form-control"
                                             valueZone="Asia/Almaty"
                                             zone="Asia/Almaty"
-                                            format="DDD"
+                                            format="dd LLLL"
                                         ></datetime>
                                     </div>
                                     <div v-if="subscription.payment_type == 'tries' || subscription.payment_type == 'transfer'" style="display: contents">
@@ -85,7 +85,7 @@
                                                 input-class="my-class form-control"
                                                 valueZone="Asia/Almaty"
                                                 zone="Asia/Almaty"
-                                                format="DDD"
+                                                format="dd LLLL"
                                             ></datetime>
                                         </div>
                                     </div>

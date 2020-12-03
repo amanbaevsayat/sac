@@ -22,9 +22,9 @@ class ProductFactory extends Factory
     public function definition()
     {
         return [
-            'code' => $this->faker->unique()->word,
-            'title' => $this->faker->sentence(3),
-            'description' => $this->faker->text,
+            'code' => 'yoga-lates',
+            'title' => 'Йога-пилатес',
+            'description' => '',
         ];
     }
 }

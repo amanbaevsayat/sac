@@ -19,7 +19,7 @@ class Subscription extends Model
     ];
 
     const PAYMENT_TYPE = [
-        'tries' => 'Пробная версия',
+        'tries' => 'Пробует бесплатно',
         'cloudpayments' => 'Подписка',
         'transfer' => 'Прямой перевод',
     ];

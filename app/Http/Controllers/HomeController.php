@@ -14,6 +14,11 @@ class HomeController extends Controller
         $this->githash = env('GIT_HASH');
     }
 
+    public function homepage()
+    {
+        return view('home');
+    }
+
     public function dashboard()
     {
         return view('dashboard');

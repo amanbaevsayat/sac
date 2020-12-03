@@ -34,33 +34,36 @@ class SubscriptionController extends Controller
     public function getFilters()
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $customers = Customer::get()->pluck('name_with_phone', 'id');
         $products = Product::get()->pluck('title', 'id');
-        $data = [
+        $data['main'] = [
             [
-                'name' => 'customer_id',
-                'title' => 'Клиенты',
-                'type' => 'select-search',
-                'key' => 'customer',
-                'options' => $customers,
+                'name' => 'payment_type',
+                'title' => 'Тип оплаты',
+                'type' => 'select-multiple',
+                'options' => Subscription::PAYMENT_TYPE,
             ],
             [
                 'name' => 'product_id',
                 'title' => 'Услуги',
-                'type' => 'select',
+                'type' => 'select-multiple',
                 'options' => $products,
             ],
             [
-                'name' => 'payment_type',
-                'title' => 'Тип',
-                'type' => 'select',
-                'options' => Subscription::PAYMENT_TYPE,
-            ],
-            [
                 'name' => 'status',
-                'title' => 'Метка',
-                'type' => 'select',
+                'title' => 'Статус абонемента',
+                'type' => 'select-multiple',
                 'options' => Subscription::STATUSES,
+            ],
+        ];
+
+        $data['second'] = [
+            [
+                'name' => 'customer_name_or_phone',
+                'placeholder' => 'Найти по имени и номеру',
+                'title' => 'Клиенты',
+                'type' => 'input-search',
+                'key' => 'customer',
+                'options' => [],
             ],
         ];
 

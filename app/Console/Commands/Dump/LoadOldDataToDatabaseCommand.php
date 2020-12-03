@@ -90,7 +90,7 @@ class LoadOldDataToDatabaseCommand extends Command
                         'ended_at' => $customer->data['old']['end_date'],
                         'product_id' => $product->id,
                         'customer_id' => $customer->id,
-                        'price' => 100,
+                        'price' => 3000,
                         'description' => '',
                         'status' => $this->getStatus($item->remark_id),
                         'payment_type' => ($customer->data['old']['subscription_type_id'] == 2) ? 'cloudpayments' : 'transfer', // TODO Пересмотреть

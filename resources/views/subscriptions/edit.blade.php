@@ -67,7 +67,7 @@
                         input-class="form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="DDD"
+                        format="dd LLLL"
                     ></datetime>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                         input-class="form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="DDD"
+                        format="dd LLLL"
                     ></datetime>
                 </div>
             </div>
@@ -95,7 +95,7 @@
                         input-class="form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="DDD"
+                        format="dd LLLL"
                     ></datetime>
                 </div>
             </div>

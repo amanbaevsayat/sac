@@ -2,16 +2,11 @@
 
 @section('title', 'Абонементы')
 
-@section('content_header')
+{{--@section('content_header')
 <h1>Абонементы</h1>
-@stop
+@stop--}}
 
 @section('content')
-<div class="row">
-    <div class="col-1">
-        <button-customer-component><button-customer-component>
-    </div>
-</div>
 <div class="table-responsive bg-white">
     <index-component prefix-prop="subscriptions"></index-component>
 </div>

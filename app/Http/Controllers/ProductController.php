@@ -34,7 +34,7 @@ class ProductController extends Controller
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
-        $data = [
+        $data['main'] = [
             [
                 'name' => 'title',
                 'title' => 'Заголовок',

@@ -37,7 +37,7 @@ class PaymentController extends Controller
         $subscriptions = Subscription::get()->pluck('description', 'id');
         $customers = Customer::get()->pluck('name_with_phone', 'id');
         
-        $data = [
+        $data['main'] = [
             [
                 'name' => 'customer_id',
                 'title' => 'Клиенты',

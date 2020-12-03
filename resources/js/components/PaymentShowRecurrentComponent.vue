@@ -17,7 +17,7 @@
                         input-class="my-class form-control"
                         valueZone="Asia/Almaty"
                         zone="Asia/Almaty"
-                        format="DDD"
+                        format="dd LLLL"
                     ></datetime>
                 </div>
             </div>
