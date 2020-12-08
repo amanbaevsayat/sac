@@ -37,6 +37,13 @@ class SubscriptionController extends Controller
         $products = Product::get()->pluck('title', 'id');
         $data['main'] = [
             [
+                'name' => 'customer_id',
+                'title' => 'Клиенты',
+                'type' => 'select-search',
+                'key' => 'customer',
+                'options' => [],
+            ],
+            [
                 'name' => 'payment_type',
                 'title' => 'Тип оплаты',
                 'type' => 'select-multiple',

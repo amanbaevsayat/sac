@@ -2,6 +2,8 @@
 
 namespace App\Filters;
 
+use App\Models\Customer;
+
 class PaymentFilter extends BaseFilter
 {
     public function defaultFilter($filter, $value)
@@ -23,5 +25,32 @@ class PaymentFilter extends BaseFilter
     public function page($value)
     {
         
+    }
+
+    public function customerNameOrPhone($value)
+    {
+        if ($value) {
+            $customerIds = Customer::where('name', 'LIKE', "%{$value}%")->orWhere('phone', 'LIKE', "%{$value}%")->pluck('id')->toArray();
+            // dd($customerIds);
+            return $this->builder->whereIn('customer_id', $customerIds);
+        }
+    }
+
+    public function type($value)
+    {
+        if (is_array($value)) {
+            return $this->builder->whereIn('type', $value);
+        } else {
+            return $this->builder->where('type', $value);
+        }
+    }
+
+    public function status($value)
+    {
+        if (is_array($value)) {
+            return $this->builder->whereIn('status', $value);
+        } else {
+            return $this->builder->where('status', $value);
+        }
     }
 }

@@ -1,12 +1,16 @@
 <template>
     <div>
-        <div class="row" v-if="mainFilters.length > 0">
-            <div class="col-11">
+        <div class="row">
+            <div class="col-12" v-if="mainFilters.length > 0">
                 <div class="card mb-2" id="filter">
-                    <div class="card-header py-1">
+                    <div 
+                        style="line-height: 25px; cursor: pointer;" 
+                        @click="filterOpen = !filterOpen" 
+                        class="card-header py-1"
+                    >
                         Фильтр
                         <small class="float-right">
-                            <a @click="filterOpen = !filterOpen" id="filter-toggle" class="btn btn-default btn-sm" title="Скрыть/показать">
+                            <a id="filter-toggle" class="btn btn-default btn-sm" title="Скрыть/показать">
                                 <i class="fa fa-toggle-off " :class="{'fa-toggle-on': filterOpen}"></i>
                             </a>
                         </small>
@@ -53,34 +57,49 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-success btn-sm" @click="applyFilter()">Найти</button>
-                        <button type="button" class="btn btn-dark btn-sm" @click="resetFilter()">Сброс фильтра</button>
                     </div>
                 </div>
             </div>
-            <div class="col-1">
-                <button-customer-component></button-customer-component>
+        </div>
+        <div class="mb-2">
+            <div class="input-group" >
+                <div style="flex: 1 1 auto; margin-left: 7px; margin-right: 10px" v-for="(filter, filterIndex) in secondFilters" :key="filterIndex">
+                    <input
+                        v-if="filter.type == 'input-search'"
+                        type="text" 
+                        class="form-control" 
+                        :name="filter.name" 
+                        :value="queryParams[filter.name]"
+                        @keydown="inputSearch($event, filter.name, filter.type, 'keydown')"
+                        @input="inputSearch($event, filter.name, filter.type, 'input')"
+                        :placeholder="filter.placeholder" 
+                        aria-label="search" 
+                        aria-describedby="search-icon"
+                    >
+                </div>
+                <button v-if="mainFilters.length > 0 || secondFilters.length > 0" type="button" class="btn btn-success btn-sm" @click="applyFilter()">Найти</button>
+                <button v-if="mainFilters.length > 0 || secondFilters.length > 0" type="button" style="margin: 0 7px" class="btn btn-dark btn-sm" @click="resetFilter()">Сброс фильтра</button>
+                <button-customer-component v-if="prefix == 'customers' || prefix == 'subscriptions'"></button-customer-component>
+                <a v-else :href="createLink" class="btn btn-info text-white" title="Добавить">
+                    <i class="fa fa-plus"></i>
+                </a>
+                <div style="flex: 0 1 auto; margin-left: 7px; line-height: 28px; margin-right: 10px;">
+                    <span>
+                        Показано с {{ pagination.from }} до {{ pagination.to }} из {{ pagination.total }} совпадений
+                    </span>
+                </div>
             </div>
         </div>
-        <div class="mb-2" v-for="(filter, filterIndex) in secondFilters" :key="filterIndex">
-            <div class="input-group" v-if="filter.type == 'input-search'">
-                <input 
-                    type="text" 
-                    class="form-control" 
-                    :name="filter.name" 
-                    :value="queryParams[filter.name]" 
-                    @input="inputSearch($event, filter.name, filter.type)"
-                    :placeholder="filter.placeholder" 
-                    aria-label="search" 
-                    aria-describedby="search-icon"
-                >
-            </div>
-        </div>
-        <div class="table-responsive bg-white">
+        <div style="overflow: hidden!important" class="table-responsive bg-white">
             <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
-            <table class="table table-striped table-sm">
+            <table style="overflow: hidden" class="table table-striped table-sm">
                 <thead>
                     <tr>
+                        <th scope="col">
+                            <a class="thead-title">
+                                #
+                            </a>
+                        </th>
                         <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex">
                             <a class="thead-title" @click="changeSortQueryParams(item.key)">
                                 {{ item.title }}
@@ -93,6 +112,13 @@
                 </thead>
                 <tbody>
                     <tr v-for="(items, itemsIndex) in data" :key="itemsIndex" :data-id="itemsIndex">
+                        <td>
+                            <div>
+                                <div class="custom-text">
+                                    {{ itemsIndex + pagination.from }}
+                                </div>
+                            </div>
+                        </td>
                         <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link' }">
                             <div v-if="item.type == 'select'">
                                 <select :name="name" v-model="item.value" class="form-control form-control-sm">
@@ -198,9 +224,13 @@ import CustomerComponent from './CustomerComponent.vue';
 import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
     export default {
   components: { CustomerComponent },
-        props: ['prefixProp'],
+        props: [
+            'prefixProp',
+            'createLinkProp',
+        ],
         data() {
             return {
+                createLink: this.createLinkProp,
                 filterOpen: false,
                 options: {
                     customer: [],
@@ -233,10 +263,11 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
             // document.head.appendChild(externalScript);
         },
         methods: {
-            inputSearch(event, filterName, filterType) {
+            inputSearch(event, filterName, filterType, type) {
+                console.log(type);
                 this.queryParams[filterName] = event.target.value;
+                this.setAddressBar();
                 if (event.target.value.length > 1) {
-                    this.setAddressBar();
                     this.getData();
                 }
             },
@@ -390,7 +421,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                         });
                         return data;
                     });
-
+                    console.log(response.data.second);
                     this.secondFilters = response.data.second.map(function(item, key) {
                         let data = item;
                         data.options = Object.keys(item.options).map(function(key, index) {
@@ -429,7 +460,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
     text-decoration: underline;
 }
 .custom-text {
-    text-align: center;
+    /* text-align: center; */
     display: block;
     padding: 5px 0;
 }

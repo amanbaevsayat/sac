@@ -2,20 +2,12 @@
 
 @section('title', 'Платежи')
 
-@section('content_header')
-<h1>Платежи</h1>
-@stop
-
 @section('content')
-<div class="row">
-    <div class="col-1">
-        <a href="{{ route('payments.create') }}" class="btn btn-info btn-block text-white mb-2" title="Создать платеж">
-            <i class="fa fa-plus"></i>
-        </a>
-    </div>
-</div>
 <div class="table-responsive bg-white">
-    <index-component prefix-prop="payments"></index-component>
+    <index-component 
+        prefix-prop="payments"
+        create-link-prop="{{ route('payments.create') }}"
+    ></index-component>
 </div>
 @stop
 

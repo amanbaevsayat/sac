@@ -2,20 +2,12 @@
 
 @section('title', 'Клиенты')
 
-@section('content_header')
-<h1>Клиенты</h1>
-@stop
-
 @section('content')
-<div class="row">
-    <div class="col-1">
-        <a href="{{ route('customers.create') }}" class="btn btn-info btn-block text-white mb-2" title="Добавить">
-            <i class="fa fa-plus"></i>
-        </a>
-    </div>
-</div>
 <div class="table-responsive bg-white">
-    <index-component prefix-prop="customers"></index-component>
+    <index-component 
+        prefix-prop="customers"
+        create-link-prop="{{ route('customers.create') }}"
+    ></index-component>
 </div>
 @stop
 

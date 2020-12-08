@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="modal fade bd-example-modal-lg" :id="'modal-customer-' + type" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="card">
                         <div class="card-body">
@@ -75,7 +75,7 @@
                                             format="dd LLLL"
                                         ></datetime>
                                     </div>
-                                    <div v-if="subscription.payment_type == 'tries' || subscription.payment_type == 'transfer'" style="display: contents">
+                                    <div v-if="subscription.payment_type == 'tries' || subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'" style="display: contents">
                                         <label for="ended_at" class="col-sm-1 col-form-label">Дата окончания</label>
                                         <div class="col-sm-4">
                                             <datetime

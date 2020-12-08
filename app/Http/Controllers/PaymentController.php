@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Filters\PaymentFilter;
 use App\Http\Resources\PaymentCollection;
 use App\Models\Customer;
+use App\Models\Product;
 use App\Models\Subscription;
 use Illuminate\Support\Str;
 class PaymentController extends Controller
@@ -34,22 +35,30 @@ class PaymentController extends Controller
     public function getFilters()
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $subscriptions = Subscription::get()->pluck('description', 'id');
-        $customers = Customer::get()->pluck('name_with_phone', 'id');
+        $products = Product::get()->pluck('title', 'id');
         
         $data['main'] = [
             [
-                'name' => 'customer_id',
-                'title' => 'Клиенты',
-                'type' => 'select-search',
-                'key' => 'customer',
-                'options' => $customers,
+                'name' => 'type',
+                'title' => 'Тип оплаты',
+                'type' => 'select-multiple',
+                'options' => Subscription::PAYMENT_TYPE,
             ],
             [
-                'name' => 'subscription_id',
-                'title' => 'Подписки',
-                'type' => 'select',
-                'options' => $subscriptions,
+                'name' => 'status',
+                'title' => 'Статус платежа',
+                'type' => 'select-multiple',
+                'options' => Payment::STATUSES,
+            ],
+        ];
+        $data['second'] = [
+            [
+                'name' => 'customer_name_or_phone',
+                'placeholder' => 'Найти по имени и номеру',
+                'title' => 'Клиенты',
+                'type' => 'input-search',
+                'key' => 'customer',
+                'options' => [],
             ],
         ];
 
@@ -113,7 +122,7 @@ class PaymentController extends Controller
      * @param Payment $payment
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, $payment)
+    public function show(Request $request, Payment $payment)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 

@@ -8,7 +8,10 @@
 
 @section('content')
 <div class="table-responsive bg-white">
-    <index-component prefix-prop="subscriptions"></index-component>
+    <index-component 
+        prefix-prop="subscriptions"
+        create-link-prop="{{ route('subscriptions.create') }}"
+    ></index-component>
 </div>
 @stop
 

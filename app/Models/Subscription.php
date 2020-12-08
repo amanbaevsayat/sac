@@ -35,6 +35,7 @@ class Subscription extends Model
         'status',
         'payment_type',
         'data',
+        'cp_subscription_id',
     ];
 
     protected $dates = [

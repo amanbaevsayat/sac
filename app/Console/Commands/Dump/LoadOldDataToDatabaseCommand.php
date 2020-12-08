@@ -133,6 +133,7 @@ class LoadOldDataToDatabaseCommand extends Command
                     'data' => [
                         'cloudpayments' => $item,
                     ],
+                    'cp_subscription_id' => $item->OriginId ?? null,
                 ]);
             }
         }

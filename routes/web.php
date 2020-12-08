@@ -17,7 +17,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
+Route::get('salam', function () {
+    $array = [
+        1, 2, 3, 4, 5
+    ];
 
+    foreach ($array as $item) {
+        if ($item == 2) {
+            continue;
+        }
+        echo $item;
+    }
+});
 Auth::routes();
 
 Route::middleware(["auth"])->group(function () {

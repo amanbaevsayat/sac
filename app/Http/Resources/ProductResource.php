@@ -18,13 +18,10 @@ class ProductResource extends JsonResource
             'id' => [
                 'value' => $this->id,
             ],
-            // 'code' => [
-            //     'type' => 'input',
-            //     'value' => $this->code,
-            // ],
             'title' => [
-                'type' => 'input',
-                'value' => $this->title,
+                'title' => $this->title,
+                'type' => 'link',
+                'value' => route('products.edit', [$this->id]),
             ],
             'description' => [
                 'type' => 'input',

@@ -18,18 +18,20 @@ class PaymentResource extends JsonResource
             'id' => [
                 'value' => $this->id,
             ],
-            'customer_id' => [
-                'title' => $this->customer->name ?? null,
-                'type' => 'link',
-                'value' => $this->customer_id ? route('customers.show', [$this->customer_id]) : null,
+            'customer' => [
+                'id' => $this->customer->id,
+                'title' => $this->customer->name,
+                'type' => 'customer-link',
+                'value' => route('customers.show', [$this->customer->id]),
             ],
             'subscription_id' => [
                 'title' => $this->subscription_id ?? null,
                 'type' => 'link',
                 'value' => isset($this->subscription_id) ? route('subscriptions.show', [$this->subscription_id]) : null,
             ],
-            'type' => [
-                'type' => 'input',
+            'payment_type' => [
+                'type' => 'select',
+                'collection' => 'payment_types',
                 'value' => $this->type,
             ],
             'amount' => [

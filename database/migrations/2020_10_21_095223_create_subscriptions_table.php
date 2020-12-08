@@ -28,7 +28,8 @@ class CreateSubscriptionsTable extends Migration
             $table->index('customer_id');
             $table->index('product_id');
             $table->text('description')->nullable();
-            $table->text('status');
+            $table->string('status');
+            $table->string('cp_subscription_id')->nullable();
             $table->text('payment_type');
             $table->json('data')->nullable();
             $table->timestamps();

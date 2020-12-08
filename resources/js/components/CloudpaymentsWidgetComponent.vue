@@ -51,7 +51,7 @@
                     amount: this.payment.amount * this.payment.quantity, //сумма
                     currency: 'KZT', //валюта
                     invoiceId: this.payment.id, //номер заказа  (необязательно)
-                    accountId: this.customer.phone, //идентификатор плательщика (обязательно для создания подписки)
+                    accountId: this.customer.id, //идентификатор плательщика (обязательно для создания подписки)
                     data: this.data
                 },
                 function (options) { // success

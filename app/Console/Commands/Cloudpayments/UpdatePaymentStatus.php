@@ -4,6 +4,7 @@ namespace App\Console\Commands\Cloudpayments;
 
 use App\Models\Card;
 use App\Models\Payment;
+use App\Models\Subscription;
 use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -46,20 +47,46 @@ class UpdatePaymentStatus extends Command
 
         $cpPayments = $cloudPaymentsService->getTransactions($this->getDate());
         foreach ($cpPayments as $item) {
-            $id = $item['InvoiceId'];
-            $payment = Payment::whereId($item['InvoiceId'])->firstOr(function () use ($id) {
-                \Log::info('Платеж не найден. ID: ' . $id);
-            });
-            if ($payment) {
-                // Если статус успешный, то создаем карту и привязываем к платежу
-                if ($item['Status'] == 'Completed') {
-                    $card = $this->updateOrCreateCard($payment, $item);
-                    $payment->update([
-                        'card_id' => $card->id,
+            $paymentId = $item['InvoiceId'];
+            $payment = Payment::whereId($paymentId)->first();
+            if (!$payment) {
+                $subscription = Subscription::where('cp_subscription_id', $item['SubscriptionId'])->first();
+                
+                if ($subscription) {
+                    $payment = $subscription->payments()->create([
+                        'subscription_id' => $subscription->id,
+                        'customer_id' => $subscription->customer->id,
+                        'quantity' => 1,
+                        'type' => $subscription->payment_type,
+                        'slug' => Str::uuid(),
+                        'status' => $item->Status,
+                        'amount' => $item->Amount,
+                        'recurrent' => 1,
+                        'start_date' => $subscription->started_at ?? null,
+                        'interval' => 'Month' ?? null,
+                        'period' => 1 ?? null,
+                        'paided_at' => $item->ConfirmDateIso,
+                        'data' => [
+                            'cloudpayments' => $item,
+                        ],
                     ]);
+                } else {
+                    \Log::info('Платеж с cloudpayments не найден. TransactionId: ' . $item['TransactionId']);
+                    continue;
                 }
-                $this->updatePayment($payment, $item);
             }
+
+            // Если статус успешный, то создаем карту и привязываем к платежу
+            if ($item['Status'] == 'Completed') {
+                $card = $this->updateOrCreateCard($payment, $item);
+                $payment->update([
+                    'card_id' => $card->id,
+                ]);
+                $payment->subscription()->update([
+                    'status' => 'paid' ?? null,
+                ]);
+            }
+            $this->updatePayment($payment, $item);
         }
     }
 
@@ -88,6 +115,10 @@ class UpdatePaymentStatus extends Command
         $payment->update([
             'status' => $item['Status'],
             'data' => $data,
+        ]);
+
+        $payment->subscription()->update([
+            'cp_subscription_id' => $item['SubscriptionId'] ?? null,
         ]);
     }
 

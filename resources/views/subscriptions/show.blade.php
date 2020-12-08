@@ -26,6 +26,7 @@
                 <a href="{{ route('subscriptions.edit', [$subscription->id]) }}" class="btn btn-warning btn-sm float-right">Изменить</a>
 
                 Описание подписки: {{ $subscription->description }} <br>
+                Cloudpayments Subscription Id: {{ $subscription->cp_subscription_id }} <br>
                 Цена: {{ $subscription->amount }} <br>
                 Дата старта: {{ $subscription->started_at }} <br>
                 Дата заморозки: {{ $subscription->paused_at }} <br>

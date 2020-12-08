@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Payment;
 use App\Models\Remark;
+use App\Models\Subscription;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 /**
@@ -17,6 +18,7 @@ class PaymentCollection extends ResourceCollection
             'data' => PaymentResource::collection($this->collection),
             'others' => [
                 'statuses' => Payment::STATUSES,
+                'payment_types' => Subscription::PAYMENT_TYPE,
             ],
             'dataTitles' => [
                 [
