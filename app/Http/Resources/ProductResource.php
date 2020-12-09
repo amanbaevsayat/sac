@@ -25,7 +25,6 @@ class ProductResource extends JsonResource
                 'value' => route('products.edit', [$this->id]),
             ],
             'description' => [
-                'type' => 'input',
                 'value' => $this->description,
             ],
         ];

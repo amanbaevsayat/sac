@@ -156,7 +156,7 @@
                             </div>
                         </td>
                         <td class="text-right" v-if="prefix != 'payments'">
-                            <button @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
+                            <button v-if="false" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
                             <div class="dropdown btn-group" role="group">
