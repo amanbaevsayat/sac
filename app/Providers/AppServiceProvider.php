@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\CloudPaymentsService;
 use App\Services\GitService;
 use Illuminate\Support\ServiceProvider;
+use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,7 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        setlocale(LC_ALL, 'ru_RU.utf8');
+        Carbon::setLocale(config('app.locale'));
     }
 
     private function registerServices()

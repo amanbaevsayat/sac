@@ -12,10 +12,10 @@ class Subscription extends Model
     use HasFactory, SoftDeletes, ModelBase;
 
     const STATUSES = [
-        'paid' => 'Оплачено',
-        'refused' => 'Отказался',
         'tries' => 'Пробует',
         'waiting' => 'Жду оплату',
+        'paid' => 'Оплачено',
+        'refused' => 'Отказался',
     ];
 
     const PAYMENT_TYPE = [

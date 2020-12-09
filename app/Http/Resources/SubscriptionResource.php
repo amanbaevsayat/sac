@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -15,9 +16,12 @@ class SubscriptionResource extends JsonResource
      */
     public function toArray($request): array
     {
+        setlocale(LC_TIME, 'ru_RU.UTF-8');
+        Carbon::setLocale(config('app.locale'));
         return [
             'id' => [
                 'value' => $this->id,
+                'type' => 'hidden',
             ],
             'customer' => [
                 'id' => $this->customer->id,
@@ -27,34 +31,24 @@ class SubscriptionResource extends JsonResource
             ],
             'customers.phone' => [
                 'value' => $this->customer->phone,
-                'type' => 'input',
+                // 'type' => 'input',
             ],
             'days_left' => [
                 'value' => $this->daysLeft(),
             ],
             'payment_type' => [
-                'type' => 'select',
-                'collection' => 'payment_types',
-                'value' => $this->payment_type,
+                'value' => Subscription::PAYMENT_TYPE[$this->payment_type],
             ],
             'ended_at' => [
-                'type' => 'date',
-                'value' => $this->ended_at,
+                'value' => strftime('%d %b', (new \DateTime($this->ended_at))->getTimestamp()),
             ],
             'status' => [
-                'type' => 'select',
-                'collection' => 'statuses',
-                'value' => $this->status,
+                'value' => Subscription::STATUSES[$this->status],
             ],
             'product' => [
                 'value' => $this->product->title ?? null,
                 // 'type' => 'link',
                 // 'value' => $this->product_id ? route('products.show', [$this->product_id]) : null,
-            ],
-            'payments' => [
-                'title' => 'Платежи',
-                'type' => 'link',
-                'value' => route('payments.index', ['subscription_id' => $this->id]),
             ],
         ];
     }

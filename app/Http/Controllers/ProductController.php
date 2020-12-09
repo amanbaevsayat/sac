@@ -22,7 +22,7 @@ class ProductController extends Controller
 
     public function getList(ProductFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         $query = Product::query();
         $products = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
@@ -32,7 +32,7 @@ class ProductController extends Controller
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         $data['main'] = [
             [
@@ -52,7 +52,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -64,7 +64,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         return view("{$this->root}.create");
     }
@@ -77,7 +77,7 @@ class ProductController extends Controller
      */
     public function store(CreateProductRequest $request, Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
         $product = $product->create($request->all());
         $priceIds = [];
         $prices = $request->get('prices', []);
@@ -103,7 +103,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         return view("{$this->root}.show", [
             'product' => $product,
@@ -118,7 +118,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
         return view("{$this->root}.edit", [
             'product' => $product,
@@ -135,7 +135,7 @@ class ProductController extends Controller
      */
     public function update(CreateProductRequest $request, Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
         $priceIds = [];
         $prices = $request->get('prices', []);
         $product->update($request->all());
@@ -169,7 +169,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         $product->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
@@ -177,7 +177,7 @@ class ProductController extends Controller
 
     public function withPrices()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-owner', 'can-host']);
 
         $products = Product::get();
         $data = [];

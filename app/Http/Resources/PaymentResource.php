@@ -2,6 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Subscription;
+use App\Models\Payment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +19,10 @@ class PaymentResource extends JsonResource
     {
         return [
             'id' => [
-                'value' => $this->id,
+                'id' => $this->id,
+                'title' => $this->id,
+                'type' => 'link',
+                'value' => route('payments.show', [$this->id]),
             ],
             'customer' => [
                 'id' => $this->customer->id,
@@ -24,41 +30,33 @@ class PaymentResource extends JsonResource
                 'type' => 'customer-link',
                 'value' => route('customers.show', [$this->customer->id]),
             ],
-            'subscription_id' => [
-                'title' => $this->subscription_id ?? null,
-                'type' => 'link',
-                'value' => isset($this->subscription_id) ? route('subscriptions.show', [$this->subscription_id]) : null,
+            'product_id' => [
+                'value' => $this->subscription->product->title ?? null,
             ],
             'payment_type' => [
-                'type' => 'select',
-                'collection' => 'payment_types',
-                'value' => $this->type,
+                'value' => Subscription::PAYMENT_TYPE[$this->type],
             ],
             'amount' => [
-                'type' => 'input',
+                // 'type' => 'input',
                 'value' => $this->amount,
             ],
             'status' => [
-                'type' => 'select',
-                'collection' => 'statuses',
-                'value' => $this->status,
+                'value' => Payment::STATUSES[$this->status],
             ],
-            'recurrent' => [
-                'type' => 'input',
-                'value' => $this->recurrent,
+            'errors' => [
+                'value' => $this->data['cloudpayments']['CardHolderMessage'] ?? null,
             ],
-            'start_date' => [
-                'type' => 'date',
-                'value' => $this->start_date,
+            'paided_at' => [
+                'value' => Carbon::parse($this->paided_at)->format('Y-m-d h:m:s'),
             ],
-            'interval' => [
-                'type' => 'input',
-                'value' => $this->interval,
-            ],
-            'period' => [
-                'type' => 'input',
-                'value' => $this->period
-            ],
+            // 'interval' => [
+            //     'type' => 'input',
+            //     'value' => $this->interval,
+            // ],
+            // 'period' => [
+            //     'type' => 'input',
+            //     'value' => $this->period
+            // ],
         ];
     }
 }

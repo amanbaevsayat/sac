@@ -30,7 +30,7 @@ class PaymentCollection extends ResourceCollection
                     'key' => 'customer_id',
                 ],
                 [
-                    'title' => 'Подписка',
+                    'title' => 'Абонемент',
                     'key' => 'subscription_id',
                 ],
                 [
@@ -46,21 +46,20 @@ class PaymentCollection extends ResourceCollection
                     'key' => 'status',
                 ],
                 [
-                    'title' => 'Рекуррентный платеж',
-                    'key' => 'recurrent',
+                    'title' => 'Описание платежа',
                 ],
                 [
-                    'title' => 'Дата списания',
-                    'key' => 'start_date',
+                    'title' => 'Дата оплаты',
+                    'key' => 'paided_at',
                 ],
-                [
-                    'title' => 'Интервал списания',
-                    'key' => 'interval',
-                ],
-                [
-                    'title' => 'Период списания',
-                    'key' => 'period',
-                ],
+                // [
+                //     'title' => 'Интервал списания',
+                //     'key' => 'interval',
+                // ],
+                // [
+                //     'title' => 'Период списания',
+                //     'key' => 'period',
+                // ],
             ],
             'pagination' => [
                 'current_page' => $this->currentPage(),

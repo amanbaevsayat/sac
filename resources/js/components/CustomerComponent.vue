@@ -52,13 +52,13 @@
                                     <label for="payment_type" class="col-sm-2 col-form-label">Тип оплаты</label>
                                     <div class="col-sm-4">
                                         <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="form-control">
-                                            <option v-for="(option, optionIndex) in paymentTypes" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                            <option v-for="(option, optionIndex) in paymentTypes" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
                                         </select>
                                     </div>
                                     <label for="status" class="col-sm-1 col-form-label">Статус подписки</label>
                                     <div class="col-sm-4">
                                         <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="form-control">
-                                            <option v-for="(option, optionIndex) in statuses" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                            <option v-for="(option, optionIndex) in getStatuses(subscription.payment_type)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -371,6 +371,12 @@ export default {
         getPrices(productId) {
             if (productId) {
                 return this.products[productId]['prices'];
+            }
+            return [];
+        },
+        getStatuses(paymentTypeKey) {
+            if (paymentTypeKey) {
+                return this.paymentTypes[paymentTypeKey]['statuses'];
             }
             return [];
         }

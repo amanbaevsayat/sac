@@ -30,10 +30,10 @@ class CustomerCollection extends ResourceCollection
                     'title' => 'Телефон',
                     'key' => 'phone',
                 ],
-                [
-                    'title' => 'E-mail',
-                    'key' => 'email',
-                ],
+                // [
+                //     'title' => 'E-mail',
+                //     'key' => 'email',
+                // ],
             ],
             'pagination' => [
                 'current_page' => $this->currentPage(),

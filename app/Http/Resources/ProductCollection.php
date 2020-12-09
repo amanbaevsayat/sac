@@ -16,10 +16,11 @@ class ProductCollection extends ResourceCollection
             'data' => ProductResource::collection($this->collection),
             'others' => [],
             'dataTitles' => [
-                [
-                    'title' => 'ID',
-                    'key' => 'id',
-                ],
+                // [
+                //     'title' => 'ID',
+                //     'key' => 'id',
+                //     'type' => 'hidden'
+                // ],
                 // [
                 //     'title' => 'Код',
                 //     'key' => 'code',

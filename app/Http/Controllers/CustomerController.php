@@ -39,10 +39,36 @@ class CustomerController extends Controller
 
     public function getOptions()
     {
+        $data = [];
+        foreach (Subscription::PAYMENT_TYPE as $key => $paymentType) {
+            $data[$key] = [
+                'title' => $paymentType,
+                'statuses' => [],
+            ];
+
+            switch ($paymentType) {
+                case Subscription::PAYMENT_TYPE['tries']:
+                    $statuses = Subscription::STATUSES;
+                    unset($statuses['paid']);
+                    unset($statuses['waiting']);
+                    $data[$key]['statuses'] = $statuses;
+                    break;
+                case Subscription::PAYMENT_TYPE['cloudpayments']:
+                    $statuses = Subscription::STATUSES;
+                    unset($statuses['tries']);
+                    $data[$key]['statuses'] = $statuses;
+                    break;
+                case Subscription::PAYMENT_TYPE['transfer']:
+                    $statuses = Subscription::STATUSES;
+                    unset($statuses['tries']);
+                    $data[$key]['statuses'] = $statuses;
+                    break;
+            }
+        }
+
         return response()->json([
             'quantities' => Payment::QUANTITIES, 
-            'paymentTypes' => Subscription::PAYMENT_TYPE, 
-            'statuses' => Subscription::STATUSES,
+            'paymentTypes' => $data, 
         ], 200);
     }
 
@@ -50,13 +76,47 @@ class CustomerController extends Controller
     {
         $data = $request->all();
 
-        $customer = Customer::updateOrCreate([
-            'phone' => $data['customer']['phone'], 
-        ],[
-            'name' => $data['customer']['name'], 
-            'email' => $data['customer']['email'], 
-            'comments' => $data['customer']['comments'], 
-        ]);
+        if (isset($data['customer']['id']) && Customer::where('id', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
+            // Update Client
+            $customer = Customer::updateOrCreate([
+                'id' => $data['customer']['id'], 
+                'phone' => $data['customer']['phone'],
+            ],[
+                'name' => $data['customer']['name'],
+                'email' => $data['customer']['email'],
+                'comments' => $data['customer']['comments'],
+            ]);
+        } else if (!isset($data['customer']['id'])) {
+            // Create client or Update if isset phone
+            $customer = Customer::updateOrCreate([
+                'phone' => $data['customer']['phone'],
+            ],[
+                'name' => $data['customer']['name'],
+                'email' => $data['customer']['email'],
+                'comments' => $data['customer']['comments'],
+            ]);
+        } else {
+            if (isset($data['customer']['id']) && Customer::where('id', '!=', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'customer.phone' => [
+                                'Такое значение поля Телефон уже существует.'
+                        ],
+                    ]
+                ], 422);
+            }
+            // Если у клиента сменился номер
+            $customer = Customer::updateOrCreate([
+                'id' => $data['customer']['id'], 
+            ],[
+                'phone' => $data['customer']['phone'],
+                'name' => $data['customer']['name'],
+                'email' => $data['customer']['email'],
+                'comments' => $data['customer']['comments'],
+            ]);
+        }
+
 
         foreach ($data['subscriptions'] as $item) {
             $subscription = $customer->subscriptions()->updateOrCreate([

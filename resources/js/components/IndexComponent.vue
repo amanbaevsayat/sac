@@ -80,7 +80,7 @@
                 <button v-if="mainFilters.length > 0 || secondFilters.length > 0" type="button" class="btn btn-success btn-sm" @click="applyFilter()">Найти</button>
                 <button v-if="mainFilters.length > 0 || secondFilters.length > 0" type="button" style="margin: 0 7px" class="btn btn-dark btn-sm" @click="resetFilter()">Сброс фильтра</button>
                 <button-customer-component v-if="prefix == 'customers' || prefix == 'subscriptions'"></button-customer-component>
-                <a v-else :href="createLink" class="btn btn-info text-white" title="Добавить">
+                <a v-else-if="prefix != 'payments'" :href="createLink" class="btn btn-info text-white" title="Добавить">
                     <i class="fa fa-plus"></i>
                 </a>
                 <div style="flex: 0 1 auto; margin-left: 7px; line-height: 28px; margin-right: 10px;">
@@ -96,17 +96,18 @@
                 <thead>
                     <tr>
                         <th scope="col">
-                            <a class="thead-title">
+                            <span>
                                 #
-                            </a>
+                            </span>
                         </th>
                         <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex">
-                            <a class="thead-title" @click="changeSortQueryParams(item.key)">
+                            <a v-if="item.key" class="thead-title" @click="changeSortQueryParams(item.key)">
                                 {{ item.title }}
                             </a>
+                            <span v-else>{{ item.title }}</span>
                         </th>
                         <th scope="col">
-                            <i class="fa fa-cog"></i>
+                            <!-- <i class="fa fa-cog"></i> -->
                         </th>
                     </tr>
                 </thead>
@@ -119,8 +120,10 @@
                                 </div>
                             </div>
                         </td>
-                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link' }">
-                            <div v-if="item.type == 'select'">
+                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link', tdhidden: item.type == 'hidden' }">
+                            <div v-if="item.type == 'hidden'">
+                            </div>
+                            <div v-else-if="item.type == 'select'">
                                 <select :name="name" v-model="item.value" class="form-control form-control-sm">
                                     <option v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
                                         {{ collection }}
@@ -152,7 +155,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-right">
+                        <td class="text-right" v-if="prefix != 'payments'">
                             <button @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
@@ -479,4 +482,10 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
   .vs__open-indicator {
     fill: #394066;
   }
+.tdhidden {
+    display: none;
+}
+.page-link {
+    cursor: pointer;
+}
 </style>
