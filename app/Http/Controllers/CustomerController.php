@@ -12,6 +12,7 @@ use App\Http\Resources\CustomerResource;
 use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWithSubscriptionResource;
 use App\Models\Subscription;
 use App\Models\Payment;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class CustomerController extends Controller
@@ -50,7 +51,6 @@ class CustomerController extends Controller
                 case Subscription::PAYMENT_TYPE['tries']:
                     $statuses = Subscription::STATUSES;
                     unset($statuses['paid']);
-                    unset($statuses['waiting']);
                     $data[$key]['statuses'] = $statuses;
                     break;
                 case Subscription::PAYMENT_TYPE['cloudpayments']:
@@ -75,7 +75,7 @@ class CustomerController extends Controller
     public function createWithData(CreateCustomerWithDataRequest $request)
     {
         $data = $request->all();
-
+        $type = '';
         if (isset($data['customer']['id']) && Customer::where('id', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
             // Update Client
             $customer = Customer::updateOrCreate([
@@ -87,6 +87,7 @@ class CustomerController extends Controller
                 'comments' => $data['customer']['comments'],
             ]);
         } else if (!isset($data['customer']['id'])) {
+            $type = 'create';
             // Create client or Update if isset phone
             $customer = Customer::updateOrCreate([
                 'phone' => $data['customer']['phone'],
@@ -117,17 +118,23 @@ class CustomerController extends Controller
             ]);
         }
 
-
         foreach ($data['subscriptions'] as $item) {
+            // dd($item);
             $subscription = $customer->subscriptions()->updateOrCreate([
                 'product_id' => $item['product_id'],
             ], [
                 'price' => $item['price'],
                 'payment_type' => $item['payment_type'],
-                'started_at' => $item['started_at'],
-                'ended_at' => $item['ended_at'],
+                'started_at' => Carbon::parse($item['started_at']),
+                'ended_at' => Carbon::parse($item['ended_at']),
                 'status' => $item['status'],
             ]);
+
+            if ($type == 'create') {
+                $subscription->update([
+                    'tries_at' => Carbon::parse($item['tries_at']),
+                ]);
+            }
 
             if ($subscription->payment_type == 'cloudpayments') {
                 if ($subscription->payments()->where('status', 'new')->where('type', 'cloudpayments')->doesntExist()) {
@@ -146,6 +153,12 @@ class CustomerController extends Controller
             } elseif ($subscription->payment_type == 'transfer') {
                 if (isset($item['newPayment']['check'])) {
                     $paymentStatus = $subscription->status == 'paid' ? 'Completed' : 'new';
+                    if ($subscription->status == 'paid') {
+                        // dd($item['newPayment']);
+                        // $subscription->update([
+                        //     'ended_at' => Carbon::parse($item['ended_at'])->addMonths($item['newPayment']['quantity']),
+                        // ]);
+                    }
     
                     $payment = $subscription->payments()->create([
                         'customer_id' => $customer->id,
@@ -173,7 +186,7 @@ class CustomerController extends Controller
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
         $query = Customer::query();
-        $customers = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $customers = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new CustomerCollection($customers), 200);
     }

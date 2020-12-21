@@ -131,6 +131,31 @@ class CloudPaymentsService
         ]));
     }
 
+    // Оплата по криптограмме
+    // https://developers.cloudpayments.ru/#oplata-po-kriptogramme
+    public function paymentsCardsCharge(array $request)
+    {
+        return $this->response($this->call("/payments/cards/charge", [
+            "Amount" => $request["Amount"],
+            "Currency" => 'KZT',
+            "InvoiceId" => $request["InvoiceId"] ?? null,
+            "Description" => $request["Description"] ?? null,
+            "AccountId" => $request["AccountId"] ?? null,
+            "Name" => $request["Name"] ?? null,
+            "CardCryptogramPacket" => $request["CardCryptogramPacket"] ?? null,
+        ]));
+    }
+
+    // Подтверждение оплаты
+    // https://developers.cloudpayments.ru/#obrabotka-3-d-secure
+    public function paymentsCardsPost3ds(array $request)
+    {
+        return $this->response($this->call("/payments/cards/post3ds", [
+            "TransactionId" => $request["TransactionId"],
+            "PaRes" => $request['PaRes'],
+        ]));
+    }
+
     // Метод отмены подписки на рекуррентные платежи.
     // https://developers.cloudpayments.ru/#otmena-podpiski-na-rekurrentnye-platezhi
     public function cancelSubscription(string $subscriptionId)

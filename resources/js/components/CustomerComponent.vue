@@ -13,7 +13,16 @@
                                     </div>
                                     <label for="phone" class="col-sm-4 col-form-label">Телефон</label>
                                     <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="phone" v-model="customer.phone" name="customer.phone" required>
+                                        <the-mask
+                                            :masked="false"
+                                            mask="+# (###) ### ##-##"
+                                            type="text"
+                                            class="form-control"
+                                            id="phone"
+                                            v-model="customer.phone"
+                                            name="customer.phone"
+                                            required
+                                        ></the-mask>
                                     </div>
                                     <label for="email" class="col-sm-4 col-form-label">E-mail</label>
                                     <div class="col-sm-8">
@@ -32,91 +41,123 @@
                     <div class="bd-example">
                         <div class="card" v-for="(subscription, subIndex) in subscriptions" :key="subIndex">
                             <div class="card-body">
-                                <button type="button" @click="removeProduct(subscription.id, subIndex)" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <div class="form-group row">
-                                    <label for="product_id" class="col-sm-2 col-form-label">Услуга</label>
-                                    <div class="col-sm-4">
-                                        <select v-model="subscription.product_id" :name="'subscriptions.' + subIndex + '.product_id'" id="product_id" class="form-control">
+                                <div class="row">
+                                    <button 
+                                        type="button" 
+                                        @click="removeProduct(subscription.id, subIndex)" 
+                                        class="close" 
+                                        data-dismiss="alert" 
+                                        aria-label="Close"
+                                        style="right: 20px; position: absolute; z-index: 1"
+                                    ><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-sm-6">
+                                        <label for="product_id" class="col-form-label">Услуга</label>
+                                        <select v-model="subscription.product_id" :name="'subscriptions.' + subIndex + '.product_id'" id="product_id" class="col-sm-10 form-control">
                                             <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
                                         </select>
                                     </div>
-                                    <label for="price" class="col-sm-1 col-form-label">Цена</label>
-                                    <div class="col-sm-4">
-                                        <select v-model="subscription.price" :name="'subscriptions.' + subIndex + '.price'" id="price" class="form-control">
+                                    <div class="form-group col-sm-6">
+                                        <label for="price" class="col-form-label">Цена</label>
+                                        <select v-model="subscription.price" :name="'subscriptions.' + subIndex + '.price'" id="price" class="col-sm-10 form-control">
                                             <option v-if="subscription.price != null" :value="subscription.price" selected>{{ subscription.price }}</option>
                                             <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="option" v-if="option != subscription.price">{{ option }}</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="form-group row">
-                                    <label for="payment_type" class="col-sm-2 col-form-label">Тип оплаты</label>
-                                    <div class="col-sm-4">
-                                        <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="form-control">
+                               
+                                <div class="row">
+                                    <div class="form-group col-sm-6">
+                                        <label for="payment_type" class="col-form-label">Тип оплаты</label>
+                                        <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="col-sm-10 form-control">
                                             <option v-for="(option, optionIndex) in paymentTypes" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
                                         </select>
                                     </div>
-                                    <label for="status" class="col-sm-1 col-form-label">Статус подписки</label>
-                                    <div class="col-sm-4">
-                                        <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="form-control">
+                                    <div class="form-group col-sm-6">
+                                        <label for="status" class="col-form-label">Статус подписки</label>
+                                        <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="col-sm-10 form-control">
                                             <option v-for="(option, optionIndex) in getStatuses(subscription.payment_type)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="form-group row">
-                                    <label for="started_at" class="col-sm-2 col-form-label">Дата старта</label>
-                                    <div class="col-sm-4">
+                                <div class="row">
+                                    <div class="form-group col-sm-6">
+                                        <label for="started_at" class="col-form-label">Дата старта</label>
                                         <datetime
                                             :name="'subscriptions.' + subIndex + '.started_at'"
                                             type="date"
                                             v-model="subscription.started_at"
-                                            input-class="my-class form-control"
+                                            input-class="col-sm-10 my-class form-control"
                                             valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
+                                            @input="setDates(subscription.started_at, subIndex)"
                                         ></datetime>
                                     </div>
-                                    <div v-if="subscription.payment_type == 'tries' || subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'" style="display: contents">
-                                        <label for="ended_at" class="col-sm-1 col-form-label">Дата окончания</label>
-                                        <div class="col-sm-4">
-                                            <datetime
-                                                :name="'subscriptions.' + subIndex + '.ended_at'"
-                                                type="date"
-                                                v-model="subscription.ended_at"
-                                                input-class="my-class form-control"
-                                                valueZone="Asia/Almaty"
-                                                zone="Asia/Almaty"
-                                                format="dd LLLL"
-                                            ></datetime>
-                                        </div>
+                                    <div class="form-group col-sm-6" v-if="subscription.payment_type == 'tries'">
+                                        <label for="tries_at" class="col-form-label">Дата окончания</label>
+                                        <datetime
+                                            :name="'subscriptions.' + subIndex + '.tries_at'"
+                                            type="date"
+                                            v-model="subscription.tries_at"
+                                            input-class="col-sm-10 my-class form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            format="dd LLLL"
+                                            @input="setDates(subscription.tries_at, subIndex)"
+                                        ></datetime>
+                                    </div>
+                                    <div class="form-group col-sm-6" v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
+                                        <label for="ended_at" class="col-form-label">Дата окончания</label>
+                                        <datetime
+                                            :name="'subscriptions.' + subIndex + '.ended_at'"
+                                            type="date"
+                                            v-model="subscription.ended_at"
+                                            input-class="col-sm-10 my-class form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            format="dd LLLL"
+                                            @input="setDates(subscription.ended_at, subIndex)"
+                                        ></datetime>
                                     </div>
                                 </div>
-                                <div class="form-group row" v-if="subscription.payment_type == 'transfer'">
-                                    <label for="check" class="col-sm-2 col-form-label">Загрузить чек</label>
-                                    <div class="col-sm-4">
+                                <div class="row" v-if="subscription.payment_type == 'transfer'">
+                                    <div class="form-group col-sm-6">
+                                        <label for="check" class="col-form-label">Загрузить чек</label>
                                         <upload-file :value-prop="subscription.newPayment.check" @file='setFileToSubscription($event, subIndex)'></upload-file>
                                     </div>
-                                    <label for="quantity" class="col-sm-1 col-form-label">Период</label>
-                                    <div class="col-sm-4">
-                                        <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="form-control">
+                                    <div class="form-group col-sm-6" v-if="false">
+                                        <label for="quantity" class="col-form-label">Период</label>
+                                        <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="col-sm-10 form-control">
                                             <option v-for="(option, optionIndex) in quantities" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="form-group row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'">
-                                    <div class="recurrent_block">
-                                        <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
-                                        <input type="hidden" :id="'recurrent-link-' + subIndex" :value="subscription.recurrent.link">
+                                <div class="row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'" style="margin-bottom: 15px">
+                                    <div class="col-sm-6">
+                                        <div class="recurrent_block">
+                                            <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
+                                            <input type="hidden" :id="'recurrent-link-' + subIndex" :value="subscription.recurrent.link">
+                                        </div>
                                     </div>
-                                    <div class="recurrent_button-block">
-                                        <button class="btn btn-info" @click="copyRecurrentLink(subIndex)">Копировать</button>
+                                    <div class="col-sm-6">
+                                        <div class="recurrent_button-block">
+                                            <button class="btn btn-info" @click="copyRecurrentLink(subIndex)">Копировать</button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="form-group row">
-                                    <p style="width: 100%" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
-                                        {{ payment.title }}
-                                        <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
-                                    </p>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <p style="width: 100%" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
+                                            {{ payment.title }}
+                                            <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -136,7 +177,13 @@
     </div>
 </template>
 <script>
+import moment from 'moment';
+import {TheMask} from 'vue-the-mask'
+import {mask} from 'vue-the-mask'
+
 export default {
+    components: {TheMask},
+    directives: {mask},
     props: [
         'typeProp',
         'nameProp',
@@ -173,6 +220,13 @@ export default {
             console.log('Prop changed: ', newVal, ' | was: ', oldVal);
             this.customerId = newVal;
             this.getCustomerWithData();
+        },
+        customer: function (newVal, oldVal) {
+            console.log('Customer changed: ', newVal, ' | was: ', oldVal);
+            if (newVal.phone.length == 10) {
+                newVal.phone = '7' . newVal.phone;
+            }
+            this.customer = newVal;
         }
     },
     mounted() {
@@ -185,14 +239,26 @@ export default {
         this.getOptions();
     },
     methods: {
+        salam() {
+            console.log('salam');
+        },
+        setDates(startedAt, subIndex) {
+            if (this.type == 'create') {
+                this.subscriptions[subIndex].ended_at = moment().format();
+                this.subscriptions[subIndex].tries_at = moment().add(7, 'days').format();
+            }
+        },
+        showDate(date) {
+            return moment(date).locale('ru').format('DD MMM');
+        },
         closeModal() {
-            this.customer = {
-                name: '',
-                phone: '',
-                email: '',
-                comments: '',
-            };
-            this.subscriptions = [];
+            // this.customer = {
+            //     name: '',
+            //     phone: '',
+            //     email: '',
+            //     comments: '',
+            // };
+            // this.subscriptions = [];
         },
         copyRecurrentLink(index) {
             var input = $('#recurrent-link-' + index);
@@ -239,6 +305,10 @@ export default {
             axios.get('/customers/' + this.customerId + '/with-data').then(response => {
                 let data = response.data.data;
                 if (response.data.data) {
+                    console.log(data.phone);
+                    if (data.phone.length == 10) {
+                        data.phone = '+7' + data.phone;
+                    }
                     this.customer = data;
                     this.subscriptions = data.subscriptions;
                 }
@@ -315,9 +385,7 @@ export default {
             } else if (this.type == 'edit') {
                 let result = confirm('Удалить подписку?');
                 if (result) {
-                    axios.post('/subscriptions/delete', {
-                        id: id,
-                    }).then(response => {
+                    axios.delete(`/subscriptions/${id}`).then(response => {
                         let message = response.data.message;
                         if (response.data.message) {
                             this.subscriptions.splice(subIndex, 1);
@@ -339,17 +407,17 @@ export default {
             }
         },
         addProduct() {
-            var now = new Date();
-            now.setDate(now.getDate()+parseInt(7));
+            let now = moment();
 
             this.subscriptions.push({
                 id: null,
                 product_id: null,
                 price: null,
                 payment_type: null,
-                started_at: new Date().toISOString(),
+                started_at: now.format(),
                 paused_at: null,
-                ended_at: now.toISOString(),
+                ended_at: moment().format(),
+                tries_at: moment().add(7, 'days').format(),
                 status: null,
                 description: null,
                 newPayment: {
@@ -399,7 +467,7 @@ export default {
     border: 1px solid #3490dc;
 }
 .recurrent_button-block {
-    margin: 20px;
+    margin: 15px;
 }
 .selectpicker {
     display: block!important;

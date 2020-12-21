@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
     {
         foreach ($this->users() as $user) {
             $user['email_verified_at'] = now();
-            $user['password'] = bcrypt('1234qwer');
+            // $user['password'] = bcrypt('1234qwer');
             $user['remember_token'] = Str::random(10);
 
             User::create($user);
@@ -33,6 +33,14 @@ class UserSeeder extends Seeder
                 'role_id' => Role::findByCode('host')->id,
                 'email' => "amanbaev.sayat@gmail.com",
                 'phone' => "+77763442424",
+                'password' => bcrypt('1234qwer'),
+            ],
+            [
+                'account' => "temirlan.b",
+                'role_id' => Role::findByCode('host')->id,
+                'email' => "balymbetov.temirlan@gmail.com",
+                'phone' => "+77073207636",
+                'password' => bcrypt('1234qwer'),
             ]
         ];
     }

@@ -150,7 +150,17 @@
                                 ></datetime>
                             </div>
                             <div v-else>
-                                <div class="custom-text">
+                                <div class="custom-text" v-if="name == 'status'">
+                                    <span class="status" :class="{ 
+                                        'status-tries': item.value == 'Пробует', 
+                                        'status-waiting': item.value == 'Жду оплату', 
+                                        'status-paid': item.value == 'Оплачено',
+                                        'status-refused': item.value == 'Отказался'
+                                    }">
+                                        {{ item.value }}
+                                    </span>
+                                </div>
+                                <div class="custom-text" v-else>
                                     {{ item.value }}
                                 </div>
                             </div>
@@ -159,12 +169,12 @@
                             <button v-if="false" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
-                            <div class="dropdown btn-group" role="group">
+                            <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions'">
                                 <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" :id="'dropdownMenuButton' + itemsIndex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="fa fa-cog"></i>
                                 </button>
                                 <div class="dropdown-menu" :aria-labelledby="'dropdownMenuButton' + itemsIndex">
-                                    <a :href="'/'+ prefix +'/'+ items.id.value +'/edit'" class="dropdown-item" title="Редактировать">
+                                    <a v-if="prefix != 'payments'" :href="'/'+ prefix +'/'+ items.id.value +'/edit'" class="dropdown-item" title="Редактировать">
                                         Редактировать
                                     </a>
                                     <a :href="'/'+ prefix +'/'+ items.id.value" class="dropdown-item" title="Подробнее">
@@ -487,5 +497,29 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
 }
 .page-link {
     cursor: pointer;
+}
+
+.table .custom-link {
+    font-size: 15px;
+}
+
+.table .custom-text {
+    font-size: 15px;
+}
+
+.status-tries {
+    background: #91c7ff;
+}
+.status-waiting {
+    background: #f5fd82db;
+}
+.status-paid {
+    background: #38c1727a;
+}
+.status-refused {
+    background: #ff33337a;
+}
+.status {
+    padding: 2px 6px;
 }
 </style>

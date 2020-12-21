@@ -48,7 +48,7 @@ class LoadOldDataToDatabaseCommand extends Command
         Artisan::call('migrate:fresh');
         Artisan::call('db:seed');
 
-        $path = public_path('dshpyrk3_sa-28-11-2020-01-16.json');
+        $path = public_path('dshpyrk3_sa-14-12-2020-07-38.json');
         $json = json_decode(file_get_contents($path));
         foreach ($json as $table) {
             if ($table->type == 'table') {
@@ -83,17 +83,24 @@ class LoadOldDataToDatabaseCommand extends Command
 
                 if (!$item->subscription_id) {
                     $product = Product::inRandomOrder()->first();
-
+                    if (($customer->data['old']['subscription_type_id'] == 2) && $item->remark_id != 6) {
+                        $paymentType = 'cloudpayments';
+                    } else if ($item->remark_id == 6) {
+                        $paymentType = 'tries';
+                    } else {
+                        $paymentType = 'transfer';
+                    }
                     Subscription::create([
                         'started_at' => $customer->data['old']['start_date'],
                         'paused_at' => null,
-                        'ended_at' => $customer->data['old']['end_date'],
+                        'tries_at' => $item->remark_id == 6 ? $customer->data['old']['end_date'] : null,
+                        'ended_at' => $item->remark_id == 6 ? $customer->data['old']['start_date'] : $customer->data['old']['end_date'],
                         'product_id' => $product->id,
                         'customer_id' => $customer->id,
                         'price' => 3000,
                         'description' => '',
                         'status' => $this->getStatus($item->remark_id),
-                        'payment_type' => ($customer->data['old']['subscription_type_id'] == 2) ? 'cloudpayments' : 'transfer', // TODO Пересмотреть
+                        'payment_type' => $paymentType,
                     ]);
                 }
 
@@ -123,12 +130,13 @@ class LoadOldDataToDatabaseCommand extends Command
                 Subscription::create([
                     'started_at' => $customer->data['old']['start_date'],
                     'paused_at' => null,
-                    'ended_at' => $customer->data['old']['end_date'],
+                    'tries_at' => $customer->data['old']['remark_id'] == 6 ? $customer->data['old']['end_date'] : null,
+                    'ended_at' => $customer->data['old']['remark_id'] == 6 ? $customer->data['old']['start_date'] : $customer->data['old']['end_date'],
                     'product_id' => $product->id,
                     'customer_id' => $customer->id,
                     'price' => $item->Amount,
                     'description' => $item->Description,
-                    'status' => $item->Status,
+                    'status' => $this->getStatus($customer->data['old']['remark_id']),
                     'payment_type' => ($customer->data['old']['subscription_type_id'] == 2) ? 'cloudpayments' : 'transfer',
                     'data' => [
                         'cloudpayments' => $item,

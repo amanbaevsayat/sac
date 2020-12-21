@@ -39,11 +39,14 @@ class SubscriptionResource extends JsonResource
             'payment_type' => [
                 'value' => Subscription::PAYMENT_TYPE[$this->payment_type],
             ],
+            'started_at' => [
+                'value' => strftime('%d %b', (new \DateTime($this->started_at))->getTimestamp()),
+            ],
             'ended_at' => [
-                'value' => strftime('%d %b', (new \DateTime($this->ended_at))->getTimestamp()),
+                'value' => strftime('%d %b', (new \DateTime($this->getEndDate()))->getTimestamp()),
             ],
             'status' => [
-                'value' => Subscription::STATUSES[$this->status],
+                'value' => Subscription::STATUSES[$this->status] ?? null,
             ],
             'product' => [
                 'value' => $this->product->title ?? null,

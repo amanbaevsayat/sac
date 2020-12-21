@@ -4,6 +4,7 @@ namespace App\Http\Resources\CustomerWithSubscription;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
 
 class PaymentResource extends JsonResource
 {
@@ -28,26 +29,32 @@ class PaymentResource extends JsonResource
                 'period' => $this->period,
             ],
         ];
+        $updatedAt = Carbon::parse($this->updated_at)->isoFormat('DD MMM YYYY, HH:mm');
+        $createdAt = Carbon::parse($this->created_at)->isoFormat('DD MMM YYYY, HH:mm');
+        $paidedAt = Carbon::parse($this->paided_at)->isoFormat('DD MMM YYYY, HH:mm');
+
         if ($this->type == 'cloudpayments') {
             if ($this->status == 'new') {
-                $title = "{$this->created_at} создана подписка оператором на сумму {$this->subscription->price} тг";
+                $title = "{$createdAt}, создана подписка оператором на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$this->paided_at} оплата по подписке успешно {$this->subscription->price} тг";
+                $title = "{$paidedAt}, успешно оплатил по подписке {$this->subscription->price} тг";
             } elseif ($this->status == 'Declined') {
-                $title = "{$this->updated_at} ошибка при оплате подписки на сумму {$this->subscription->price} тг (Ошибка: TODO)";
+                $description = $this->data['cloudpayments']['CardHolderMessage'] ?? null;
+                $title = "{$updatedAt}, ошибка при оплате подписки на сумму {$this->subscription->price} тг (Описание: {$description})";
             }
         } elseif ($this->type == 'transfer') {
             if ($this->status == 'new') {
-                $title = "{$this->created_at} ожидаю оплату переводом на сумму {$this->subscription->price} тг";
+                $title = "{$createdAt}, ожидаю оплату переводом на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$this->updated_at} прямой перевод на сумму {$this->subscription->price} тг";
+                $amount = $this->subscription->price * $this->quantity;
+                $title = "{$updatedAt}, прямой перевод на сумму {$amount} тг";
             } elseif ($this->status == 'Declined') {
-                $title = "{$this->updated_at} не оплатил переводом на сумму {$this->subscription->price} тг";
+                $title = "{$updatedAt}, не оплатил переводом на сумму {$this->subscription->price} тг";
             }
         } else {
             $title = '';
         }
-        $data['title'] = $title;
+        $data['title'] = $title ?? null;
         return $data;
     }
 }

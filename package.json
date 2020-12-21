@@ -28,10 +28,14 @@
         "bootstrap-vue": "^2.20.0",
         "element-ui": "^2.14.1",
         "luxon": "^1.25.0",
+        "moment": "^2.29.1",
+        "vue-card-payment": "^0.2.1",
         "vue-datetime": "^1.0.0-beta.14",
+        "vue-phone-mask-input": "^1.1.11",
         "vue-router": "^3.4.8",
         "vue-select": "^3.10.8",
         "vue-spinner": "^1.0.4",
+        "vue-the-mask": "^0.11.1",
         "vue-toast-notification": "^0.5.4",
         "weekstart": "^1.0.1"
     }

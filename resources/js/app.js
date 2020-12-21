@@ -82,6 +82,7 @@ Vue.component('datetime', Datetime);
 import vSelect from 'vue-select'
 Vue.component('v-select', vSelect)
 import 'vue-select/dist/vue-select.css';
+
 // Vue select end
 // import ElementUI from 'element-ui';
 // import 'element-ui/lib/theme-chalk/index.css';

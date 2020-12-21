@@ -27,7 +27,7 @@ class PaymentController extends Controller
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
         $query = Payment::query();
-        $payments = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $payments = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new PaymentCollection($payments), 200);
     }
@@ -35,14 +35,16 @@ class PaymentController extends Controller
     public function getFilters()
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $products = Product::get()->pluck('title', 'id');
+        // $products = Product::get()->pluck('title', 'id');
+        $paymentTypes = Subscription::PAYMENT_TYPE;
+        unset($paymentTypes['tries']);
         
         $data['main'] = [
             [
                 'name' => 'type',
                 'title' => 'Тип оплаты',
                 'type' => 'select-multiple',
-                'options' => Subscription::PAYMENT_TYPE,
+                'options' => $paymentTypes,
             ],
             [
                 'name' => 'status',

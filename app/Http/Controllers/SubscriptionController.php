@@ -9,6 +9,7 @@ use App\Filters\SubscriptionFilter;
 use App\Http\Resources\SubscriptionCollection;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Services\CloudPaymentsService;
 
 class SubscriptionController extends Controller
 {
@@ -26,7 +27,7 @@ class SubscriptionController extends Controller
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
         $query = Subscription::query();
-        $subscriptions = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $subscriptions = $query->filter($filters)->latest()->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new SubscriptionCollection($subscriptions), 200);
     }
@@ -44,12 +45,6 @@ class SubscriptionController extends Controller
                 'options' => [],
             ],
             [
-                'name' => 'payment_type',
-                'title' => 'Тип оплаты',
-                'type' => 'select-multiple',
-                'options' => Subscription::PAYMENT_TYPE,
-            ],
-            [
                 'name' => 'product_id',
                 'title' => 'Услуги',
                 'type' => 'select-multiple',
@@ -60,6 +55,12 @@ class SubscriptionController extends Controller
                 'title' => 'Статус абонемента',
                 'type' => 'select-multiple',
                 'options' => Subscription::STATUSES,
+            ],
+            [
+                'name' => 'payment_type',
+                'title' => 'Тип оплаты',
+                'type' => 'select-multiple',
+                'options' => Subscription::PAYMENT_TYPE,
             ],
         ];
 
@@ -118,7 +119,7 @@ class SubscriptionController extends Controller
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
         $subscription->create($request->all());
-        return redirect()->route("{$this->root}.index")->with('success', 'Подписка успешно создана.');
+        return redirect()->route("{$this->root}.index")->with('success', 'Абонемент успешно создан.');
     }
 
     /**
@@ -183,30 +184,23 @@ class SubscriptionController extends Controller
      * @param  \App\Models\Subscription $subscription
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Subscription $subscription)
+    public function destroy(Subscription $subscription, Request $request)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
+        if ($subscription->cp_subscription_id) {
+            $cloudPaymentsService = new CloudPaymentsService();
+            $cloudPaymentsService->cancelSubscription($subscription->cp_subscription_id);
+        }
         $subscription->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Подписка успешно удалена.');
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function delete(Request $request)
-    {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $id = $request->get('id');
-        $subscription = Subscription::whereId($id)->firstOr(function () use ($id) {
-            throw new \Exception('Абонемент не найден. ID: ' . $id, 404);
-        });
-        $subscription->delete();
-        return response()->json([
-            'message' => 'Абонемент успешно удален.'
-        ], 200);
+        $message = 'Абонемент успешно удален.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->route("{$this->root}.index")->with('success', '');
+        }
     }
 }

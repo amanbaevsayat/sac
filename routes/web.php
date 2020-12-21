@@ -17,18 +17,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
-Route::get('salam', function () {
-    $array = [
-        1, 2, 3, 4, 5
-    ];
-
-    foreach ($array as $item) {
-        if ($item == 2) {
-            continue;
-        }
-        echo $item;
-    }
-});
 Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
@@ -64,3 +52,5 @@ Route::middleware(["auth"])->group(function () {
 Route::get("/pull", [HomeController::class, "pull"])->name("pull");
 
 Route::get('cloudpayments/{slug}', 'CloudPaymentsController@showWidget')->name('cloudpayments.show_widget');
+Route::post('cloudpayments/pay', 'CloudPaymentsController@pay')->name('cloudpayments.pay');
+Route::post('cloudpayments/AcsUrl', 'CloudPaymentsController@AcsUrl')->name('cloudpayments.AcsUrl');

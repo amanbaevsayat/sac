@@ -42,7 +42,7 @@
             </div>
         </div>
     </div>
-    @foreach($payment->data as $key=>$item)
+    @foreach($payment->data ?? [] as $key=>$item)
         <div class="col-6">
             <div class="card mb-2">
                 <div class="card-header">

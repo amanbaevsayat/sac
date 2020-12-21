@@ -18,6 +18,7 @@ class CreateSubscriptionsTable extends Migration
 
             $table->dateTime('started_at');
             $table->dateTime('paused_at')->nullable(); // for freeze
+            $table->dateTime('tries_at')->nullable(); // for freeze
             $table->dateTime('ended_at');
             
             $table->unsignedInteger('product_id');

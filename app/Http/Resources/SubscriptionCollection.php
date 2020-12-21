@@ -41,6 +41,10 @@ class SubscriptionCollection extends ResourceCollection
                     'key' => 'payment_type',
                 ],
                 [
+                    'title' => 'Дата старта',
+                    'key' => 'started_at',
+                ],
+                [
                     'title' => 'Дата окончания',
                     'key' => 'ended_at',
                 ],

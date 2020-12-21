@@ -20,13 +20,14 @@ class Subscription extends Model
 
     const PAYMENT_TYPE = [
         'tries' => 'Пробует бесплатно',
-        'cloudpayments' => 'Подписка',
         'transfer' => 'Прямой перевод',
+        'cloudpayments' => 'Подписка',
     ];
 
     protected $fillable = [
         'started_at',
         'paused_at',
+        'tries_at',
         'ended_at',
         'product_id',
         'customer_id',
@@ -41,6 +42,7 @@ class Subscription extends Model
     protected $dates = [
         'started_at',
         'paused_at',
+        'tries_at',
         'ended_at',
         'created_at',
         'updated_at',
@@ -70,7 +72,7 @@ class Subscription extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payment::class, 'subscription_id');
+        return $this->hasMany(Payment::class, 'subscription_id')->latest();
     }
 
     public function scopeFilter($query, SubscriptionFilter $filters)
@@ -78,12 +80,22 @@ class Subscription extends Model
         $filters->apply($query);
     }
 
+    public function getEndDate()
+    {
+        $endedAt = strtotime($this->ended_at ?? $this->tries_at);
+        $triesAt = strtotime($this->tries_at ?? $this->ended_at);
+        if ($endedAt >= $triesAt) {
+            $date = $this->ended_at;
+        } else {
+            $date = $this->tries_at;
+        }
+        return $date;
+    }
+
     public function daysLeft()
     {
-        if (!$this->ended_at) return '';
         $now = time();
-        $end_date = strtotime($this->ended_at);
-        $datediff = $end_date - $now;
+        $datediff = strtotime($this->getEndDate()) - $now;
 
         return round($datediff / (60 * 60 * 24));
     }

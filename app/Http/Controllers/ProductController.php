@@ -25,7 +25,7 @@ class ProductController extends Controller
         access(['can-owner', 'can-host']);
 
         $query = Product::query();
-        $products = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $products = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new ProductCollection($products), 200);
     }

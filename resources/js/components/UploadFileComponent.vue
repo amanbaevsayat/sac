@@ -4,8 +4,8 @@
             <label>
                 <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
             </label>
-            <iframe style="display: block; max-width: 400px;" v-if="showPdfPreview" :src="preview" frameborder="0" scrolling="no" width="400" height="600"></iframe>
-            <img style="display: block; max-width: 400px;"  v-if="showImagePreview" :src="preview"/>
+            <iframe style="display: block; width: 90%" v-if="showPdfPreview" :src="preview" frameborder="0" scrolling="no" width="400" height="600"></iframe>
+            <img style="display: block; width: 90%"  v-if="showImagePreview" :src="preview"/>
             <input type="hidden" :name="name" :value="value">
         </div>
     </div>

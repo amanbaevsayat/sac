@@ -88,6 +88,8 @@ class UpdatePaymentStatus extends Command
             }
             $this->updatePayment($payment, $item);
         }
+
+        \Log::info('Start - UpdatePaymentStatus');
     }
 
     private function updateOrCreateCard(Payment $payment, $item): Card
