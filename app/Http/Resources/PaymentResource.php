@@ -47,7 +47,7 @@ class PaymentResource extends JsonResource
                 'value' => $this->data['cloudpayments']['CardHolderMessage'] ?? null,
             ],
             'paided_at' => [
-                'value' => Carbon::parse($this->paided_at)->isoFormat('DD MMM YYYY, HH:mm'),
+                'value' => Carbon::parse($this->paided_at ?? $this->created_at)->isoFormat('DD MMM YYYY, HH:mm'),
             ],
             // 'interval' => [
             //     'type' => 'input',

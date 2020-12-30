@@ -9,6 +9,7 @@ use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 
 class UpdatePaymentStatus extends Command
 {
@@ -46,11 +47,11 @@ class UpdatePaymentStatus extends Command
         $cloudPaymentsService = new CloudPaymentsService();
 
         $cpPayments = $cloudPaymentsService->getTransactions($this->getDate());
-        foreach ($cpPayments as $item) {
+        foreach ($cpPayments['Model'] as $item) {
             $paymentId = $item['InvoiceId'];
             $payment = Payment::whereId($paymentId)->first();
             if (!$payment) {
-                $subscription = Subscription::where('cp_subscription_id', $item['SubscriptionId'])->first();
+                $subscription = Subscription::whereNotNull('cp_subscription_id')->where('cp_subscription_id', $item['SubscriptionId'])->first();
                 
                 if ($subscription) {
                     $payment = $subscription->payments()->create([
@@ -59,55 +60,83 @@ class UpdatePaymentStatus extends Command
                         'quantity' => 1,
                         'type' => $subscription->payment_type,
                         'slug' => Str::uuid(),
-                        'status' => $item->Status,
-                        'amount' => $item->Amount,
+                        'status' => $item['Status'],
+                        'amount' => $item['Amount'],
                         'recurrent' => 1,
                         'start_date' => $subscription->started_at ?? null,
                         'interval' => 'Month' ?? null,
                         'period' => 1 ?? null,
-                        'paided_at' => $item->ConfirmDateIso,
+                        'paided_at' => $item['ConfirmDateIso'] ?? $item['AuthDateIso'],
                         'data' => [
                             'cloudpayments' => $item,
                         ],
                     ]);
                 } else {
-                    \Log::info('Платеж с cloudpayments не найден. TransactionId: ' . $item['TransactionId']);
+                    \Log::info('С этим платежом не найден абонемент. TransactionId: ' . $item['TransactionId'] . '. InvoiceId: ' . $item['InvoiceId']);
                     continue;
                 }
             }
 
-            // Если статус успешный, то создаем карту и привязываем к платежу
-            if ($item['Status'] == 'Completed') {
-                $card = $this->updateOrCreateCard($payment, $item);
-                $payment->update([
-                    'card_id' => $card->id,
-                ]);
-                $payment->subscription()->update([
-                    'status' => 'paid' ?? null,
-                ]);
-            }
-            $this->updatePayment($payment, $item);
-        }
+            \Log::info('qwerty');
 
-        \Log::info('Start - UpdatePaymentStatus');
+            $this->updatePayment($payment, $item);
+
+            // Если статус успешный, то создаем карту для платежа
+            if ($item['Status'] == 'Completed') {
+                $this->updateOrCreateCard($payment, $item);
+
+                // Если у платежа есть SubscriptionId, значит он рекуррентный
+                if ($item['SubscriptionId']) {
+                    // Проверяем, есть ли метка у платежа, чтобы можно было продлить абонемент
+                    $data = $payment->data ?? [];
+                    if (!(isset($data['subscription']) && $data['subscription']['renewed'] == true)) {
+                        $endedAt = $payment->subscription->ended_at;
+                        $data['subscription'] = [
+                            'renewed' => true,
+                            'first_ended_at' => $endedAt,
+                            'second_ended_at' => Carbon::parse($endedAt)->addMonths(1),
+                        ];
+                        $payment->update([
+                            'data' => $data
+                        ]);
+                        $payment->subscription()->update([
+                            'ended_at' => Carbon::parse($endedAt)->addMonths(1),
+                            'status' => 'paid',
+                        ]);
+                    }
+                }
+            } else if ($item['Status'] == 'Authorized' && $item['ReasonCode'] == 0) {
+                $cloudPaymentsService = new CloudPaymentsService();
+                $response = $cloudPaymentsService->paymentsConfirm([
+                    'TransactionId' => $item['TransactionId'],
+                    'Amount' => $item['Amount'],
+                ]);
+                if (isset($response["Success"]) && $response["Success"] == false) {
+                    \Log::info('Ошибка при подтверждение оплаты. TransactionId: ' . $item['TransactionId'] . '. Message: ' . ($data['Message'] ?? null));
+                    continue;
+                }
+            }
+        }
     }
 
-    private function updateOrCreateCard(Payment $payment, $item): Card
+    private function updateOrCreateCard(Payment $payment, $item)
     {
-        return Card::updateOrCreate(
-            [
-                'token' => $item['Token'],
-                'subscription_id' => $payment->subscription_id,
-                'customer_id' => $payment->customer_id,
-            ],
-            [
-                'first_six' => $item['CardFirstSix'],
-                'last_four' => $item['CardLastFour'],
-                'exp_date' => $item['CardExpDate'],
-                'type' => $item['CardType'],
-                'name' => $item['Name'],
-            ]
-        );
+        if ($item['Status'] == 'Completed') {
+            $payment->card()->updateOrCreate(
+                [
+                    'token' => $item['Token'],
+                    'subscription_id' => $payment->subscription_id,
+                    'customer_id' => $payment->customer_id,
+                ],
+                [
+                    'first_six' => $item['CardFirstSix'],
+                    'last_four' => $item['CardLastFour'],
+                    'exp_date' => $item['CardExpDate'],
+                    'type' => $item['CardType'],
+                    'name' => $item['Name'],
+                ]
+            );
+        }
     }
 
     private function updatePayment(Payment $payment, array $item)

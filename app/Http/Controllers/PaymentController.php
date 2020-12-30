@@ -174,13 +174,21 @@ class PaymentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Payment $payment
+     * @param  Request $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Payment $payment)
+    public function destroy(Payment $payment, Request $request)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
 
         $payment->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Платеж успешно удален.');
+        $message = 'Платеж успешно удален.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->route("{$this->root}.index")->with('success', $message);
+        }
     }
 }

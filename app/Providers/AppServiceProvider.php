@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         setlocale(LC_ALL, 'ru_RU.utf8');
+        date_default_timezone_set(config('app.timezone'));
         Carbon::setLocale(config('app.locale'));
     }
 

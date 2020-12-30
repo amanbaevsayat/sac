@@ -93,6 +93,7 @@
                                             value-zone="Asia/Almaty"
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
+                                            :auto="true"
                                             @input="setDates(subscription.started_at, subIndex)"
                                         ></datetime>
                                     </div>
@@ -107,6 +108,7 @@
                                             value-zone="Asia/Almaty"
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
+                                            :auto="true"
                                             @input="setDates(subscription.tries_at, subIndex)"
                                         ></datetime>
                                     </div>
@@ -121,6 +123,7 @@
                                             value-zone="Asia/Almaty"
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
+                                            :auto="true"
                                             @input="setDates(subscription.ended_at, subIndex)"
                                         ></datetime>
                                     </div>
@@ -153,10 +156,13 @@
 
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <p style="width: 100%" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
-                                            {{ payment.title }}
-                                            <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
-                                        </p>
+                                        <ul class="list-group">
+                                            <li class="list-group-item" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
+                                                {{ payment.title }}
+                                                <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
+                                                <span class="list-group-remove" @click="deletePayment(payment, paymentIndex, subIndex)">X</span>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -239,8 +245,33 @@ export default {
         this.getOptions();
     },
     methods: {
-        salam() {
-            console.log('salam');
+        deletePayment(payment, paymentIndex, subIndex) {
+            if (payment.id) {
+                console.log(payment);
+                let result = confirm('Удалить платеж?');
+                if (result) {
+                    axios.delete(`/payments/${payment.id}`).then(response => {
+                        let message = response.data.message;
+                        console.log(message);
+                        if (response.data.message) {
+                            console.log(message);
+                            Vue.$toast.success(message);
+                            this.subscriptions[subIndex].payments.splice(paymentIndex, 1);
+                        }
+                    })
+                    .catch(err => {
+                        if (err.response.status === 422) {
+                            let errors = err.response.data.errors;
+                            if (errors) {
+                                Object.keys(errors).forEach(function(name) {
+                                    Vue.$toast.error(errors[name][0]);
+                                });
+                            }
+                        }
+                        throw err;
+                    });
+                }
+            }
         },
         setDates(startedAt, subIndex) {
             if (this.type == 'create') {
@@ -355,6 +386,10 @@ export default {
 
                     this.subscriptions = customer.subscriptions;
                 }
+                $('#modal-customer-create').modal('hide');
+                $('#modal-customer-edit').modal('hide');
+                document.getElementById("file").value = "";
+
                 Vue.$toast.success(response.data.message);
             })
             .catch(err => {
@@ -476,5 +511,16 @@ export default {
     padding: 1.5rem;
     margin-right: 0;
     margin-left: 0;
+}
+.list-group-remove {
+    color: #ffffff;
+    background-color: #3490dc;
+    float: right;
+    display: inline-block;
+    border-radius: 10rem;
+    padding: 2px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
 }
 </style>

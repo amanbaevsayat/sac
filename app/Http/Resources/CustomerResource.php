@@ -28,10 +28,10 @@ class CustomerResource extends JsonResource
                 // 'type' => 'input',
                 'value' => $this->phone,
             ],
-            // 'email' => [
-            //     'type' => 'input',
-            //     'value' => $this->email,
-            // ],
+            'email' => [
+                // 'type' => 'input',
+                'value' => $this->email,
+            ],
             'subscriptions' => [
                 'title' => 'Абонементы',
                 'type' => 'link',

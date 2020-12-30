@@ -54,6 +54,7 @@ class Payment extends Model
         'subscription_id',
         'card_id',
         'customer_id',
+        'user_id',
         'quantity',
         'type',
         'slug',

@@ -25,7 +25,7 @@ class CreateCustomerRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'phone' => 'required|numeric|regex:/^\+?7(\d{10})$/',
+            'phone' => 'required|numeric|regex:/^\+?(\d{11})$/',
             'email' => 'nullable|email',
             // 'comments' => 'required',
         ];

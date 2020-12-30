@@ -43,6 +43,12 @@
  * Released under the MIT License.
  */
 
+/*!
+ * vue-element-loading v1.1.6
+ * (c) 2019-present biig_pongsatorn <biig_pongsatorn@hotmail.com>
+ * Released under the MIT License.
+ */
+
 /*! 
   * portal-vue © Thorsten Lünborg, 2019 
   * 

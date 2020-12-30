@@ -41,6 +41,9 @@ class PaymentResource extends JsonResource
             } elseif ($this->status == 'Declined') {
                 $description = $this->data['cloudpayments']['CardHolderMessage'] ?? null;
                 $title = "{$updatedAt}, ошибка при оплате подписки на сумму {$this->subscription->price} тг (Описание: {$description})";
+            } elseif ($this->status == 'Authorized') {
+                $description = $this->data['cloudpayments']['CardHolderMessage'] ?? null;
+                $title = "{$updatedAt}, успешно оплатил по подписке {$this->subscription->price} тг. Осталось подтвердить оплату. (Описание: {$description})";
             }
         } elseif ($this->type == 'transfer') {
             if ($this->status == 'new') {

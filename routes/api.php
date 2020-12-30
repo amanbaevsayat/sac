@@ -19,3 +19,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('upload-file', 'FileController@uploadFile');
+Route::post('cloudpayments/pay', 'CloudPaymentsController@pay')->name('cloudpayments.pay');
+Route::post('cloudpayments/post3ds', 'CloudPaymentsController@post3ds')->name('cloudpayments.post3ds');

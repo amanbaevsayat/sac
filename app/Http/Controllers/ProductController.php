@@ -177,7 +177,7 @@ class ProductController extends Controller
 
     public function withPrices()
     {
-        access(['can-owner', 'can-host']);
+        access(['can-owner', 'can-host', 'can-operator']);
 
         $products = Product::get();
         $data = [];

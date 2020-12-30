@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
+Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
@@ -50,7 +51,4 @@ Route::middleware(["auth"])->group(function () {
 });
 
 Route::get("/pull", [HomeController::class, "pull"])->name("pull");
-
 Route::get('cloudpayments/{slug}', 'CloudPaymentsController@showWidget')->name('cloudpayments.show_widget');
-Route::post('cloudpayments/pay', 'CloudPaymentsController@pay')->name('cloudpayments.pay');
-Route::post('cloudpayments/AcsUrl', 'CloudPaymentsController@AcsUrl')->name('cloudpayments.AcsUrl');

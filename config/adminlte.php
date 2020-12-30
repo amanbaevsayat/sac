@@ -242,28 +242,43 @@ return [
         [
             'text' => 'Клиенты',
             'url'  => '/customers',
-            'icon' => 'fa fa-users'
+            'icon' => 'fa fa-users',
+            "can"  => [
+                'can-operator',
+                'can-host',
+            ]
         ],
 
         // products
         [
             'text' => 'Услуги',
             'url'  => '/products',
-            'icon' => 'fa fa-boxes'
+            'icon' => 'fa fa-boxes',
+            "can"  => [
+                'can-host',
+            ]
         ],
 
         // subscriptions
         [
             'text' => 'Абонементы',
             'url'  => '/subscriptions?sort=ended_at%28desc%29',
-            'icon' => 'fa fa-calendar-check'
+            'icon' => 'fa fa-calendar-check',
+            "can"  => [
+                'can-operator',
+                'can-host',
+            ]
         ],
 
         // payments
         [
             'text' => 'Платежи',
             'url'  => '/payments',
-            'icon' => 'fa fa-money-check-alt'
+            'icon' => 'fa fa-money-check-alt',
+            "can"  => [
+                'can-operator',
+                'can-host',
+            ]
         ],
     ],
 

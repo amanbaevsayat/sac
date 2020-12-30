@@ -48,7 +48,7 @@ class LoadOldDataToDatabaseCommand extends Command
         Artisan::call('migrate:fresh');
         Artisan::call('db:seed');
 
-        $path = public_path('dshpyrk3_sa-14-12-2020-07-38.json');
+        $path = public_path('dshpyrk3_sa-22-12-2020-02-20.json');
         $json = json_decode(file_get_contents($path));
         foreach ($json as $table) {
             if ($table->type == 'table') {
@@ -70,6 +70,7 @@ class LoadOldDataToDatabaseCommand extends Command
     private function updateCustomers(array $data = [])
     {
         $phones = [];
+        $dublicatePhones = [];
         foreach ($data as $item) {
             if (!in_array($item->phone, $phones)) {
                 $customer = Customer::create([
@@ -105,8 +106,12 @@ class LoadOldDataToDatabaseCommand extends Command
                 }
 
                 $phones[] = $item->phone;
+            } else {
+                $dublicatePhones[] = $item->phone;
             }
         }
+
+        \Log::info($dublicatePhones);
     }
 
     private function getStatus(int $id)

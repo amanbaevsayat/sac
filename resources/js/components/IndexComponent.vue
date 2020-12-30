@@ -17,7 +17,7 @@
                     </div>
                     <div class="card-body" v-show="filterOpen" :class="{slide: filterOpen}">
                         <div class="row">
-                            <div class="col-3" v-for="(filter, filterIndex) in mainFilters" :key="filterIndex">
+                            <div class="col-4" v-for="(filter, filterIndex) in mainFilters" :key="filterIndex">
                                 <div class="form-group">
                                     <label for="subscriptionStatus">{{ filter.title }}</label>
                                     <div v-if="filter.type == 'select'">
@@ -124,8 +124,18 @@
                             <div v-if="item.type == 'hidden'">
                             </div>
                             <div v-else-if="item.type == 'select'">
-                                <select :name="name" v-model="item.value" class="form-control form-control-sm">
-                                    <option v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
+                                <select :name="name" v-model="item.value" class="form-control form-control-custom" :class="{ 
+                                    'status-tries': item.value == 'tries' && prefix == 'subscriptions', 
+                                    'status-waiting': item.value == 'waiting' && prefix == 'subscriptions', 
+                                    'status-paid': item.value == 'paid' && prefix == 'subscriptions',
+                                    'status-refused': item.value == 'refused' && prefix == 'subscriptions'
+                                }">
+                                    <option :class="{ 
+                                        'status-tries': collectionIndex == 'tries' && prefix == 'subscriptions', 
+                                        'status-waiting': collectionIndex == 'waiting' && prefix == 'subscriptions', 
+                                        'status-paid': collectionIndex == 'paid' && prefix == 'subscriptions',
+                                        'status-refused': collectionIndex == 'refused' && prefix == 'subscriptions'
+                                    }" v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
                                         {{ collection }}
                                     </option>
                                 </select>
@@ -152,10 +162,10 @@
                             <div v-else>
                                 <div class="custom-text" v-if="name == 'status'">
                                     <span class="status" :class="{ 
-                                        'status-tries': item.value == 'Пробует', 
-                                        'status-waiting': item.value == 'Жду оплату', 
-                                        'status-paid': item.value == 'Оплачено',
-                                        'status-refused': item.value == 'Отказался'
+                                        'status-tries': item.value == 'Пробует' && prefix == 'subscriptions', 
+                                        'status-waiting': item.value == 'Жду оплату' && prefix == 'subscriptions', 
+                                        'status-paid': item.value == 'Оплачено' && prefix == 'subscriptions',
+                                        'status-refused': item.value == 'Отказался' && prefix == 'subscriptions'
                                     }">
                                         {{ item.value }}
                                     </span>
@@ -166,7 +176,7 @@
                             </div>
                         </td>
                         <td class="text-right" v-if="prefix != 'payments'">
-                            <button v-if="false" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
+                            <button v-if="prefix == 'subscriptions'" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
                             <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions'">
@@ -279,6 +289,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
             inputSearch(event, filterName, filterType, type) {
                 console.log(type);
                 this.queryParams[filterName] = event.target.value;
+                this.queryParams.page = 1;
                 this.setAddressBar();
                 if (event.target.value.length > 1) {
                     this.getData();
@@ -335,6 +346,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 this.getData();
             },
             applyFilter() {
+                this.queryParams.page = 1;
                 this.setAddressBar();
                 this.getData();
             },
@@ -429,23 +441,28 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                     this.spinnerData.loading = false;
                     this.mainFilters = response.data.main.map(function(item, key) {
                         let data = item;
-                        data.options = Object.keys(item.options).map(function(key, index) {
-                            return { value: key, text: item.options[key] };
-                        });
+                        if (data.options) {
+                            data.options = Object.keys(item.options).map(function(key, index) {
+                                return { value: key, text: item.options[key] };
+                            });
+                        }
                         return data;
                     });
                     console.log(response.data.second);
-                    this.secondFilters = response.data.second.map(function(item, key) {
-                        let data = item;
-                        data.options = Object.keys(item.options).map(function(key, index) {
-                            return { value: key, text: item.options[key] };
+                    if (response.data.second) {
+                        this.secondFilters = response.data.second.map(function(item, key) {
+                            let data = item;
+                            if (data.options) {
+                                data.options = Object.keys(item.options).map(function(key, index) {
+                                    return { value: key, text: item.options[key] };
+                                });
+                            }
+                            return data;
                         });
-                        return data;
-                    });
+                    }
 
                 })])
                 .then((allResults) => {
-                    console.log(123123);
                     this.setQueryParams();
                 });
             }
@@ -508,18 +525,23 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
 }
 
 .status-tries {
-    background: #91c7ff;
+    background: #b3f7de;
 }
 .status-waiting {
-    background: #f5fd82db;
+    background: #91c7ff;
 }
 .status-paid {
-    background: #38c1727a;
+    background: #FFFFFF;
 }
 .status-refused {
-    background: #ff33337a;
+    background: #f9f578;
 }
 .status {
     padding: 2px 6px;
+}
+.form-control-custom {
+    width: 110px;
+    padding: 3px;
+    font-size: 15px;
 }
 </style>

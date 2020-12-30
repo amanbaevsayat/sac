@@ -41,7 +41,28 @@ class UserSeeder extends Seeder
                 'email' => "balymbetov.temirlan@gmail.com",
                 'phone' => "+77073207636",
                 'password' => bcrypt('1234qwer'),
-            ]
+            ],
+            [
+                'account' => "account.1",
+                'role_id' => Role::findByCode('operator')->id,
+                'email' => "account.1@example.com",
+                'phone' => "+77770000001",
+                'password' => bcrypt('Xt2JuNhJdURjqK'),
+            ],
+            [
+                'account' => "account.2",
+                'role_id' => Role::findByCode('operator')->id,
+                'email' => "account.2@example.com",
+                'phone' => "+77770000002",
+                'password' => bcrypt('4xCPZ37hjuzfkM'),
+            ],
+            [
+                'account' => "account.3",
+                'role_id' => Role::findByCode('operator')->id,
+                'email' => "account.3@example.com",
+                'phone' => "+77770000003",
+                'password' => bcrypt('QNMsdGFrhEP4aG'),
+            ],
         ];
     }
 }

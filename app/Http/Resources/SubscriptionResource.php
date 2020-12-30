@@ -46,7 +46,9 @@ class SubscriptionResource extends JsonResource
                 'value' => strftime('%d %b', (new \DateTime($this->getEndDate()))->getTimestamp()),
             ],
             'status' => [
-                'value' => Subscription::STATUSES[$this->status] ?? null,
+                'collection' => 'statuses',
+                'type' => 'select',
+                'value' => $this->status ?? null,
             ],
             'product' => [
                 'value' => $this->product->title ?? null,

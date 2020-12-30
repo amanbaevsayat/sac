@@ -31,6 +31,7 @@
         "moment": "^2.29.1",
         "vue-card-payment": "^0.2.1",
         "vue-datetime": "^1.0.0-beta.14",
+        "vue-element-loading": "^1.1.6",
         "vue-phone-mask-input": "^1.1.11",
         "vue-router": "^3.4.8",
         "vue-select": "^3.10.8",

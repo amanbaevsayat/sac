@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('cloudpayments:update:payment_status')->everyFiveMinutes();
+        $schedule->command('cloudpayments:update:payment_status')->everyTwoMinutes();
     }
 
     /**

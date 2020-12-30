@@ -146,6 +146,32 @@ class CloudPaymentsService
         ]));
     }
 
+    // Оплата по криптограмме для двухстадийного
+    // https://developers.cloudpayments.ru/#oplata-po-kriptogramme
+    public function paymentsCardsAuth(array $request)
+    {
+        return $this->response($this->call("/payments/cards/auth", [
+            "Amount" => $request["Amount"],
+            "Currency" => 'KZT',
+            "InvoiceId" => $request["InvoiceId"] ?? null,
+            "Description" => $request["Description"] ?? null,
+            "AccountId" => $request["AccountId"] ?? null,
+            "Name" => $request["Name"] ?? null,
+            "CardCryptogramPacket" => $request["CardCryptogramPacket"] ?? null,
+            "JsonData" => $request['JsonData'] ?? [],
+        ]));
+    }
+
+    // Подтверждение оплаты
+    // https://developers.cloudpayments.ru/#podtverzhdenie-oplaty
+    public function paymentsConfirm(array $request)
+    {
+        return $this->response($this->call("/payments/confirm", [
+            "TransactionId" => $request["TransactionId"],
+            "Amount" => $request["Amount"],
+        ]));
+    }
+
     // Подтверждение оплаты
     // https://developers.cloudpayments.ru/#obrabotka-3-d-secure
     public function paymentsCardsPost3ds(array $request)
@@ -174,14 +200,14 @@ class CloudPaymentsService
     {
         $data = $response->throw()->json();
 
-        if (isset($data["Message"]) && $data["Message"]) {
-            throw new Exception($data["Message"]);
-        }
+        // if (isset($data["Message"]) && $data["Message"]) {
+        //     throw new Exception($data["Message"]);
+        // }
 
-        if (isset($data["Model"]) && isset($data["Model"]["ReasonCode"]) && $data["Model"]["ReasonCode"] !== 0) {
-            throw new Exception($data["Message"] ?? "Exception in CloudPayments Service");
-        }
+        // if (isset($data["Model"]) && isset($data["Model"]["ReasonCode"]) && $data["Model"]["ReasonCode"] !== 0) {
+        //     throw new Exception($data["Message"] ?? "Exception in CloudPayments Service");
+        // }
 
-        return $data["Model"] ?? true;
+        return $data ?? true;
     }
 }

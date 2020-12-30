@@ -37,13 +37,13 @@ class SubscriptionController extends Controller
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
         $products = Product::get()->pluck('title', 'id');
         $data['main'] = [
-            [
-                'name' => 'customer_id',
-                'title' => 'Клиенты',
-                'type' => 'select-search',
-                'key' => 'customer',
-                'options' => [],
-            ],
+            // [
+            //     'name' => 'customer_id',
+            //     'title' => 'Клиенты',
+            //     'type' => 'select-search',
+            //     'key' => 'customer',
+            //     'options' => [],
+            // ],
             [
                 'name' => 'product_id',
                 'title' => 'Услуги',
@@ -166,7 +166,9 @@ class SubscriptionController extends Controller
     public function update(CreateSubscriptionRequest $request, Subscription $subscription)
     {
         access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $subscription->update($request->all());
+        $subscription->update([
+            'status' => $request->get('status'),
+        ]);
 
         $message = 'Данные абонемента успешно изменены.';
         if ($request->ajax()) {
@@ -182,6 +184,7 @@ class SubscriptionController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Subscription $subscription
+     * @param  Request $request
      * @return \Illuminate\Http\Response
      */
     public function destroy(Subscription $subscription, Request $request)
@@ -200,7 +203,7 @@ class SubscriptionController extends Controller
                 'message' => $message,
             ]);
         } else {
-            return redirect()->route("{$this->root}.index")->with('success', '');
+            return redirect()->route("{$this->root}.index")->with('success', $message);
         }
     }
 }

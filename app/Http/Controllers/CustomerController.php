@@ -14,6 +14,7 @@ use App\Models\Subscription;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
@@ -119,7 +120,12 @@ class CustomerController extends Controller
         }
 
         foreach ($data['subscriptions'] as $item) {
-            // dd($item);
+            $oldEndedAt = '';
+            $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
+            if ($subscription) {
+                $oldEndedAt = $subscription->ended_at;
+            }
+
             $subscription = $customer->subscriptions()->updateOrCreate([
                 'product_id' => $item['product_id'],
             ], [
@@ -140,6 +146,7 @@ class CustomerController extends Controller
                 if ($subscription->payments()->where('status', 'new')->where('type', 'cloudpayments')->doesntExist()) {
                     $payment = $subscription->payments()->create([
                         'customer_id' => $customer->id,
+                        'user_id' => Auth::id(),
                         'type' => 'cloudpayments',
                         'slug' => Str::uuid(),
                         'status' => 'new',
@@ -148,6 +155,7 @@ class CustomerController extends Controller
                         'start_date' => $item['started_at'], // TODO
                         'interval' => 'Month',
                         'period' => 1,
+                        'paided_at' => Carbon::now(),
                     ]);
                 }
             } elseif ($subscription->payment_type == 'transfer') {
@@ -162,13 +170,20 @@ class CustomerController extends Controller
     
                     $payment = $subscription->payments()->create([
                         'customer_id' => $customer->id,
+                        'user_id' => Auth::id(),
                         'type' => 'transfer',
                         'slug' => Str::uuid(),
-                        'status' => $paymentStatus,
+                        'status' => 'Completed',
                         'quantity' => $item['newPayment']['quantity'] ?? 1,
                         'amount' => $subscription->price,
+                        'paided_at' => Carbon::now(),
                         'data' => [
                             'check' => $item['newPayment']['check'],
+                            'subscription' => [
+                                'renewed' => true,
+                                'first_ended_at' => $oldEndedAt,
+                                'second_ended_at' => $subscription->ended_at,
+                            ],
                         ],
                     ]);
                 }
@@ -197,19 +212,20 @@ class CustomerController extends Controller
 
         $data['main'] = [
             [
-                'name' => 'name',
-                'title' => 'Имя',
-                'type' => 'input',
-            ],
-            [
-                'name' => 'phone',
-                'title' => 'Телефон',
-                'type' => 'input',
-            ],
-            [
                 'name' => 'email',
                 'title' => 'E-mail',
                 'type' => 'input',
+            ],
+        ];
+
+        $data['second'] = [
+            [
+                'name' => 'customer_name_or_phone',
+                'placeholder' => 'Найти по имени и номеру',
+                'title' => 'Клиенты',
+                'type' => 'input-search',
+                'key' => 'customer',
+                'options' => [],
             ],
         ];
 
