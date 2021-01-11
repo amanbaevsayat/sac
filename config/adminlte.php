@@ -238,14 +238,14 @@ return [
             'topnav' => true
         ],
 
-        // customers
+        // users
         [
-            'text' => 'Клиенты',
-            'url'  => '/customers',
+            'text' => 'Пользователи',
+            'url'  => '/users',
             'icon' => 'fa fa-users',
             "can"  => [
-                'can-operator',
                 'can-host',
+                'can-head',
             ]
         ],
 
@@ -255,6 +255,19 @@ return [
             'url'  => '/products',
             'icon' => 'fa fa-boxes',
             "can"  => [
+                'can-head',
+                'can-host',
+            ]
+        ],
+
+        // customers
+        [
+            'text' => 'Клиенты',
+            'url'  => '/customers',
+            'icon' => 'fa fa-users',
+            "can"  => [
+                'can-operator',
+                'can-head',
                 'can-host',
             ]
         ],
@@ -266,6 +279,7 @@ return [
             'icon' => 'fa fa-calendar-check',
             "can"  => [
                 'can-operator',
+                'can-head',
                 'can-host',
             ]
         ],
@@ -277,6 +291,7 @@ return [
             'icon' => 'fa fa-money-check-alt',
             "can"  => [
                 'can-operator',
+                'can-head',
                 'can-host',
             ]
         ],

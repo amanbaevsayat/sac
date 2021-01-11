@@ -167,6 +167,12 @@
             <div class="ico">
                 <div class="success-icon"></div>
                 <strong class="code">{{ $message ?? 'Ошибка, обратитесь к оператору.' }}</strong>
+                <strong style="
+                    color: #000;
+                    margin-top: 20px;
+                    font-weight: 400;
+                    display: block;
+                ">Обновите страницу, чтобы повторить платеж</strong>
                 <p class="fail-msg" style="display: none;"></p>
             </div>
             <!-- /ko -->

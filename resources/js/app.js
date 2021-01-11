@@ -48,6 +48,7 @@ Vue.component('cloudpayments-widget', require('./components/CloudpaymentsWidgetC
 Vue.component('customer-component', require('./components/CustomerComponent.vue').default);
 Vue.component('button-customer-component', require('./components/ButtonCustomerComponent.vue').default);
 Vue.component('product-price-component', require('./components/ProductPriceComponent.vue').default);
+Vue.component('phone-component', require('./components/PhoneComponent.vue').default);
 
 import VueToast from 'vue-toast-notification';
 import { Settings } from 'luxon'
@@ -82,6 +83,18 @@ Vue.component('datetime', Datetime);
 import vSelect from 'vue-select'
 Vue.component('v-select', vSelect)
 import 'vue-select/dist/vue-select.css';
+
+import VCalendar from 'v-calendar';
+import DatePicker from 'v-calendar/lib/components/date-picker.umd'
+import Calendar from 'v-calendar/lib/components/calendar.umd'
+
+// Register components in your 'main.js'
+Vue.component('date-picker', DatePicker)
+Vue.component('calendar', Calendar)
+// Use v-calendar & v-date-picker components
+Vue.use(VCalendar, {
+  componentPrefix: 'vc',
+});
 
 // Vue select end
 // import ElementUI from 'element-ui';

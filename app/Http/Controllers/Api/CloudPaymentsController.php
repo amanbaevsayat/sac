@@ -30,7 +30,7 @@ class CloudPaymentsController extends Controller
                 'recurrent' => array(
                     'Interval' => 'Month',
                     'Period' => 1,
-                    'Amount' => $payment->amount,
+                    'Amount' => $payment->subscription->price ?? $payment->amount,
                     // 'Amount' => 10,
                 )
             )
@@ -39,10 +39,11 @@ class CloudPaymentsController extends Controller
         $data = [
             'Currency' => 'KZT',
             // "Amount" => 10,
-            "Amount" => $payment->amount,
+            "Amount" => $payment->subscription->price ?? $payment->amount,
             "InvoiceId" => $payment->id,
             "Description" => '',
             "AccountId" => $payment->customer->phone,
+            "Email" => $request->get('email', $payment->customer->email),
             "Name" => $cardName,
             "CardCryptogramPacket" => $packet,
             'JsonData' => json_encode($json_data),
@@ -50,9 +51,19 @@ class CloudPaymentsController extends Controller
 
         $cloudPaymentsService = new CloudPaymentsService();
         $response = $cloudPaymentsService->paymentsCardsAuth($data);
-        if (isset($response['Model']['AcsUrl'])) {
+        if (isset($response['Model']['AcsUrl']) && $response['Success'] === false) {
             $response['Model']['TermUrl'] = route('cloudpayments.post3ds');
             $response['acs_form'] = view('cloudpayments.3ds-form', $response['Model'])->render();
+        } elseif ($response['Success'] === false && isset($response['Model']['StatusCode']) && $response['Model']['StatusCode'] == 5) {
+            $data = $payment->data ?? [];
+            $data['cloudpayments'] = $response['Model'];
+            $payment->update([
+                'status' => $response['Model']['Status'],
+                'data' => $data,
+            ]);
+            $response['acs_form'] = view('page.failure', [
+                'message' => $response['Model']['CardHolderMessage'],
+            ])->render();
         }
 
         return response()->json($response, 200);
@@ -69,6 +80,15 @@ class CloudPaymentsController extends Controller
         if ($response['Success']) {
             return view('page.success');
         } else {
+            $payment = Payment::whereId($response['Model']['InvoiceId'])->first();
+            if ($payment) {
+                $data = $payment->data ?? [];
+                $data['cloudpayments'] = $response['Model'];
+                $payment->update([
+                    'status' => $response['Model']['Status'],
+                    'data' => $data,
+                ]);
+            }
             if ($response['Model']['CardHolderMessage']) {
                 return view('page.failure', [
                     'message' => $response['Model']['CardHolderMessage']

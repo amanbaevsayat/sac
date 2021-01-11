@@ -6,10 +6,11 @@ use App\Filters\CustomerFilter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Customer extends Model
 {
-    use HasFactory, SoftDeletes, ModelBase;
+    use HasFactory, SoftDeletes, ModelBase, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -18,6 +19,17 @@ class Customer extends Model
         'comments',
         'data',
     ];
+
+    protected static $logAttributes = [
+        'name',
+        'phone',
+        'email',
+        'comments',
+    ];
+
+    protected static $ignoreChangedAttributes = [];
+
+    protected static $logOnlyDirty = true;
 
     protected $casts = [
         'data' => 'array',

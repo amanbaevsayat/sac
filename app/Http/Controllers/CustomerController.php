@@ -120,10 +120,58 @@ class CustomerController extends Controller
         }
 
         foreach ($data['subscriptions'] as $item) {
-            $oldEndedAt = '';
+            $endedAt = Carbon::parse($item['ended_at']);
             $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
             if ($subscription) {
-                $oldEndedAt = $subscription->ended_at;
+                // Если оператор поменял статус на frozen, то создаем или обновляем платеж
+                if ($subscription->status != 'frozen' && $item['status'] == 'frozen') {
+                    $subscription->update([
+                        'frozen_at' => Carbon::parse($item['frozen_at']),
+                        'defrozen_at' => Carbon::parse($item['defrozen_at']),
+                    ]);
+                    if ($subscription->payments()->where('status', 'frozen')->where('type', 'frozen')->where('data->subscription->renewed', false)->doesntExist()) {
+                        $subscription->payments()->create([
+                            'customer_id' => $customer->id,
+                            'user_id' => Auth::id(),
+                            'type' => 'frozen',
+                            'slug' => Str::uuid(),
+                            'status' => 'frozen',
+                            // 'recurrent' => true,
+                            // 'amount' => $subscription->price,
+                            // 'start_date' => $item['started_at'], // TODO
+                            // 'interval' => 'Month',
+                            // 'period' => 1,
+                            'paided_at' => Carbon::now(),
+                            'data' => [
+                                'subscription' => [
+                                    'renewed' => false,
+                                    'from' => Carbon::parse($item['frozen_at']),
+                                    'to' => Carbon::parse($item['defrozen_at']),
+                                ],
+                            ],
+                        ]);
+                    }
+                }
+
+                // Если оператор разморозил абонемент, то
+                // 1) Находим платеж, меняем у него renewed на true
+                // 2) Продлеваем абонемент
+                if ($subscription->status == 'frozen' && $item['status'] != 'frozen') {
+                    if ($payment = $subscription->payments()->where('status', 'frozen')->where('type', 'frozen')->where('data->subscription->renewed', false)->first()) {
+                        $paymentData = $payment->data;
+                        $from = Carbon::parse($paymentData['subscription']['from']);
+                        $to = Carbon::parse($paymentData['subscription']['to']);
+
+                        $diff = $from->diffInDays($to);
+                        $endedAt = Carbon::parse($subscription->ended_at)->addDays($diff);
+
+                        $paymentData['subscription']['renewed'] = true;
+
+                        $payment->update([
+                            'data' => $paymentData,
+                        ]);
+                    }
+                }
             }
 
             $subscription = $customer->subscriptions()->updateOrCreate([
@@ -132,7 +180,7 @@ class CustomerController extends Controller
                 'price' => $item['price'],
                 'payment_type' => $item['payment_type'],
                 'started_at' => Carbon::parse($item['started_at']),
-                'ended_at' => Carbon::parse($item['ended_at']),
+                'ended_at' => $endedAt,
                 'status' => $item['status'],
             ]);
 
@@ -152,7 +200,7 @@ class CustomerController extends Controller
                         'status' => 'new',
                         'recurrent' => true,
                         'amount' => $subscription->price,
-                        'start_date' => $item['started_at'], // TODO
+                        'start_date' => $subscription->started_at ?? null, // TODO
                         'interval' => 'Month',
                         'period' => 1,
                         'paided_at' => Carbon::now(),
@@ -181,8 +229,8 @@ class CustomerController extends Controller
                             'check' => $item['newPayment']['check'],
                             'subscription' => [
                                 'renewed' => true,
-                                'first_ended_at' => $oldEndedAt,
-                                'second_ended_at' => $subscription->ended_at,
+                                'from' => $item['newPayment']['from'],
+                                'to' => $item['newPayment']['to'],
                             ],
                         ],
                     ]);
@@ -198,7 +246,7 @@ class CustomerController extends Controller
 
     public function getList(CustomerFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $query = Customer::query();
         $customers = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
@@ -208,7 +256,7 @@ class CustomerController extends Controller
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $data['main'] = [
             [
@@ -239,7 +287,7 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -251,7 +299,7 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.create");
     }
@@ -264,7 +312,7 @@ class CustomerController extends Controller
      */
     public function store(CreateCustomerRequest $request, Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $customer->create($request->all());
         return redirect()->route("{$this->root}.index")->with('success', 'Клиент успешно создан.');
@@ -278,7 +326,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'customer' => $customer,
@@ -293,7 +341,7 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.edit", [
             'customer' => $customer,
@@ -309,7 +357,7 @@ class CustomerController extends Controller
      */
     public function update(CreateCustomerRequest $request, Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $customer->update($request->all());
 
         $message = 'Данные клиента успешно изменены.';
@@ -330,7 +378,7 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $customer->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Клиент успешно удален.');

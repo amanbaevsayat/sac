@@ -23,7 +23,7 @@ class RoleSeeder extends Seeder
     {
         return [
             ['code' => 'host', 'title' => 'Админ'],
-            ['code' => 'owner', 'title' => 'Владелец'],
+            ['code' => 'head', 'title' => 'Head'],
             ['code' => 'operator', 'title' => 'Оператор'],
         ];
     }

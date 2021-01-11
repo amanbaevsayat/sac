@@ -156,6 +156,7 @@ class CloudPaymentsService
             "InvoiceId" => $request["InvoiceId"] ?? null,
             "Description" => $request["Description"] ?? null,
             "AccountId" => $request["AccountId"] ?? null,
+            "Email" => $request["Email"] ?? null,
             "Name" => $request["Name"] ?? null,
             "CardCryptogramPacket" => $request["CardCryptogramPacket"] ?? null,
             "JsonData" => $request['JsonData'] ?? [],

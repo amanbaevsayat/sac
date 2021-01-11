@@ -17,11 +17,15 @@ class PaymentResource extends JsonResource
     {
         $data = [
             'id' => $this->id,
+            'url' => route('payments.show', [$this->id]),
             'type' => $this->type,
             'status' => $this->status,
             'check' => $this->data['check'] ?? null,
-            'link' => route('cloudpayments.show_widget', ['slug' => $this->slug]),
             'quantity' => $this->quantity,
+            'user' => [
+                'url' => $this->user_id ? route('users.edit', [$this->user_id]) : null,
+                'name' => $this->user->account ?? null,
+            ],
             'recurrent' => [
                 'on' => $this->recurrent,
                 'start_date' => $this->start_date,
@@ -37,7 +41,7 @@ class PaymentResource extends JsonResource
             if ($this->status == 'new') {
                 $title = "{$createdAt}, создана подписка оператором на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$paidedAt}, успешно оплатил по подписке {$this->subscription->price} тг";
+                $title = "{$paidedAt}, успешно оплатил по подписке {$this->subscription->price} тг. " . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['from'] ?? $this->data['subscription']['first_ended_at'] ?? null)))->isoFormat('DD MMM YYYY') . ' - ' . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['to'] ?? $this->data['subscription']['second_ended_at'] ?? null)))->isoFormat('DD MMM YYYY');
             } elseif ($this->status == 'Declined') {
                 $description = $this->data['cloudpayments']['CardHolderMessage'] ?? null;
                 $title = "{$updatedAt}, ошибка при оплате подписки на сумму {$this->subscription->price} тг (Описание: {$description})";
@@ -50,9 +54,16 @@ class PaymentResource extends JsonResource
                 $title = "{$createdAt}, ожидаю оплату переводом на сумму {$this->subscription->price} тг";
             } elseif ($this->status == 'Completed') {
                 $amount = $this->subscription->price * $this->quantity;
-                $title = "{$updatedAt}, прямой перевод на сумму {$amount} тг";
+                $title = "{$updatedAt}, прямой перевод на сумму {$amount} тг. " . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['from'] ?? $this->data['subscription']['first_ended_at'] ?? null)))->isoFormat('DD MMM YYYY') . ' - ' . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['to'] ?? $this->data['subscription']['second_ended_at'] ?? null)))->isoFormat('DD MMM YYYY');
             } elseif ($this->status == 'Declined') {
                 $title = "{$updatedAt}, не оплатил переводом на сумму {$this->subscription->price} тг";
+            }
+        } elseif ($this->type == 'frozen') {
+            if ($this->status == 'frozen') {
+                $title = "{$createdAt}, абонемент заморожен с " . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['from'])))->isoFormat('DD MMM YYYY') . ' - по ' . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['to'])))->isoFormat('DD MMM YYYY');
+            } elseif ($this->status == 'new') {
+                $amount = $this->subscription->price * $this->quantity;
+                $title = "{$createdAt}, абонемент заморожен с " . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['from'])))->isoFormat('DD MMM YYYY') . ' - по ' . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['to'])))->isoFormat('DD MMM YYYY');
             }
         } else {
             $title = '';

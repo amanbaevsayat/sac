@@ -24,7 +24,7 @@ class SubscriptionController extends Controller
 
     public function getList(SubscriptionFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $query = Subscription::query();
         $subscriptions = $query->filter($filters)->latest()->paginate($this->perPage)->appends(request()->all());
@@ -34,7 +34,7 @@ class SubscriptionController extends Controller
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get()->pluck('title', 'id');
         $data['main'] = [
             // [
@@ -86,7 +86,7 @@ class SubscriptionController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -98,7 +98,7 @@ class SubscriptionController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get();
         $customers = Customer::get();
 
@@ -116,7 +116,7 @@ class SubscriptionController extends Controller
      */
     public function store(CreateSubscriptionRequest $request, Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $subscription->create($request->all());
         return redirect()->route("{$this->root}.index")->with('success', 'Абонемент успешно создан.');
@@ -130,7 +130,7 @@ class SubscriptionController extends Controller
      */
     public function show(Request $request, Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'subscription' => $subscription,
@@ -145,7 +145,7 @@ class SubscriptionController extends Controller
      */
     public function edit(Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get();
         $customers = Customer::get();
 
@@ -165,7 +165,7 @@ class SubscriptionController extends Controller
      */
     public function update(CreateSubscriptionRequest $request, Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $subscription->update([
             'status' => $request->get('status'),
         ]);
@@ -189,7 +189,7 @@ class SubscriptionController extends Controller
      */
     public function destroy(Subscription $subscription, Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         if ($subscription->cp_subscription_id) {
             $cloudPaymentsService = new CloudPaymentsService();

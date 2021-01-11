@@ -1,9 +1,9 @@
 <template>
     <div>
-        <div class="modal fade bd-example-modal-lg" :id="'modal-customer-' + type" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
+        <div class="modal bd-example-modal-lg" :id="'modal-customer-' + type">
+            <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
-                    <div class="card">
+                    <div class="card" style="padding-bottom: 0px">
                         <div class="card-body">
                             <div class="row">
                                 <div class="form-group col-sm-6">
@@ -94,7 +94,6 @@
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
                                             :auto="true"
-                                            @input="setDates(subscription.started_at, subIndex)"
                                         ></datetime>
                                     </div>
                                     <div class="form-group col-sm-6" v-if="subscription.payment_type == 'tries'">
@@ -109,7 +108,6 @@
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
                                             :auto="true"
-                                            @input="setDates(subscription.tries_at, subIndex)"
                                         ></datetime>
                                     </div>
                                     <div class="form-group col-sm-6" v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
@@ -124,20 +122,139 @@
                                             zone="Asia/Almaty"
                                             format="dd LLLL"
                                             :auto="true"
-                                            @input="setDates(subscription.ended_at, subIndex)"
+                                        ></datetime>
+                                    </div>
+                                    <div class="form-group col-sm-6" v-if="subscription.status == 'frozen'">
+                                        <label for="frozen_at" class="col-form-label">Дата заморозки</label>
+                                        <datetime
+                                            :name="'subscriptions.' + subIndex + '.frozen_at'"
+                                            type="date"
+                                            v-model="subscription.frozen_at"
+                                            input-class="col-sm-10 my-class form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            format="dd LLLL"
+                                            :auto="true"
+                                        ></datetime>
+                                    </div>
+                                    <div class="form-group col-sm-6" v-if="subscription.status == 'frozen'">
+                                        <label for="defrozen_at" class="col-form-label">Дата разморозки</label>
+                                        <datetime
+                                            :name="'subscriptions.' + subIndex + '.defrozen_at'"
+                                            type="date"
+                                            v-model="subscription.defrozen_at"
+                                            input-class="col-sm-10 my-class form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            format="dd LLLL"
+                                            :auto="true"
                                         ></datetime>
                                     </div>
                                 </div>
-                                <div class="row" v-if="subscription.payment_type == 'transfer'">
-                                    <div class="form-group col-sm-6">
-                                        <label for="check" class="col-form-label">Загрузить чек</label>
-                                        <upload-file :value-prop="subscription.newPayment.check" @file='setFileToSubscription($event, subIndex)'></upload-file>
+                                <div class="row" style="margin-bottom: 15px">
+                                    <div class="col-sm-6">
+                                        <button data-toggle="modal" @click="showHistorySubscriptionModal(subscription.id)" class="btn btn-warning" >История абонемента</button>
                                     </div>
-                                    <div class="form-group col-sm-6" v-if="false">
-                                        <label for="quantity" class="col-form-label">Период</label>
-                                        <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="col-sm-10 form-control">
-                                            <option v-for="(option, optionIndex) in quantities" :key="optionIndex" :value="optionIndex">{{ option }}</option>
-                                        </select>
+                                    <div :id="'modalHistorySubscription-' + subscription.id" class="modal">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLongTitle">История абонемента</h5>
+                                                    <button type="button" class="close" @click="hideHistorySubscriptionModal(subscription.id)">
+                                                    <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <vc-calendar
+                                                        :min-date='new Date(subscription.started_at)'
+                                                        :max-date='new Date(subscription.ended_at)'
+                                                        :columns="$screens({ default: 1, lg: 2 })"
+                                                        :rows="$screens({ default: 1, lg: 2 })"
+                                                        :is-expanded="$screens({ default: true, lg: true })"
+                                                        :attributes='subscription.history'
+                                                        />
+
+                                                        <div style="width: 100%; margin-top: 20px; text-align: center">
+                                                            <p><span style="color: green">Зеленый</span> - заморозка</p>
+                                                            <p><span style="color: red">Красный</span> - перевод</p>
+                                                            <p><span>Черный</span> - подписка</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <footer class="modal-footer">
+                                                    <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
+                                                    <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
+                                                </footer>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
+                                    <div class="col-sm-6">
+                                        <button data-toggle="modal" class="btn btn-primary" @click="showTransferModal(subscription.id)">Загрузить чек</button>
+                                    </div>
+                                    <div :id="'modalTransfer-' + subscription.id" class="modal">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLongTitle">Загрузить чек</h5>
+                                                    <button type="button" class="close" @click="hideTransferModal(subscription.id)">
+                                                    <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="form-group col-sm-6">
+                                                            <label for="check" class="col-form-label">Оплачен от</label>
+                                                            <datetime
+                                                                :name="'subscriptions.' + subIndex + '.newPayment.from'"
+                                                                type="date"
+                                                                v-model="subscription.newPayment.from"
+                                                                input-class="col-sm-10 my-class form-control"
+                                                                valueZone="Asia/Almaty"
+                                                                value-zone="Asia/Almaty"
+                                                                zone="Asia/Almaty"
+                                                                format="dd LLLL"
+                                                                :auto="true"
+                                                            ></datetime>
+                                                        </div>
+                                                        <div class="form-group col-sm-6">
+                                                            <label for="check" class="col-form-label">До</label>
+                                                            <datetime
+                                                                :name="'subscriptions.' + subIndex + '.newPayment.from'"
+                                                                type="date"
+                                                                v-model="subscription.newPayment.to"
+                                                                input-class="col-sm-10 my-class form-control"
+                                                                valueZone="Asia/Almaty"
+                                                                value-zone="Asia/Almaty"
+                                                                zone="Asia/Almaty"
+                                                                format="dd LLLL"
+                                                                :auto="true"
+                                                            ></datetime>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="form-group col-sm-6">
+                                                            <label for="check" class="col-form-label">Загрузить чек</label>
+                                                            <upload-file :value-prop="subscription.newPayment.check" @file='setFileToSubscription($event, subIndex)'></upload-file>
+                                                        </div>
+                                                        <div class="form-group col-sm-6">
+                                                            <label for="quantity" class="col-form-label">Период</label>
+                                                            <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="col-sm-10 form-control">
+                                                                <option v-for="(option, optionIndex) in quantities" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <footer class="modal-footer">
+                                                    <button @click="hideTransferModal(subscription.id)" type="button" class="btn btn-primary">Сохранить</button>
+                                                    <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
+                                                </footer>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'" style="margin-bottom: 15px">
@@ -153,13 +270,16 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <ul class="list-group">
                                             <li class="list-group-item" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
+                                                <a :href="payment.url" target="_blank">ID: {{ payment.id }}</a>
+                                                <span> | </span>
                                                 {{ payment.title }}
                                                 <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
+                                                <span> | </span>
+                                                <a :href="payment.user.url" target="_blank">{{ payment.user.name }}</a>
                                                 <span class="list-group-remove" @click="deletePayment(payment, paymentIndex, subIndex)">X</span>
                                             </li>
                                         </ul>
@@ -186,9 +306,15 @@
 import moment from 'moment';
 import {TheMask} from 'vue-the-mask'
 import {mask} from 'vue-the-mask'
+import DatePicker from 'v-calendar/lib/components/date-picker.umd'
+import Calendar from 'v-calendar/lib/components/calendar.umd'
 
 export default {
-    components: {TheMask},
+    components: {
+        TheMask,
+        Calendar,
+        DatePicker
+    },
     directives: {mask},
     props: [
         'typeProp',
@@ -219,6 +345,11 @@ export default {
             paymentTypes: {},
             statuses: {},
             quantities: {},
+            typesColor: {
+                frozen: 'green',
+                transfer: 'red',
+                cloudpayments: 'black',
+            }
         }
     },
     watch: {
@@ -245,6 +376,22 @@ export default {
         this.getOptions();
     },
     methods: {
+        openTransferModal() {
+            $('#modalTransfer').modal('toggle');
+        },
+        hideTransferModal(id) {
+            $('#modalTransfer-' + id).modal('hide');
+        },
+        showTransferModal(id) {
+            $('#modalTransfer-' + id).modal('show');
+        },
+        hideHistorySubscriptionModal(id) {
+            $('#modalHistorySubscription-' + id).modal('hide');
+        },
+        showHistorySubscriptionModal(id) {
+            console.log('#modalHistorySubscription-' + id);
+            $('#modalHistorySubscription-' + id).modal('show');
+        },
         deletePayment(payment, paymentIndex, subIndex) {
             if (payment.id) {
                 console.log(payment);
@@ -275,6 +422,7 @@ export default {
         },
         setDates(startedAt, subIndex) {
             if (this.type == 'create') {
+                console.log(startedAt);
                 this.subscriptions[subIndex].ended_at = moment().format();
                 this.subscriptions[subIndex].tries_at = moment().add(7, 'days').format();
             }
@@ -336,12 +484,29 @@ export default {
             axios.get('/customers/' + this.customerId + '/with-data').then(response => {
                 let data = response.data.data;
                 if (response.data.data) {
-                    console.log(data.phone);
+                    console.log(data.phone, new Date());
                     if (data.phone.length == 10) {
                         data.phone = '+7' + data.phone;
                     }
                     this.customer = data;
                     this.subscriptions = data.subscriptions;
+                    let typesColor = this.typesColor;
+                    this.subscriptions.forEach((subscription, subIndex, selfSubscriptions) => {
+                        let hstr = [];
+                        // console.log(subscription.history);
+                        Object.keys(subscription.history).forEach(function(historyIndex) {
+                            let attr = {};
+                            attr.highlight = typesColor[historyIndex];
+                            attr.dates = [];
+                            // console.log(subscription.history[historyIndex], historyIndex);
+                            subscription.history[historyIndex].forEach((payment, paymentIndex, selfPayments) => {
+                                // console.log(payment, paymentIndex);
+                                attr.dates.push(payment.dates);
+                            });
+                            hstr.push(attr);
+                        });
+                        this.subscriptions[subIndex].history = hstr;
+                    });
                 }
             })
             .catch(err => {
@@ -386,14 +551,22 @@ export default {
 
                     this.subscriptions = customer.subscriptions;
                 }
-                $('#modal-customer-create').modal('hide');
-                $('#modal-customer-edit').modal('hide');
-                document.getElementById("file").value = "";
+
+                this.subscriptions.forEach((value, index, self) => {
+                    if (value.payment_type != 'cloudpayments') {
+                        $('#modal-customer-create').modal('hide');
+                        $('#modal-customer-edit').modal('hide');
+                    }
+                });
+                if (document.getElementById("file")) {
+                    document.getElementById("file").value = "";
+                }
 
                 Vue.$toast.success(response.data.message);
             })
             .catch(err => {
                 this.spinnerData.loading = false;
+                console.log(err);
                 if (err.response.status === 422) {
                     let errors = err.response.data.errors;
                     if (errors) {
@@ -452,10 +625,14 @@ export default {
                 started_at: now.format(),
                 paused_at: null,
                 ended_at: moment().format(),
+                frozen_at: null,
+                defrozen_at: null,
                 tries_at: moment().add(7, 'days').format(),
                 status: null,
                 description: null,
                 newPayment: {
+                    from: null,
+                    to: null,
                     quantity: null,
                     check: null,
                 },
@@ -509,6 +686,8 @@ export default {
 }
 .bd-example {
     padding: 1.5rem;
+    padding-top: 0px;
+    padding-bottom: 0px;
     margin-right: 0;
     margin-left: 0;
 }

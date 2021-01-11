@@ -29,10 +29,12 @@ Route::middleware(["auth"])->group(function () {
     Route::get('customers/get-options', 'CustomerController@getOptions');
     Route::get('customers/{customerId}/with-data', 'CustomerController@getCustomerWithData');
     Route::get('customers/filter', 'CustomerController@getFilters');
-    Route::post('subscriptions/delete', 'SubscriptionController@delete');
 
     Route::get('products/list', 'ProductController@getList');
     Route::get('products/filter', 'ProductController@getFilters');
+
+    Route::get('users/list', 'UserController@getList');
+    Route::get('users/filter', 'UserController@getFilters');
 
     Route::get('subscriptions/list', 'SubscriptionController@getList');
     Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
@@ -47,8 +49,9 @@ Route::middleware(["auth"])->group(function () {
         'products' => 'ProductController',
         'subscriptions' => 'SubscriptionController',
         'payments' => 'PaymentController',
+        'users' => 'UserController',
     ]);
 });
 
 Route::get("/pull", [HomeController::class, "pull"])->name("pull");
-Route::get('cloudpayments/{slug}', 'CloudPaymentsController@showWidget')->name('cloudpayments.show_widget');
+Route::get('cloudpayments/{subscriptionId}', 'CloudPaymentsController@showWidget')->name('cloudpayments.show_widget');

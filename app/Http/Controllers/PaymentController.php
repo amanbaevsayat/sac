@@ -24,20 +24,21 @@ class PaymentController extends Controller
 
     public function getList(PaymentFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $query = Payment::query();
-        $payments = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $payments = $query->latest()->filter($filters)->where('type', '!=', 'frozen')->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new PaymentCollection($payments), 200);
     }
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         // $products = Product::get()->pluck('title', 'id');
         $paymentTypes = Subscription::PAYMENT_TYPE;
         unset($paymentTypes['tries']);
+        unset($paymentTypes['frozen']);
         
         $data['main'] = [
             [
@@ -51,6 +52,11 @@ class PaymentController extends Controller
                 'title' => 'Статус платежа',
                 'type' => 'select-multiple',
                 'options' => Payment::STATUSES,
+            ],
+            [
+                'name' => 'amount',
+                'title' => 'Сумма',
+                'type' => 'input',
             ],
         ];
         $data['second'] = [
@@ -75,7 +81,7 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -87,7 +93,7 @@ class PaymentController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $customers = Customer::get();
         $subscriptions = Subscription::get();
 
@@ -105,7 +111,7 @@ class PaymentController extends Controller
      */
     public function store(CreatePaymentRequest $request, Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $data = $request->all();
         $data['slug'] = Str::uuid();
         $data['recurrent'] = $request->get('recurrent') == 'on' ? true : false;
@@ -126,7 +132,7 @@ class PaymentController extends Controller
      */
     public function show(Request $request, Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'payment' => $payment,
@@ -141,7 +147,7 @@ class PaymentController extends Controller
      */
     public function edit(Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.edit", [
             'payment' => $payment,
@@ -157,7 +163,7 @@ class PaymentController extends Controller
      */
     public function update(CreatePaymentRequest $request, Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $payment->update($request->all());
 
         $message = 'Данные платежа успешно изменены.';
@@ -179,7 +185,7 @@ class PaymentController extends Controller
      */
     public function destroy(Payment $payment, Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $payment->delete();
         $message = 'Платеж успешно удален.';

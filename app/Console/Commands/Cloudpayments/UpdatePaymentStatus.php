@@ -72,12 +72,10 @@ class UpdatePaymentStatus extends Command
                         ],
                     ]);
                 } else {
-                    \Log::info('С этим платежом не найден абонемент. TransactionId: ' . $item['TransactionId'] . '. InvoiceId: ' . $item['InvoiceId']);
+                    \Log::info('С этим платежом абонемент не найден. TransactionId: ' . $item['TransactionId'] . '. InvoiceId: ' . $item['InvoiceId']);
                     continue;
                 }
             }
-
-            \Log::info('qwerty');
 
             $this->updatePayment($payment, $item);
 
@@ -93,8 +91,8 @@ class UpdatePaymentStatus extends Command
                         $endedAt = $payment->subscription->ended_at;
                         $data['subscription'] = [
                             'renewed' => true,
-                            'first_ended_at' => $endedAt,
-                            'second_ended_at' => Carbon::parse($endedAt)->addMonths(1),
+                            'from' => $endedAt,
+                            'to' => Carbon::parse($endedAt)->addMonths(1),
                         ];
                         $payment->update([
                             'data' => $data

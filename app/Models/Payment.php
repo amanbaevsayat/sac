@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Filters\PaymentFilter;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Payment extends Model
 {
-    use HasFactory, SoftDeletes, ModelBase;
+    use HasFactory, SoftDeletes, ModelBase, LogsActivity;
 
     const QUANTITIES = [
         '1' => '1 месяц',
@@ -48,6 +49,7 @@ class Payment extends Model
         'new' => 'Не оплачено',
         'Completed' => 'Оплачено',
         'Declined' => 'Ошибка',
+        'Frozen' => 'Заморозка',
     ];
 
     protected $fillable = [
@@ -68,6 +70,26 @@ class Payment extends Model
         'data',
     ];
 
+    protected static $logAttributes = [
+        'subscription_id',
+        'card_id',
+        'customer_id',
+        'user_id',
+        'quantity',
+        'type',
+        'slug',
+        'amount',
+        'status',
+        'recurrent', // Для рекуррентных платежей
+        'start_date', // Для рекуррентных платежей
+        'interval', // Для рекуррентных платежей
+        'period', // Для рекуррентных платежей
+        'paided_at',
+        'data',
+    ];
+
+    protected static $ignoreChangedAttributes = [];
+
     protected $dates = [
         'start_date',
         'paided_at',
@@ -81,6 +103,11 @@ class Payment extends Model
 
     protected static function boot() {
         parent::boot();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function customer()

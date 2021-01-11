@@ -38,7 +38,7 @@ class PaymentResource extends JsonResource
             ],
             'amount' => [
                 // 'type' => 'input',
-                'value' => $this->amount,
+                'value' => $this->amount * ($this->quantity ?? 1),
             ],
             'status' => [
                 'value' => Payment::STATUSES[$this->status] ?? $this->status,

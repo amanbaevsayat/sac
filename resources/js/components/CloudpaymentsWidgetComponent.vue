@@ -117,6 +117,9 @@
             </div>
             <div v-show="openFirstStep" id="paymentFormSample" class="card-form__inner" autocomplete="off">
               <div class="row">
+                <div class="col-sm-12" style="text-align: center;font-size: 14px;margin-bottom: 20px;font-weight: 600;">
+                  <p>Безопасность платежей обеспечивается банковской системой Республики Казахстан и <a href="https://cloudpayments.kz" target="_blank">Cloudpayments.kz</a></p>
+                </div>
                 <div class="col-sm-5">
                   <div class="card-input">
                     <label class="card-input__label">Имя</label>
@@ -189,14 +192,18 @@
                         </div>
                       </div>
                   </div>
+                  <div class="card-input">
+                    <label class="card-input__label">E-mail</label>
+                    <input type="text" class="card-input__input" v-model="customer.email" aria-describedby="emailHelp">
+                    <small id="emailHelp" class="form-text text-muted" style="font-size: 12px">*на указанную почту придет чек об оплате</small>
+                  </div>
                 </div>
                 <button class="card-form__button" @click="submit()">
-                ОПЛАТИТЬ {{ payment.amount }} тг.
+                ОПЛАТИТЬ {{ payment.amount }} тенге
                 </button>
-                <p style="margin-top: 20px;text-align: center;">Нажимая "ОПЛАТИТЬ", Вы даёте 
-                    <a style="color: #fc0000;text-decoration: underline;" target="_blank">Согласие</a>
+                <p style="margin-top: 20px;text-align: center;">Нажимая "ОПЛАТИТЬ", Вы даёте согласие
                     на обработку Ваших персональных данных и принимаете 
-                    <a style="color: #fc0000;text-decoration: underline;" target="_blank">Пользовательское соглашение</a>
+                    <a href="https://www.strela-academy.ru/offer.pdf" style="color: #fc0000;text-decoration: underline;" target="_blank">Пользовательское соглашение</a>
                 </p>
               </div>
             </div>
@@ -205,9 +212,9 @@
             </div>
          </div>
       </div>
-      <picture style="width: 100%;text-align: center;display: block; margin-bottom: 30px" class="card__pay-systems">
+      <a href="https://cloudpayments.kz" target="_blank" style="width: 100%;text-align: center;display: block; margin-bottom: 30px" class="card__pay-systems">
          <img src="/images/pay-systems.svg" alt="Платежные системы" style="width: 100%; max-width: 500px">
-      </picture>
+      </a>
    </div>
 </template>
 
@@ -343,6 +350,7 @@ export default {
           packet: result.packet,
           slug: this.payment.slug,
           cardName: this.cardName,
+          email: this.customer.email,
         };
         axios.post('/api/cloudpayments/pay', data).then(response => {
             this.PaReq = response.data.PaReq;

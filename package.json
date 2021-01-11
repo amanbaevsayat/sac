@@ -29,6 +29,7 @@
         "element-ui": "^2.14.1",
         "luxon": "^1.25.0",
         "moment": "^2.29.1",
+        "v-calendar": "^2.1.6",
         "vue-card-payment": "^0.2.1",
         "vue-datetime": "^1.0.0-beta.14",
         "vue-element-loading": "^1.1.6",

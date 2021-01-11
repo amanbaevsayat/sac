@@ -90,7 +90,7 @@
                 </div>
             </div>
         </div>
-        <div style="overflow: hidden!important" class="table-responsive bg-white">
+        <div class="table-responsive bg-white">
             <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
             <table style="overflow: hidden" class="table table-striped table-sm">
                 <thead>
@@ -128,13 +128,15 @@
                                     'status-tries': item.value == 'tries' && prefix == 'subscriptions', 
                                     'status-waiting': item.value == 'waiting' && prefix == 'subscriptions', 
                                     'status-paid': item.value == 'paid' && prefix == 'subscriptions',
-                                    'status-refused': item.value == 'refused' && prefix == 'subscriptions'
+                                    'status-refused': item.value == 'refused' && prefix == 'subscriptions',
+                                    'status-frozen': item.value == 'frozen' && prefix == 'subscriptions'
                                 }">
                                     <option :class="{ 
                                         'status-tries': collectionIndex == 'tries' && prefix == 'subscriptions', 
                                         'status-waiting': collectionIndex == 'waiting' && prefix == 'subscriptions', 
                                         'status-paid': collectionIndex == 'paid' && prefix == 'subscriptions',
-                                        'status-refused': collectionIndex == 'refused' && prefix == 'subscriptions'
+                                        'status-refused': collectionIndex == 'refused' && prefix == 'subscriptions',
+                                        'status-frozen': collectionIndex == 'frozen' && prefix == 'subscriptions'
                                     }" v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
                                         {{ collection }}
                                     </option>
@@ -165,7 +167,8 @@
                                         'status-tries': item.value == 'Пробует' && prefix == 'subscriptions', 
                                         'status-waiting': item.value == 'Жду оплату' && prefix == 'subscriptions', 
                                         'status-paid': item.value == 'Оплачено' && prefix == 'subscriptions',
-                                        'status-refused': item.value == 'Отказался' && prefix == 'subscriptions'
+                                        'status-refused': item.value == 'Отказался' && prefix == 'subscriptions',
+                                        'status-frozen': item.value == 'Заморожен' && prefix == 'subscriptions'
                                     }">
                                         {{ item.value }}
                                     </span>
@@ -187,7 +190,7 @@
                                     <a v-if="prefix != 'payments'" :href="'/'+ prefix +'/'+ items.id.value +'/edit'" class="dropdown-item" title="Редактировать">
                                         Редактировать
                                     </a>
-                                    <a :href="'/'+ prefix +'/'+ items.id.value" class="dropdown-item" title="Подробнее">
+                                    <a v-if="prefix != 'users'" :href="'/'+ prefix +'/'+ items.id.value" class="dropdown-item" title="Подробнее">
                                         Подробнее
                                     </a>
                                 </div>
@@ -535,6 +538,9 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
 }
 .status-refused {
     background: #f9f578;
+}
+.status-frozen {
+    background: #e44361ab;
 }
 .status {
     padding: 2px 6px;
