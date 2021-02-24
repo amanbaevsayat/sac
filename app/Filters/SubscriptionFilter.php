@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Models\Customer;
+use Carbon\Carbon;
 
 class SubscriptionFilter extends BaseFilter
 {
@@ -23,7 +24,6 @@ class SubscriptionFilter extends BaseFilter
 
     public function page($value)
     {
-        
     }
 
     public function paymentType($value)
@@ -62,7 +62,7 @@ class SubscriptionFilter extends BaseFilter
             $customersQuery = Customer::query();
             $phone = preg_replace('/[^0-9]/', '', $value);
             $query = "(name like '%{$value}%'";
-            if (!empty($phone)){
+            if (!empty($phone)) {
                 $query .= " OR phone like '%{$phone}%' OR '{$phone}' LIKE CONCAT('%', phone, '%')";
             }
             $query .= ")";
@@ -93,5 +93,21 @@ class SubscriptionFilter extends BaseFilter
             }
         }
         return $this->builder;
+    }
+
+    public function fromStartDate($value)
+    {
+        if (is_numeric(strtotime($value))) {
+            $day = Carbon::parse($value)->startOfDay();
+            $this->builder->whereDate('started_at', '>=', $day->format('Y-m-d 00:00:00'));
+        }
+    }
+
+    public function toStartDate($value)
+    {
+        if (is_numeric(strtotime($value))) {
+            $day = Carbon::parse($value)->endOfDay();
+            $this->builder->whereDate('started_at', '<=', $day->format('Y-m-d 23:59:59'));
+        }
     }
 }

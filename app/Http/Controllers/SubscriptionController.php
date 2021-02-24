@@ -62,6 +62,21 @@ class SubscriptionController extends Controller
                 'type' => 'select-multiple',
                 'options' => Subscription::PAYMENT_TYPE,
             ],
+            [
+                'name' => 'from_start_date',
+                'title' => 'С даты старта',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'to_start_date',
+                'title' => 'По дату старта',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'cp_subscription_id',
+                'title' => 'Cloudpayment ID',
+                'type' => 'input',
+            ],
         ];
 
         $data['second'] = [
@@ -166,6 +181,13 @@ class SubscriptionController extends Controller
     public function update(CreateSubscriptionRequest $request, Subscription $subscription)
     {
         access(['can-operator', 'can-head', 'can-host']);
+        if ($request->get('status') == 'refused') {
+            if ($subscription->cp_subscription_id) {
+                $cloudPaymentsService = new CloudPaymentsService();
+                $cloudPaymentsService->cancelSubscription($subscription->cp_subscription_id);
+            }
+        }
+
         $subscription->update([
             'status' => $request->get('status'),
         ]);
@@ -195,6 +217,7 @@ class SubscriptionController extends Controller
             $cloudPaymentsService = new CloudPaymentsService();
             $cloudPaymentsService->cancelSubscription($subscription->cp_subscription_id);
         }
+
         $subscription->delete();
 
         $message = 'Абонемент успешно удален.';

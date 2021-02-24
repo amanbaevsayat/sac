@@ -75,7 +75,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group col-sm-6">
-                                        <label for="status" class="col-form-label">Статус подписки</label>
+                                        <label for="status" class="col-form-label">Статус абонемента</label>
                                         <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="col-sm-10 form-control">
                                             <option v-for="(option, optionIndex) in getStatuses(subscription.payment_type)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                         </select>
@@ -180,13 +180,49 @@
                                                         <div style="width: 100%; margin-top: 20px; text-align: center">
                                                             <p><span style="color: green">Зеленый</span> - заморозка</p>
                                                             <p><span style="color: red">Красный</span> - перевод</p>
-                                                            <p><span>Черный</span> - подписка</p>
+                                                            <p><span style="color: yellow">Желтый</span> - подписка</p>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <footer class="modal-footer">
                                                     <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
                                                     <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
+                                                </footer>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6" v-if="subscription.payment_type == 'cloudpayments'">
+                                        <button data-toggle="modal" class="btn btn-danger" @click="showCloudpaymentsModal(subIndex)">Cloudpayments - Изменить дату следующего платежа</button>
+                                    </div>
+                                    <div v-if="subscription.payment_type == 'cloudpayments'" :id="'modalCloudpayments-' + subIndex" class="modal">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLongTitle">Изменить дату следующего платежа</h5>
+                                                    <button type="button" class="close" @click="hideCloudpaymentsModal(subIndex)">
+                                                    <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="form-group col-sm-12">
+                                                            <label for="check" class="col-form-label">Дата следующего платежа</label>
+                                                            <datetime
+                                                                :name="'subscriptions.' + subIndex + '.newPayment.from'"
+                                                                type="date"
+                                                                v-model="subscription.next_transaction_date"
+                                                                input-class="col-sm-10 my-class form-control"
+                                                                valueZone="Asia/Almaty"
+                                                                value-zone="Asia/Almaty"
+                                                                zone="Asia/Almaty"
+                                                                format="dd LLLL"
+                                                                :auto="true"
+                                                            ></datetime>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <footer class="modal-footer">
+                                                    <button @click="hideCloudpaymentsModal(subIndex)" type="button" class="btn btn-primary">Сохранить</button>
                                                 </footer>
                                             </div>
                                         </div>
@@ -250,7 +286,7 @@
                                                     </div>
                                                 </div>
                                                 <footer class="modal-footer">
-                                                    <button @click="hideTransferModal(subscription.id)" type="button" class="btn btn-primary">Сохранить</button>
+                                                    <button @click="hideTransferModal(subscription.id, subscription.newPayment.to, subIndex)" type="button" class="btn btn-primary">Сохранить</button>
                                                     <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
                                                 </footer>
                                             </div>
@@ -281,6 +317,10 @@
                                                 <span> | </span>
                                                 <a :href="payment.user.url" target="_blank">{{ payment.user.name }}</a>
                                                 <span class="list-group-remove" @click="deletePayment(payment, paymentIndex, subIndex)">X</span>
+                                                <a :href="payment.edit" target="_blank" class="list-group-remove" style="
+                                                    margin-right: 5px;
+                                                    background-color: #abab00;
+                                                ">E</a>
                                             </li>
                                         </ul>
                                     </div>
@@ -348,7 +388,7 @@ export default {
             typesColor: {
                 frozen: 'green',
                 transfer: 'red',
-                cloudpayments: 'black',
+                cloudpayments: 'yellow',
             }
         }
     },
@@ -379,7 +419,14 @@ export default {
         openTransferModal() {
             $('#modalTransfer').modal('toggle');
         },
-        hideTransferModal(id) {
+        hideCloudpaymentsModal(index) {
+            $('#modalCloudpayments-' + index).modal('hide');
+        },
+        showCloudpaymentsModal(index) {
+            $('#modalCloudpayments-' + index).modal('show');
+        },
+        hideTransferModal(id, toDate, index) {
+            this.subscriptions[index].ended_at = toDate;
             $('#modalTransfer-' + id).modal('hide');
         },
         showTransferModal(id) {
@@ -624,6 +671,7 @@ export default {
                 payment_type: null,
                 started_at: now.format(),
                 paused_at: null,
+                next_transaction_date: null,
                 ended_at: moment().format(),
                 frozen_at: null,
                 defrozen_at: null,

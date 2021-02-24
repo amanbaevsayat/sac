@@ -50,8 +50,17 @@ class SubscriptionResource extends JsonResource
                 'type' => 'select',
                 'value' => $this->status ?? null,
             ],
+            'payments' => [
+                'value' => $this->payments->where('status', 'Completed')->count() ?? 0,
+                'textAlign' => 'center',
+            ],
             'product' => [
                 'value' => $this->product->title ?? null,
+                // 'type' => 'link',
+                // 'value' => $this->product_id ? route('products.show', [$this->product_id]) : null,
+            ],
+            'cp_subscription_id' => [
+                'value' => $this->cp_subscription_id ?? null,
                 // 'type' => 'link',
                 // 'value' => $this->product_id ? route('products.show', [$this->product_id]) : null,
             ],

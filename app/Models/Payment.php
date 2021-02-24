@@ -16,6 +16,7 @@ class Payment extends Model
         '1' => '1 месяц',
         '2' => '2 месяца',
         '3' => '3 месяца',
+        '6' => '6 месяцев',
     ];
 
     const CLOUDPAYMENTS_OPERATION_STATUSES = [
@@ -53,39 +54,42 @@ class Payment extends Model
     ];
 
     protected $fillable = [
+        'id',
         'subscription_id',
         'card_id',
         'customer_id',
+        'transaction_id',
         'user_id',
         'quantity',
         'type',
-        'slug',
         'amount',
         'status',
-        'recurrent', // Для рекуррентных платежей
-        'start_date', // Для рекуррентных платежей
-        'interval', // Для рекуррентных платежей
-        'period', // Для рекуррентных платежей
         'paided_at',
         'data',
+        // 'slug',
+        // 'recurrent', // Для рекуррентных платежей
+        // 'start_date', // Для рекуррентных платежей
+        // 'interval', // Для рекуррентных платежей
+        // 'period', // Для рекуррентных платежей
     ];
 
     protected static $logAttributes = [
         'subscription_id',
         'card_id',
         'customer_id',
+        'transaction_id',
         'user_id',
         'quantity',
         'type',
-        'slug',
         'amount',
         'status',
-        'recurrent', // Для рекуррентных платежей
-        'start_date', // Для рекуррентных платежей
-        'interval', // Для рекуррентных платежей
-        'period', // Для рекуррентных платежей
         'paided_at',
         'data',
+        // 'slug',
+        // 'recurrent', // Для рекуррентных платежей
+        // 'start_date', // Для рекуррентных платежей
+        // 'interval', // Для рекуррентных платежей
+        // 'period', // Для рекуррентных платежей
     ];
 
     protected static $ignoreChangedAttributes = [];
@@ -101,8 +105,23 @@ class Payment extends Model
         'data' => 'array',
     ];
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
+
+        // auto-sets values on creation
+        static::creating(function ($query) {
+            $data = [
+                'subscription' => [
+                    'renewed' => $query->data['subscription']['renewed'] ?? false,
+                    'from' => $query->data['subscription']['from'] ?? null,
+                    'to' => $query->data['subscription']['to'] ?? null,
+                ],
+                'cloudpayments' => $query->data['cloudpayments'] ?? [],
+                'check' => $query->data['check'] ?? null,
+            ];
+            $query->data = $data;
+        });
     }
 
     public function user()

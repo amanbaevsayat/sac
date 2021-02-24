@@ -16,12 +16,15 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
     Route::get("/dashboard", [HomeController::class, "dashboard"])->name("dashboard");
+    Route::get("/statistics", [HomeController::class, "statistics"])->name("statistics.index");
+    Route::post("/statistics", [HomeController::class, "statisticsPost"])->name("statistics.post");
     Route::get("/search", 'SearchController@search')->name("search");
 
     Route::post('customers/update-with-data', 'CustomerController@createWithData');

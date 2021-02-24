@@ -16,8 +16,6 @@ class SubscriptionResource extends JsonResource
      */
     public function toArray($request): array
     {
-        $recurrentPayment = $this->payments()->where('status', 'new')->where('type', 'cloudpayments')->first();
-
         $data = [
             'id' => $this->id,
             'product_id'    => $this->product_id,
@@ -29,9 +27,13 @@ class SubscriptionResource extends JsonResource
             'ended_at'      => $this->ended_at ? date(DATE_ATOM, strtotime($this->ended_at)) : null,
             'frozen_at'     => $this->frozen_at ? date(DATE_ATOM, strtotime($this->frozen_at)) : null,
             'defrozen_at'   => $this->defrozen_at ? date(DATE_ATOM, strtotime($this->defrozen_at)) : null,
+            'next_transaction_date' => null,
             'status'        => $this->status,
             'description'   => $this->description,
-            'payments'      => PaymentResource::collection($this->payments),
+            'payments'      => PaymentResource::collection($this->payments->where('status', '!=', 'new')->sortByDesc('paided_at')),
+            'recurrent'     => [
+                'link'      => route('cloudpayments.show_widget', [$this->id]),
+            ],
             'product'       => [
                 'id'    => $this->product->id,
                 'title' => $this->product->title,
@@ -43,14 +45,8 @@ class SubscriptionResource extends JsonResource
                 'quantity' => 1,
                 'check' => null,
             ],
-            'history' => HistoryResource::collection($this->payments->sortByDesc('type'))->collection->groupBy('type'),
+            'history' => HistoryResource::collection($this->payments->where('status', '!=', 'new')->sortByDesc('type'))->collection->groupBy('type'),
         ];
-
-        if ($recurrentPayment) {
-            $data['recurrent'] = [
-                'link' => route('cloudpayments.show_widget', [$this->id]),
-            ];
-        }
 
         return $data;
     }

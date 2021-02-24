@@ -38,8 +38,12 @@ class PaymentCollection extends ResourceCollection
                     'key' => 'type',
                 ],
                 [
-                    'title' => 'Сумма',
+                    'title' => 'Цена',
                     'key' => 'amount',
+                ],
+                [
+                    'title' => 'Кол-во платежей',
+                    'key' => 'payments',
                 ],
                 [
                     'title' => 'Статус',
@@ -47,10 +51,19 @@ class PaymentCollection extends ResourceCollection
                 ],
                 [
                     'title' => 'Описание платежа',
+                    'width' => '18vw',
                 ],
                 [
                     'title' => 'Дата оплаты',
                     'key' => 'paided_at',
+                ],
+                [
+                    'title' => 'С',
+                    'key' => 'from',
+                ],
+                [
+                    'title' => 'По',
+                    'key' => 'to',
                 ],
                 // [
                 //     'title' => 'Интервал списания',

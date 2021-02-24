@@ -6,6 +6,7 @@ use App\Exceptions\ErrorCodes;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostThreeDSRequest;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Payment;
 use App\Services\CloudPaymentsService;
@@ -16,12 +17,12 @@ class CloudPaymentsController extends Controller
     public function pay(Request $request)
     {
         $packet = $request->get('packet');
-        $slug = $request->get('slug');
+        $slug = $request->get('id');
         $cardName = $request->get('cardName');
 
         $payment = Payment::whereSlug($slug)->first();
 
-        if (!$payment) {
+        if (!isset($payment)) {
             throw new \Exception('Платеж не найден.', 500);
         }
 
@@ -31,6 +32,7 @@ class CloudPaymentsController extends Controller
                     'Interval' => 'Month',
                     'Period' => 1,
                     'Amount' => $payment->subscription->price ?? $payment->amount,
+                    'SubscriptionId' => $payment->subscription->id,
                     // 'Amount' => 10,
                 )
             )
@@ -85,6 +87,7 @@ class CloudPaymentsController extends Controller
                 $data = $payment->data ?? [];
                 $data['cloudpayments'] = $response['Model'];
                 $payment->update([
+                    'transaction_id' => $response['Model']['TransactionId'],
                     'status' => $response['Model']['Status'],
                     'data' => $data,
                 ]);
@@ -99,5 +102,27 @@ class CloudPaymentsController extends Controller
                 ]);
             }
         }
+    }
+
+    public function changeStatus(Request $request)
+    {
+        $phone = $request->get('phone');
+        $productId = $request->get('productId');
+
+        $customer = Customer::where('phone', $phone)->firstOr(function () {
+            abort(404);
+        });
+
+        $subscription = $customer->subscriptions()->where('product_id', $productId)->firstOr(function () {
+            abort(404);
+        });
+
+        $subscription->update([
+            'status' => 'paid'
+        ]);
+
+        return response()->json([
+            'message' => 'Успешно обновлен',
+        ], 200);
     }
 }

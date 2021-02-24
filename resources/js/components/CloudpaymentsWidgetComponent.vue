@@ -3,122 +3,10 @@
       <div class="wrapper" id="app">
          <div class="container">
             <vue-element-loading :active="spinnerData.loading" spinner="bar-fade-scale" color="#FF6700"/>
-            <div class="card-list">
-               <div class="card-item" v-bind:class="{ '-active' : isCardFlipped }">
-                  <div class="card-item__side -front">
-                     <div class="card-item__focus" v-bind:class="{'-active' : focusElementStyle }" v-bind:style="focusElementStyle" ref="focusElement"></div>
-                     <div class="card-item__cover">
-                        <img
-                           v-bind:src="'https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/' + currentCardBackground + '.jpeg'" class="card-item__bg">
-                     </div>
-                     <div class="card-item__wrapper">
-                        <div class="card-item__top">
-                           <img src="https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/chip.png" class="card-item__chip">
-                           <div class="card-item__type">
-                              <transition name="slide-fade-up">
-                                 <img v-bind:src="'https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/' + getCardType + '.png'" v-if="getCardType" v-bind:key="getCardType" alt="" class="card-item__typeImg">
-                              </transition>
-                           </div>
-                        </div>
-                        <label for="cardNumber" class="card-item__number" ref="cardNumber">
-                           <template v-if="getCardType === 'amex'">
-                              <span v-for="(n, $index) in amexCardMask" :key="$index">
-                                 <transition name="slide-fade-up">
-                                    <div
-                                       class="card-item__numberItem"
-                                       v-if="$index > 4 && $index < 14 && cardNumber.length > $index && n.trim() !== ''"
-                                       >*</div>
-                                    <div class="card-item__numberItem"
-                                       :class="{ '-active' : n.trim() === '' }"
-                                       :key="$index" v-else-if="cardNumber.length > $index">
-                                       {{cardNumber[$index]}}
-                                    </div>
-                                    <div
-                                       class="card-item__numberItem"
-                                       :class="{ '-active' : n.trim() === '' }"
-                                       v-else
-                                       :key="$index + 1"
-                                       >{{n}}</div>
-                                 </transition>
-                              </span>
-                           </template>
-                           <template v-else>
-                              <span v-for="(n, $index) in otherCardMask" :key="$index">
-                                 <transition name="slide-fade-up">
-                                    <div
-                                       class="card-item__numberItem"
-                                       v-if="$index > 4 && $index < 15 && cardNumber.length > $index && n.trim() !== ''"
-                                       >*</div>
-                                    <div class="card-item__numberItem"
-                                       :class="{ '-active' : n.trim() === '' }"
-                                       :key="$index" v-else-if="cardNumber.length > $index">
-                                       {{cardNumber[$index]}}
-                                    </div>
-                                    <div
-                                       class="card-item__numberItem"
-                                       :class="{ '-active' : n.trim() === '' }"
-                                       v-else
-                                       :key="$index + 1"
-                                       >{{n}}</div>
-                                 </transition>
-                              </span>
-                           </template>
-                        </label>
-                        <div class="card-item__content">
-                           <label for="cardName" class="card-item__info" ref="cardName">
-                              <div class="card-item__holder">Карта держателя</div>
-                              <transition name="slide-fade-up">
-                                 <div class="card-item__name" v-if="cardName.length" key="1">
-                                    <transition-group name="slide-fade-right">
-                                       <span class="card-item__nameItem" v-for="(n, $index) in cardName.replace(/\s\s+/g, ' ')" v-if="$index === $index" v-bind:key="$index + 1">{{n}}</span>
-                                    </transition-group>
-                                 </div>
-                                 <div class="card-item__name" v-else key="2">Имя Фамилия</div>
-                              </transition>
-                           </label>
-                           <div class="card-item__date" ref="cardDate">
-                              <label for="cardMonth" class="card-item__dateTitle">Срок</label>
-                              <label for="cardMonth" class="card-item__dateItem">
-                                 <transition name="slide-fade-up">
-                                    <span v-if="cardMonth" v-bind:key="cardMonth">{{cardMonth}}</span>
-                                    <span v-else key="2">MM</span>
-                                 </transition>
-                              </label>
-                              /
-                              <label for="cardYear" class="card-item__dateItem">
-                                 <transition name="slide-fade-up">
-                                    <span v-if="cardYear" v-bind:key="cardYear">{{cardYear}}</span>
-                                    <span v-else key="2">YY</span>
-                                 </transition>
-                              </label>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="card-item__side -back">
-                     <div class="card-item__cover">
-                        <img
-                           v-bind:src="'https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/' + currentCardBackground + '.jpeg'" class="card-item__bg">
-                     </div>
-                     <div class="card-item__band"></div>
-                     <div class="card-item__cvv">
-                        <div class="card-item__cvvTitle">CVV</div>
-                        <div class="card-item__cvvBand">
-                           <span v-for="(n, $index) in cardCvv" :key="$index">
-                           *
-                           </span>
-                        </div>
-                        <div class="card-item__type">
-                           <img v-bind:src="'https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/' + getCardType + '.png'" v-if="getCardType" class="card-item__typeImg">
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div v-show="openFirstStep" id="paymentFormSample" class="card-form__inner" autocomplete="off">
+            <form :class="errors ? 'errors' : false" v-show="openFirstStep" v-on:submit.prevent="submit()" id="paymentFormSample" class="card-form__inner" autocomplete="off">
               <div class="row">
                 <div class="col-sm-12" style="text-align: center;font-size: 14px;margin-bottom: 20px;font-weight: 600;">
-                  <p>Безопасность платежей обеспечивается банковской системой Республики Казахстан и <a href="https://cloudpayments.kz" target="_blank">Cloudpayments.kz</a></p>
+                  <p style="line-height: 19px">Безопасность платежей обеспечивается банковской системой Республики Казахстан и <a href="https://cloudpayments.kz" target="_blank">Cloudpayments.kz</a></p>
                 </div>
                 <div class="col-sm-5">
                   <div class="card-input">
@@ -139,76 +27,102 @@
                     ></the-mask>
                   </div>
                   <div class="card-input">
-                    <label class="card-input__label">Услуга</label>
-                    <input type="text" class="card-input__input" v-model="product.title" disabled>
+                    <label class="card-input__label">E-mail *</label>
+                    <input type="email" class="card-input__input" v-model="customer.email" required @invalid="invalidateForm">
+                    <small class="form-text text-muted">На указанный e-mail будет отправлен чек об оплате</small>
                   </div>
                 </div>
                 <div class="col-sm-1"></div>
                 <div class="col-sm-6">
                   <div class="card-input">
-                      <label for="cardNumber" class="card-input__label">Номер карты</label>
-                      <!-- <the-mask
-                        data-cp="cardNumber" 
-                        id="cardNumber" 
-                        class="card-input__input"
-                        :masked="false"
-                        :mask="generateCardNumberMask"
-                        type="text"
-                        v-on:focus="focusInput" v-on:blur="blurInput"
-                        v-model="cardNumber"
-                        required
-                        autocomplete="off"
-                        ></the-mask> -->
-                      <input type="text" data-cp="cardNumber" id="cardNumber" class="card-input__input" v-mask="generateCardNumberMask" v-model="cardNumber" v-on:focus="focusInput" v-on:blur="blurInput" data-ref="cardNumber" autocomplete="off">
+                    <label class="card-input__label">Услуга</label>
+                    <input type="text" class="card-input__input" v-model="product.title" disabled>
                   </div>
                   <div class="card-input">
-                      <label for="cardName" class="card-input__label">Имя держателя</label>
-                      <input type="text" data-cp="name" id="cardName" class="card-input__input" v-model="cardName" v-on:focus="focusInput" v-on:blur="blurInput" data-ref="cardName" autocomplete="off">
-                  </div>
-                  <div class="card-form__row">
-                      <div class="card-form__col">
-                        <div class="card-form__group">
-                            <label for="cardMonth" class="card-input__label">Срок действия</label>
-                            <!-- <select class="card-input__input -select" data-cp="expDateMonth" id="cardMonth" v-model="cardMonth" v-on:focus="focusInput" v-on:blur="blurInput" data-ref="cardDate">
-                              <option value="" disabled selected>Месяц</option>
-                              <option v-bind:value="n < 10 ? '0' + n : n" v-for="n in 12" v-bind:disabled="n < minCardMonth" v-bind:key="n">
-                                  {{n < 10 ? '0' + n : n}}
-                              </option>
-                              </select> -->
-                            <input type="text" placeholder="ММ" data-cp="expDateMonth" class="card-input__input" id="cardMonth" v-mask="'##'" maxlength="2" v-model="cardMonth" v-on:focus="focusInput" v-on:blur="blurInput" autocomplete="off" data-ref="cardDate">
-                            <!-- <select class="card-input__input -select" data-cp="expDateYear" id="cardYear" v-model="cardYear" v-on:focus="focusInput" v-on:blur="blurInput" data-ref="cardDate">
-                              <option value="" disabled selected>Год</option>
-                              <option v-bind:value="$index + minCardYear" v-for="(n, $index) in 12" v-bind:key="n">
-                                  {{$index + minCardYear}}
-                              </option>
-                              </select> -->
-                            <input type="text" placeholder="ГГ" data-cp="expDateYear" class="card-input__input" id="cardYear" v-mask="'##'" maxlength="2" v-model="cardYear" v-on:focus="focusInput" v-on:blur="blurInput" autocomplete="off" data-ref="cardDate">
-                        </div>
-                      </div>
-                      <div class="card-form__col -cvv">
-                        <div class="card-input">
-                            <label for="cardCvv" class="card-input__label">CVV код</label>
-                            <input type="text" data-cp="cvv" class="card-input__input" id="cardCvv" v-mask="'####'" maxlength="4" v-model="cardCvv" v-on:focus="flipCard(true)" v-on:blur="flipCard(false)" autocomplete="off">
-                        </div>
-                      </div>
-                  </div>
-                  <div class="card-input">
-                    <label class="card-input__label">E-mail</label>
-                    <input type="text" class="card-input__input" v-model="customer.email" aria-describedby="emailHelp">
-                    <small id="emailHelp" class="form-text text-muted" style="font-size: 12px">*на указанную почту придет чек об оплате</small>
+                    <label class="card-input__label">Стоимость в месяц</label>
+                    <input type="text" class="card-input__input" :value="payment.amount + ' тенге'" disabled>
                   </div>
                 </div>
-                <button class="card-form__button" @click="submit()">
-                ОПЛАТИТЬ {{ payment.amount }} тенге
+                <button type="submit" class="card-form__button" style="font-size: 18px">
+                Перейти к оплате
                 </button>
-                <p style="margin-top: 20px;text-align: center;">Нажимая "ОПЛАТИТЬ", Вы даёте согласие
+                <p style="margin-top: 20px;text-align: center;">Нажимая "Перейти к оплате", Вы даёте согласие
                     на обработку Ваших персональных данных и принимаете 
                     <a href="https://www.strela-academy.ru/offer.pdf" style="color: #fc0000;text-decoration: underline;" target="_blank">Пользовательское соглашение</a>
                 </p>
               </div>
-            </div>
+            </form>
             <div v-show="openSecondStep" class="popup-pay card-form__inner">
-              <iframe class="popup-pay__iframe" width="100%" height="700" frameborder="0"></iframe>
+              <div class="widget-item success">
+                <div class="widget-item-header">
+                    <div class="header">
+                        <div class="header-container">
+                            <span class="close">
+                                <svg width="28" height="28">
+                                    <use xlink:href="#close"></use>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="widget-item-body status-container">
+                    <!-- ko if: !threeDSPopupButtonIsVisible() -->
+                    <div class="ico" style="text-align: center">
+                        <div :class="{ 'success-icon': success, 'error-icon': !success }"></div>
+                        <strong class="code">{{ message }}</strong>
+                        <button v-if="!success" @click="reloadPage()" class="btn btn-primary" style="
+                            margin: 0 auto;
+                            display: block;
+                            position: relative;
+                            margin-top: 15px;
+                        ">Обновите страницу, чтобы повторить платеж</button>
+                        <p class="fail-msg" style="display: none;"></p>
+                    </div>
+                    <!-- /ko -->
+                    <!-- ko if: threeDSPopupButtonIsVisible() --><!-- /ko -->
+                </div>
+              </div>
+            </div>
+            <div v-show="openSuccess" class="row popup-pay card-form__inner" style="
+              background: rgba(255,255,255,0);
+              background-image: url(http://d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/78ec164f-dark_100000000000000000001o.jpg);
+              background-repeat: repeat;
+              background-position: left top;
+              border-style: none;
+              border-radius: 0px;
+              width: 100%;
+              position: relative;"
+            >
+              <div class="col-sm-6">
+                <div class="lp-pom-image-container" style="overflow: hidden;border-style: none;
+                  border-radius: 20px;"
+                >
+                  <img style="width: 100%" src="/images/trener2.jpeg" alt="" loading="lazy" data-src-desktop-1x="//d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/635043a6-alex-shaw-msjsiqcm6og-unsplash_10mv0gs0kl0gs01500001o.jpg" data-src-mobile-1x="//d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/635043a6-alex-shaw-msjsiqcm6og-unsplash_107s06n07s06c00000501o.jpg" srcset="">
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="trener-body">
+                  <div style="text-align: center">
+                    <div class="success-icon" style="margin: 12px auto"></div>
+                    <h4>{{ message }}</h4>
+                  </div>
+                  <div>
+                    <blockquote class="blockquote" style="border-left: 0.7rem solid rgb(30 190 136)">
+                      <p class="mb-0">Екатерина Скурихина</p>
+                      <footer style="font-size: 14px; color: #3c2529;" class="blockquote-footer">тренер йоги, пилатеса и стрейчинга</footer>
+                    </blockquote>
+                    <div style="padding-left: 10px">
+                      <p style="font-size: 15px; margin-bottom: 9px;">По всем вопросам можно обратиться по номеру: </p>
+                      <a style="font-size: 15px" href="tel:+79647881221">+7 964 788-12-21</a>
+                      <p style="font-size: 15px; margin: 9px 0px">Больше полезных видео у меня в инстаграм: </p>
+                      <a href="https://www.instagram.com/strela_academy/">
+                        <img style="width: 30px" src="/images/instagram.svg" alt="">
+                        <span style="font-size: 16px; margin-left: 5px">@strela_academy</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
          </div>
       </div>
@@ -244,178 +158,169 @@ export default {
   ],
   data() {
     return {
+      errors: false,
       spinnerData: {
         loading: false,
         color: '#6cb2eb',
         size: '100px',
       },
-      openFirstStep: true,
-      openSecondStep: false,
-      PaReq: '',
-      md: '',
-      TermUrl: '',
       payment: this.paymentProp,
       subscription: this.subscriptionProp,
       customer: this.customerProp,
       product: this.productProp,
       publicId: this.publicIdProp,
       data: {},
-      interval: 0,
-      counterStop: false,
-      currentCardBackground: Math.floor(Math.random() * 25 + 1), // just for fun :D
-      cardName: "",
-      cardNumber: "",
-      cardMonth: "",
-      cardYear: "",
-      cardCvv: "",
-      minCardYear: new Date().getFullYear(),
-      amexCardMask: "#### ###### #####",
-      otherCardMask: "#### #### #### ####",
-      cardNumberTemp: "",
-      isCardFlipped: false,
-      focusElementStyle: null,
-      isInputFocused: false,
-      createCryptogram: null,
-      threeDS: false,
-      threeDSFrame: '',
-      AcsUrl: '',
+      openFirstStep: true,
+      openSecondStep: false,
+      openSuccess: false,
+      message: 'Оплата завершена успешно!',
+      success: true,
     }
   },
   computed: {
-    getCardType() {
-      let number = this.cardNumber;
-      let re = new RegExp("^4");
-      if (number.match(re) != null) return "visa";
-
-      re = new RegExp("^(34|37)");
-      if (number.match(re) != null) return "amex";
-
-      re = new RegExp("^5[1-5]");
-      if (number.match(re) != null) return "mastercard";
-
-      re = new RegExp("^6011");
-      if (number.match(re) != null) return "discover";
-
-      re = new RegExp('^9792')
-      if (number.match(re) != null) return 'troy'
-
-      return "visa"; // default type
-    },
-    generateCardNumberMask() {
-      return this.getCardType === "amex" ? this.amexCardMask : this.otherCardMask;
-    },
-    minCardMonth() {
-      if (this.cardYear === this.minCardYear) return new Date().getMonth() + 1;
-      return 1;
-    }
   },
   watch: {
-    cardYear() {
-      if (this.cardMonth < this.minCardMonth) {
-        this.cardMonth = "";
-      }
-    }
   },
   created() {
     let recaptchaScript = document.createElement('script')
-    recaptchaScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/checkout')
+    recaptchaScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments')
     document.head.appendChild(recaptchaScript);
   },
   mounted() {
-    this.cardNumberTemp = this.otherCardMask;
-    document.getElementById("cardNumber").focus();
   },
   methods: {
-    submit() {
-      this.spinnerData.loading = true;
-      /* Создание checkout */
-      let checkout = new cp.Checkout(
-        // public id из личного кабинета
-        this.publicId,
-        // тег, содержащий поля данных карты
-        document.getElementById("paymentFormSample")
-      );
-      // console.log(document.getElementById("paymentFormSample"));
+    invalidateForm() {
+      this.errors = true;
+    },
+    sendSuccess() {
       let data = {
-        cardNumber: document.getElementById('cardNumber').value,
-        cardName: document.getElementById('cardName').value,
-        cardMonth: document.getElementById('cardMonth').value,
-        cardYear: document.getElementById('cardYear').value,
-        cardCvv: document.getElementById('cardCvv').value,
+        phone: this.customer.phone,
+        productId: this.product.id,
       };
-      let result = checkout.createCryptogramPacket();
-      if (result.success) {
-        // сформирована криптограмма
-        let data = {
-          packet: result.packet,
-          slug: this.payment.slug,
-          cardName: this.cardName,
-          email: this.customer.email,
-        };
-        axios.post('/api/cloudpayments/pay', data).then(response => {
-            this.PaReq = response.data.PaReq;
-            this.md = response.data.TransactionId;
-            this.AcsUrl = response.data.AcsUrl;
-            // downloadForm.submit();
-            if (response.data.acs_form) {
-              console.log('3ds: ' + response.data.AcsUrl);
-              this.submitThreeDS(response.data.acs_form);
-              // document.getElementById("threeDSForm").submit();
-            }
-            this.spinnerData.loading = false;
-          })
-          .catch(err => {
-            this.spinnerData.loading = false;
-            throw err;
-          });
-      } else {
-        this.spinnerData.loading = false;
+      axios.post('/api/cloudpayments/change-status', data).then(response => {
+        console.log(response);
+      })
+      .catch(err => {
+        throw err;
+      });
+    },
+    submit() {
+      var widget = new cp.CloudPayments();
+      var receipt = {
+        Items: [//товарные позиции
+          {
+            label: this.product.title, //наименование товара
+            price: this.payment.amount, //цена
+            quantity: 1.00, //количество
+            amount: this.payment.amount, //сумма
+            object: this.product.id, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
+          }
+        ],
+        taxationSystem: 0, // Система налогооблажения (необязательный, если у вас одна система налогообложения)
+        email: this.customer.email, //e-mail покупателя, если нужно отправить письмо с чеком
+        phone: this.customer.phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+        isBso: false, //чек является бланком строгой отчётности
+      };
 
-        // найдены ошибки в введённых данных, объект `result.messages` формата: 
-        // { name: "В имени держателя карты слишком много символов", cardNumber: "Неправильный номер карты" }
-        // где `name`, `cardNumber` соответствуют значениям атрибутов `<input ... data-cp="cardNumber">`
-        for (var msgName in result.messages) {
-          alert(result.messages[msgName]);
+      var data = {};
+      data.cloudPayments = {
+        recurrent: { 
+          interval: 'Month',
+          period: 1,
+          customerReceipt: receipt
+        },
+        customerReceipt: {
+          Items: [ //товарные позиции
+            {
+              label: this.product.title, // наименование товара
+              price: this.payment.amount, // цена
+              quantity: 1.00, //количество
+              amount: this.payment.amount, // сумма
+              vat: 0, // ставка НДС
+              method: 0, // тег-1214 признак способа расчета - признак способа расчета
+              object: 0, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
+              measurementUnit: "шт" //единица измерения
+            },
+          ],
+          calculationPlace: "www.strela-academy.ru", //место осуществления расчёта, по умолчанию берется значение из кассы
+          taxationSystem: 0, //система налогообложения; необязательный, если у вас одна система налогообложения
+          email: this.customer.email, //e-mail покупателя, если нужно отправить письмо с чеком
+          phone: this.customer.phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+          //customerInfo: "", // тег-1227 Покупатель - наименование организации или фамилия, имя, отчество (при наличии), серия и номер паспорта покупателя (клиента)
+          //customerInn: "7708806063", // тег-1228 ИНН покупателя 
+          isBso: false, //чек является бланком строгой отчётности
+          // AgentSign: null, //признак агента, тег ОФД 1057
+          // amounts: {
+          //     electronic: 1300.00, // Сумма оплаты электронными деньгами
+          //     advancePayment: 0.00, // Сумма из предоплаты (зачетом аванса) (2 знака после запятой)
+          //     credit: 0.00, // Сумма постоплатой(в кредит) (2 знака после запятой)
+          //     provision: 0.00 // Сумма оплаты встречным предоставлением (сертификаты, др. мат.ценности) (2 знака после запятой)
+          // }
         }
-      }
+      }; //создание ежемесячной подписки
+
+      widget.charge({ // options
+          publicId: this.publicId, //id из личного кабинета
+          description: 'Подписка на ежемесячный онлайн-абонемент', //назначение
+          amount: this.payment.amount, //сумма
+          currency: 'KZT', //валюта
+          invoiceId: this.payment.id, //номер заказа  (необязательно)
+          accountId: this.customer.phone, //идентификатор плательщика (обязательно для создания подписки)
+          data: data
+      },
+      function (options) { // success
+          console.log('Успешно');
+          console.log(options);
+          this.showResultPage('Оплата завершена успешно!', true);
+          this.sendSuccess();
+      }.bind(this),
+      function (reason, options) { // fail
+          console.log('Fail');
+          console.log(reason);
+          console.log(options);
+          this.showResultPage(reason, false);
+      }.bind(this));
     },
-    submitThreeDS(linkThreeDS) {
-      var popupPay = document.querySelector('.popup-pay');
-      var popupIFrame = popupPay.querySelector('.popup-pay__iframe');
-      popupIFrame.contentDocument.write(linkThreeDS);
-      this.openSecondStep = true;
+    showResultPage(message, success) {
+      this.message = message;
+      this.success = success;
+      if (this.success) {
+        this.openSuccess = true;
+      } else {
+        this.openSecondStep = true;
+      }
       this.openFirstStep = false;
-      $('#threeDS').modal('show')
     },
-    flipCard(status) {
-      this.isCardFlipped = status;
-    },
-    focusInput(e) {
-      this.isInputFocused = true;
-      let targetRef = e.target.dataset.ref;
-      let target = this.$refs[targetRef];
-      this.focusElementStyle = {
-        width: `${target.offsetWidth}px`,
-        height: `${target.offsetHeight}px`,
-        transform: `translateX(${target.offsetLeft}px) translateY(${target.offsetTop}px)`
-      }
-    },
-    blurInput() {
-      let vm = this;
-      setTimeout(() => {
-        if (!vm.isInputFocused) {
-          vm.focusElementStyle = null;
-        }
-      }, 300);
-      vm.isInputFocused = false;
+    reloadPage() {
+      location.reload();
     },
   }
 }
 </script>
 
 <style lang="scss" scoped>
+form.errors {
+  :invalid {
+    border-color: #dc3545;
+  }
+}
 @import url("https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600,700|Source+Sans+Pro:400,600,700&display=swap");
+.success-icon {
+    background: url(/images/success.svg) no-repeat;
+    display: block;
+    width: 81px;
+    height: 88px;
+    margin: 0 auto 40px;
+    background-position: center;
+}
 
+.error-icon {
+    background: url(/images/error.svg) no-repeat;
+    display: block;
+    width: 81px;
+    height: 88px;
+    margin: 0 auto 40px;
+}
 
 body {
   background: #ddeefc;
@@ -452,15 +357,12 @@ body {
     box-shadow: 0 30px 60px 0 rgba(90, 116, 148, 0.4);
     border-radius: 10px;
     padding: 35px;
-    padding-top: 180px;
 
     @media screen and (max-width: 480px) {
       padding: 25px;
-      padding-top: 165px;
     }
     @media screen and (max-width: 360px) {
       padding: 15px;
-      padding-top: 165px;
     }
   }
 

@@ -54,6 +54,30 @@
                                     <div v-if="filter.type == 'input'">
                                         <input class="form-control" type="text" :name="filter.name" :value="queryParams[filter.name]" @change="changeFilterValue($event, filter.name, filter.type)">
                                     </div>
+                                    <div v-if="filter.type == 'datetime'">
+                                        <datetime
+                                            type="datetime"
+                                            :name="filter.name"
+                                            v-model="queryParams[filter.name]"
+                                            input-class="form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            :auto="true"
+                                        ></datetime>
+                                    </div>
+                                    <div v-if="filter.type == 'date'">
+                                        <datetime
+                                            type="date"
+                                            :name="filter.name"
+                                            v-model="queryParams[filter.name]"
+                                            input-class="form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            :auto="true"
+                                        ></datetime>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -100,7 +124,7 @@
                                 #
                             </span>
                         </th>
-                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex">
+                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex" :style="{width: item.width}">
                             <a v-if="item.key" class="thead-title" @click="changeSortQueryParams(item.key)">
                                 {{ item.title }}
                             </a>
@@ -120,7 +144,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link', tdhidden: item.type == 'hidden' }">
+                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link', tdhidden: item.type == 'hidden' }" :style="{'text-align': item.textAlign}">
                             <div v-if="item.type == 'hidden'">
                             </div>
                             <div v-else-if="item.type == 'select'">

@@ -238,6 +238,18 @@ return [
             'topnav' => true
         ],
 
+        // statistics
+        [
+            'text' => 'Статистика',
+            'url'  => '/statistics',
+            'icon' => 'fas fa-binoculars',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ]
+        ],
+
         // users
         [
             'text' => 'Пользователи',
@@ -287,7 +299,7 @@ return [
         // payments
         [
             'text' => 'Платежи',
-            'url'  => '/payments',
+            'url'  => '/payments?sort=paided_at%28desc%29',
             'icon' => 'fa fa-money-check-alt',
             "can"  => [
                 'can-operator',

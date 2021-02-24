@@ -10,9 +10,45 @@ use Carbon\Carbon;
 
 class CloudPaymentsController extends Controller
 {
+    public function showCheckout(int $subscriptionId, Request $request)
+    {
+        $subscription = Subscription::whereId($subscriptionId)->where('status', '!=', 'paid')->firstOr(function () {
+            abort(404);
+        });
+
+        $payment = $subscription->payments()->whereStatus('new')->whereType('cloudpayments')->first();
+
+        // Если у юзера вышла ошибка с платежом, создаем новый
+        if (!isset($payment)) {
+            $payment = $subscription->payments()->create([
+                'customer_id' => $subscription->customer->id,
+                'user_id' => null,
+                'quantity' => 1,
+                'type' => 'cloudpayments',
+                'status' => 'new',
+                'amount' => $subscription->price,
+            ]);
+        } else {
+            $payment->update([
+                'amount' => $subscription->price,
+            ]);
+        }
+
+        $publicId = env('CLOUDPAYMENTS_USERNAME');
+
+        return view('cloudpayments.show-checkout', [
+            'payment' => $payment,
+            'customer' => $subscription->customer,
+            'subscription' => $subscription,
+            'product' => $subscription->product,
+            'price' => $subscription->price,
+            'publicId' => $publicId,
+        ]);
+    }
+
     public function showWidget(int $subscriptionId, Request $request)
     {
-        $subscription = Subscription::whereId($subscriptionId)->firstOr(function () {
+        $subscription = Subscription::whereId($subscriptionId)->where('status', '!=', 'paid')->firstOr(function () {
             abort(404);
         });
 
@@ -23,15 +59,11 @@ class CloudPaymentsController extends Controller
             $lastPayment = $subscription->payments()->latest()->whereNotNull('user_id')->whereType('cloudpayments')->first();
             $payment = $subscription->payments()->create([
                 'customer_id' => $subscription->customer->id,
-                'user_id' => $lastPayment->user_id,
+                'user_id' => $lastPayment->user_id ?? null,
                 'type' => 'cloudpayments',
-                'slug' => Str::uuid(),
                 'status' => 'new',
-                'recurrent' => true,
                 'amount' => $subscription->price,
-                'start_date' => $subscription->started_at ?? null,
-                'interval' => 'Month',
-                'period' => 1,
+                'quantity' => 1,
                 'paided_at' => Carbon::now(),
             ]);
         }

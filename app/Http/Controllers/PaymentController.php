@@ -11,6 +11,8 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Subscription;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
+
 class PaymentController extends Controller
 {
     private $root;
@@ -27,7 +29,7 @@ class PaymentController extends Controller
         access(['can-operator', 'can-head', 'can-host']);
 
         $query = Payment::query();
-        $payments = $query->latest()->filter($filters)->where('type', '!=', 'frozen')->paginate($this->perPage)->appends(request()->all());
+        $payments = $query->filter($filters)->orderBy('paided_at', 'DESC')->where('type', '!=', 'frozen')->where('status', '!=', 'new')->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new PaymentCollection($payments), 200);
     }
@@ -39,7 +41,7 @@ class PaymentController extends Controller
         $paymentTypes = Subscription::PAYMENT_TYPE;
         unset($paymentTypes['tries']);
         unset($paymentTypes['frozen']);
-        
+
         $data['main'] = [
             [
                 'name' => 'type',
@@ -56,6 +58,21 @@ class PaymentController extends Controller
             [
                 'name' => 'amount',
                 'title' => 'Сумма',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'from',
+                'title' => 'С даты',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'to',
+                'title' => 'По дату',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'id',
+                'title' => 'ID',
                 'type' => 'input',
             ],
         ];
@@ -113,8 +130,6 @@ class PaymentController extends Controller
     {
         access(['can-operator', 'can-head', 'can-host']);
         $data = $request->all();
-        $data['slug'] = Str::uuid();
-        $data['recurrent'] = $request->get('recurrent') == 'on' ? true : false;
         $data['status'] = 'new';
         $data['data'] = [
             'check' => $request->get('image'),
@@ -148,7 +163,6 @@ class PaymentController extends Controller
     public function edit(Payment $payment)
     {
         access(['can-operator', 'can-head', 'can-host']);
-
         return view("{$this->root}.edit", [
             'payment' => $payment,
         ]);
@@ -164,7 +178,18 @@ class PaymentController extends Controller
     public function update(CreatePaymentRequest $request, Payment $payment)
     {
         access(['can-operator', 'can-head', 'can-host']);
-        $payment->update($request->all());
+        $data = $request->all();
+        $paymentData = $payment->data;
+        if (isset($data['file'])) {
+            $paymentData['check'] = $data['file'];
+        }
+        $paymentData['subscription']['from'] = $data['from'];
+        $paymentData['subscription']['to'] = $data['to'];
+        $payment->update([
+            'quantity' => $data['quantity'],
+            'amount' => $data['amount'],
+            'data' => $paymentData,
+        ]);
 
         $message = 'Данные платежа успешно изменены.';
         if ($request->ajax()) {

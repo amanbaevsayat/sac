@@ -119,16 +119,7 @@ class CloudPaymentsService
     // https://developers.cloudpayments.ru/#izmenenie-podpiski-na-rekurrentnye-platezhi
     public function updateSubscription(array $request)
     {
-        return $this->response($this->call("/subscriptions/update", [
-            "Id" => $request["Id"],
-            "Description" => $request["Description"] ?? null,
-            "Amount" => $request["Amount"] ?? null,
-            "Currency" => $request["Currency"] ?? null,
-            "RequireConfirmation" => $request["RequireConfirmation"] ?? null,
-            "StartDate" => $request["StartDate"] ?? null,
-            "Interval" => $request["Interval"] ?? null,
-            "Period" => $request["Period"] ?? null,
-        ]));
+        return $this->response($this->call("/subscriptions/update", $request));
     }
 
     // Оплата по криптограмме

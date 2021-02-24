@@ -5,6 +5,7 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Console\Commands\Cloudpayments\UpdatePaymentStatus;
+use App\Console\Commands\Cloudpayments\UpdateSubscription;
 
 class Kernel extends ConsoleKernel
 {
@@ -15,6 +16,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         UpdatePaymentStatus::class,
+        UpdateSubscription::class,
     ];
 
     /**
@@ -26,6 +28,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('cloudpayments:update:payment_status')->everyTwoMinutes();
+        $schedule->command('cloudpayments:update:subscription')->hourly();
     }
 
     /**

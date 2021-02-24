@@ -40,6 +40,10 @@ class PaymentResource extends JsonResource
                 // 'type' => 'input',
                 'value' => $this->amount * ($this->quantity ?? 1),
             ],
+            'payments' => [
+                'value' => $this->subscription->payments->where('status', 'Completed')->count() ?? 0,
+                'textAlign' => 'center',
+            ],
             'status' => [
                 'value' => Payment::STATUSES[$this->status] ?? $this->status,
             ],
@@ -47,7 +51,13 @@ class PaymentResource extends JsonResource
                 'value' => $this->data['cloudpayments']['CardHolderMessage'] ?? null,
             ],
             'paided_at' => [
-                'value' => Carbon::parse($this->paided_at ?? $this->created_at)->isoFormat('DD MMM YYYY, HH:mm'),
+                'value' => Carbon::parse($this->paided_at)->isoFormat('DD MMM YYYY, HH:mm'),
+            ],
+            'from' => [
+                'value' => isset($this->data['subscription']['from']) ? Carbon::parse($this->data['subscription']['from'])->isoFormat('DD MMM, YY') : null,
+            ],
+            'to' => [
+                'value' => isset($this->data['subscription']['to']) ? Carbon::parse($this->data['subscription']['to'])->isoFormat('DD MMM, YY') : null,
             ],
             // 'interval' => [
             //     'type' => 'input',

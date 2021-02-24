@@ -53,8 +53,16 @@ class SubscriptionCollection extends ResourceCollection
                     'key' => 'status',
                 ],
                 [
+                    'title' => 'Кол-во платежей',
+                    'key' => 'payments',
+                ],
+                [
                     'title' => 'Услуга',
                     'key' => 'product_id',
+                ],
+                [
+                    'title' => 'Cloudpayment ID',
+                    'key' => 'cp_subscription_id',
                 ],
             ],
             'pagination' => [

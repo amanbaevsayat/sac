@@ -45,10 +45,13 @@ Vue.component('pulse-loader', require('vue-spinner/src/PulseLoader.vue').default
 Vue.component('payment-show-recurrent', require('./components/PaymentShowRecurrentComponent.vue').default);
 Vue.component('upload-file', require('./components/UploadFileComponent.vue').default);
 Vue.component('cloudpayments-widget', require('./components/CloudpaymentsWidgetComponent.vue').default);
+Vue.component('cloudpayments-checkout', require('./components/CloudpaymentsCheckoutComponent.vue').default);
 Vue.component('customer-component', require('./components/CustomerComponent.vue').default);
 Vue.component('button-customer-component', require('./components/ButtonCustomerComponent.vue').default);
 Vue.component('product-price-component', require('./components/ProductPriceComponent.vue').default);
 Vue.component('phone-component', require('./components/PhoneComponent.vue').default);
+Vue.component('date-component', require('./components/DateComponent.vue').default);
+Vue.component('statistics-component', require('./components/StatisticsComponent.vue').default);
 
 import VueToast from 'vue-toast-notification';
 import { Settings } from 'luxon'

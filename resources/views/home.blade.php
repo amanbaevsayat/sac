@@ -106,9 +106,9 @@
             localStorage.setItem('url', url);
             localStorage.setItem('id', id.toString());
             console.log(id)
-            if (id !== '') {
-                document.getElementById('rec165939307').style.display = 'block';
-            }
+            // if (id !== '') {
+            //     document.getElementById('rec165939307').style.display = 'block';
+            // }
         });
     </script>
 </head>
@@ -148,7 +148,8 @@
                             </div>
                             <div class="t-input-group t-input-group_ph" data-input-lid="1495810410810">
                                 <div class="t-input-block">
-                                    <input id="phone" type="tel" name="Phone" class="t-input js-tilda-rule " value="" placeholder="Мобильный телефон" data-tilda-req="1" data-tilda-rule="phone" pattern="[0-9]*" style="color:#000000; border:1px solid #000000;margin: 15px 0 15px 0; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px;">
+                                    <phone-component name-prop="phone" value-prop="{{ null }}" class-prop="t-input js-tilda-rule">
+                                    <input id="phone" type="tel" name="Phone" class="t-input js-tilda-rule " value="" placeholder="Мобильный телефон" style="color:#000000; border:1px solid #000000;margin: 15px 0 15px 0; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px;">
                                     <div class="t-input-error"></div>
                                 </div>
                             </div>
@@ -514,8 +515,6 @@
                     }
                 }
             </style>
-            <!--[if IE 8]><style>#rec164165134 .t228 { filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#D9000000', endColorstr='#D9000000');
-}</style><![endif]-->
         </div>
         <div id="rec166952172" class="r t-rec" style=" " data-animationappear="off" data-record-type="868">
             <!-- t868 -->
@@ -1161,11 +1160,18 @@
                                         <li>без бонусов</li>
                                     </ul>
                                 </div>
-                                <div></div>
+                                <!-- <div></div>
                                 <a target="" class="t599__btn t-btn t-btn_sm" style="color:#ffffff;background-color:#fc0000;border-radius:30px; -moz-border-radius:30px; -webkit-border-radius:30px;text-transform:uppercase;">
                                     <table style="width:100%; height:100%;">
                                         <tr>
                                             <td onclick="buyOfBtn()">Купить</td>
+                                        </tr>
+                                    </table>
+                                </a> -->
+                                <a target="" class="t599__btn t-btn t-btn_sm" style="color:#ffffff;background-color:#797979;border-radius:30px; -moz-border-radius:30px; -webkit-border-radius:30px;text-transform:uppercase;">
+                                    <table style="width:100%; height:100%;">
+                                        <tr>
+                                            <td>СКОРО</td>
                                         </tr>
                                     </table>
                                 </a>
@@ -1859,6 +1865,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <script type="text/javascript">
                     $(document).ready(function() {
                         function getTimeRemaining(endtime) {

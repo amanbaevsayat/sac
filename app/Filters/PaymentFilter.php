@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Models\Customer;
+use Carbon\Carbon;
 
 class PaymentFilter extends BaseFilter
 {
@@ -52,5 +53,50 @@ class PaymentFilter extends BaseFilter
         } else {
             return $this->builder->where('status', $value);
         }
+    }
+
+    public function from($value)
+    {
+        if (is_numeric(strtotime($value))) {
+            $day = Carbon::parse($value)->startOfDay();
+            $this->builder->whereDate('paided_at', '>=', $day->format('Y-m-d 00:00:00'));
+        }
+    }
+
+    public function to($value)
+    {
+        if (is_numeric(strtotime($value))) {
+            $day = Carbon::parse($value)->endOfDay();
+            $this->builder->whereDate('paided_at', '<=', $day->format('Y-m-d 23:59:59'));
+        }
+    }
+
+    public function sort($value)
+    {
+        $builder = $this->builder;
+        preg_match('#\((.*?)\)#', $value, $match);
+        $name = preg_replace("/\([^)]+\)/", "", $value);
+        if ($match[1] == 'asc') {
+            if ($name == 'paided_at') {
+                $this->builder->orderByRaw(
+                    "CASE WHEN paided_at = null THEN created_at ELSE paided_at END ASC"
+                );
+            } else if ($name == 'from' || $name == 'to') {
+                $this->builder->orderBy('data->subscription->' . $name);
+            } else {
+                $this->builder->orderBy($name);
+            }
+        } elseif ($match[1] == 'desc') {
+            if ($name == 'paided_at') {
+                $this->builder->orderByRaw(
+                    "CASE WHEN paided_at = null THEN created_at ELSE paided_at END DESC"
+                );
+            } else if ($name == 'from' || $name == 'to') {
+                $this->builder->orderBy('data->subscription->' . $name, 'desc');
+            } else {
+                $this->builder->orderBy($name, 'desc');
+            }
+        }
+        return $this->builder;
     }
 }

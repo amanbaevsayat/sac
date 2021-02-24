@@ -165,13 +165,8 @@ class LoadOldDataToDatabaseCommand extends Command
                     'customer_id' => $subscription->customer->id,
                     'quantity' => 1,
                     'type' => $subscription->payment_type,
-                    'slug' => Str::uuid(),
                     'status' => $item->Status,
                     'amount' => $item->Amount,
-                    'recurrent' => 1,
-                    'start_date' => $subscription['data']['cloudpayments']['StartDateIso'] ?? null,
-                    'interval' => $subscription['data']['cloudpayments']['Interval'] ?? null,
-                    'period' => $subscription['data']['cloudpayments']['Period'] ?? null,
                     'paided_at' => $item->updated_at,
                     'data' => [
                         'cloudpayments' => $item,

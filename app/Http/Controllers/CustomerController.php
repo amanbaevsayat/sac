@@ -10,8 +10,10 @@ use App\Filters\CustomerFilter;
 use App\Http\Resources\CustomerCollection;
 use App\Http\Resources\CustomerResource;
 use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWithSubscriptionResource;
+use App\Models\Card;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -62,14 +64,15 @@ class CustomerController extends Controller
                 case Subscription::PAYMENT_TYPE['transfer']:
                     $statuses = Subscription::STATUSES;
                     unset($statuses['tries']);
+                    unset($statuses['frozen']);
                     $data[$key]['statuses'] = $statuses;
                     break;
             }
         }
 
         return response()->json([
-            'quantities' => Payment::QUANTITIES, 
-            'paymentTypes' => $data, 
+            'quantities' => Payment::QUANTITIES,
+            'paymentTypes' => $data,
         ], 200);
     }
 
@@ -78,21 +81,21 @@ class CustomerController extends Controller
         $data = $request->all();
         $type = '';
         if (isset($data['customer']['id']) && Customer::where('id', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
-            // Update Client
+            // Обновить существующего клиента
             $customer = Customer::updateOrCreate([
-                'id' => $data['customer']['id'], 
+                'id' => $data['customer']['id'],
                 'phone' => $data['customer']['phone'],
-            ],[
+            ], [
                 'name' => $data['customer']['name'],
                 'email' => $data['customer']['email'],
                 'comments' => $data['customer']['comments'],
             ]);
         } else if (!isset($data['customer']['id'])) {
             $type = 'create';
-            // Create client or Update if isset phone
+            // Создать или обновить клиента, если есть телефон
             $customer = Customer::updateOrCreate([
                 'phone' => $data['customer']['phone'],
-            ],[
+            ], [
                 'name' => $data['customer']['name'],
                 'email' => $data['customer']['email'],
                 'comments' => $data['customer']['comments'],
@@ -103,15 +106,15 @@ class CustomerController extends Controller
                     'message' => 'The given data was invalid.',
                     'errors' => [
                         'customer.phone' => [
-                                'Такое значение поля Телефон уже существует.'
+                            'Такое значение поля Телефон уже существует.'
                         ],
                     ]
                 ], 422);
             }
             // Если у клиента сменился номер
             $customer = Customer::updateOrCreate([
-                'id' => $data['customer']['id'], 
-            ],[
+                'id' => $data['customer']['id'],
+            ], [
                 'phone' => $data['customer']['phone'],
                 'name' => $data['customer']['name'],
                 'email' => $data['customer']['email'],
@@ -120,8 +123,11 @@ class CustomerController extends Controller
         }
 
         foreach ($data['subscriptions'] as $item) {
-            $endedAt = Carbon::parse($item['ended_at']);
             $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
+            $oldStatus = $subscription->status ?? null;
+            $oldEndedAt = Carbon::parse($subscription->ended_at ?? null);
+            $endedAt = Carbon::parse($item['ended_at']);
+            // dd($oldEndedAt, $endedAt);
             if ($subscription) {
                 // Если оператор поменял статус на frozen, то создаем или обновляем платеж
                 if ($subscription->status != 'frozen' && $item['status'] == 'frozen') {
@@ -134,13 +140,8 @@ class CustomerController extends Controller
                             'customer_id' => $customer->id,
                             'user_id' => Auth::id(),
                             'type' => 'frozen',
-                            'slug' => Str::uuid(),
                             'status' => 'frozen',
-                            // 'recurrent' => true,
-                            // 'amount' => $subscription->price,
-                            // 'start_date' => $item['started_at'], // TODO
-                            // 'interval' => 'Month',
-                            // 'period' => 1,
+                            'quantity' => 1,
                             'paided_at' => Carbon::now(),
                             'data' => [
                                 'subscription' => [
@@ -151,6 +152,10 @@ class CustomerController extends Controller
                             ],
                         ]);
                     }
+                }
+
+                if ($item['status'] == 'refused') {
+                    $subscription->cancelCPSubscription();
                 }
 
                 // Если оператор разморозил абонемент, то
@@ -189,38 +194,44 @@ class CustomerController extends Controller
                     'tries_at' => Carbon::parse($item['tries_at']),
                 ]);
             }
-
             if ($subscription->payment_type == 'cloudpayments') {
-                if ($subscription->payments()->where('status', 'new')->where('type', 'cloudpayments')->doesntExist()) {
-                    $payment = $subscription->payments()->create([
-                        'customer_id' => $customer->id,
-                        'user_id' => Auth::id(),
-                        'type' => 'cloudpayments',
-                        'slug' => Str::uuid(),
-                        'status' => 'new',
-                        'recurrent' => true,
-                        'amount' => $subscription->price,
-                        'start_date' => $subscription->started_at ?? null, // TODO
-                        'interval' => 'Month',
-                        'period' => 1,
-                        'paided_at' => Carbon::now(),
-                    ]);
+                if ((strtotime($item['defrozen_at']) > strtotime($item['ended_at'])) && $item['status'] == 'frozen') {
+                    \Log::info('Кто-то меняет дату следующего платежа подписки. SubscriptionID: ' . $subscription->id . '. UserID: ' . Auth::id());
+
+                    $cloudPaymentsService = new CloudPaymentsService();
+                    $data = [
+                        "Id" => $subscription->cp_subscription_id,
+                        "StartDate" => Carbon::parse($item['defrozen_at'])->format('Y-m-d\TH:i:s.u'),
+                    ];
+                    $cloudPaymentsService->updateSubscription($data);
+                } else if ((strtotime($item['defrozen_at']) < strtotime($item['ended_at'])) && $item['status'] == 'frozen') {
+                    \Log::info('Кто-то меняет дату следующего платежа подписки. SubscriptionID: ' . $subscription->id . '. UserID: ' . Auth::id());
+
+                    $cloudPaymentsService = new CloudPaymentsService();
+                    $data = [
+                        "Id" => $subscription->cp_subscription_id,
+                        "StartDate" => Carbon::parse($item['ended_at'])->format('Y-m-d\TH:i:s.u'),
+                    ];
+                    $cloudPaymentsService->updateSubscription($data);
+                }
+                // Если оператор изменил дату следующего платежа, то делаем запрос в cp, на изменения даты
+                if (isset($item['next_transaction_date']) && isset($subscription->cp_subscription_id)) {
+                    \Log::info('Кто-то меняет дату следующего платежа подписки. SubscriptionID: ' . $subscription->id . '. UserID: ' . Auth::id());
+                    $cloudPaymentsService = new CloudPaymentsService();
+                    // dd($subscription->cp_subscription_id, );
+                    $data = [
+                        "Id" => $subscription->cp_subscription_id,
+                        "StartDate" => Carbon::parse($item['next_transaction_date'])->format('Y-m-d\TH:i:s.u'),
+                    ];
+
+                    $cloudPaymentsService->updateSubscription($data);
                 }
             } elseif ($subscription->payment_type == 'transfer') {
                 if (isset($item['newPayment']['check'])) {
-                    $paymentStatus = $subscription->status == 'paid' ? 'Completed' : 'new';
-                    if ($subscription->status == 'paid') {
-                        // dd($item['newPayment']);
-                        // $subscription->update([
-                        //     'ended_at' => Carbon::parse($item['ended_at'])->addMonths($item['newPayment']['quantity']),
-                        // ]);
-                    }
-    
                     $payment = $subscription->payments()->create([
                         'customer_id' => $customer->id,
                         'user_id' => Auth::id(),
                         'type' => 'transfer',
-                        'slug' => Str::uuid(),
                         'status' => 'Completed',
                         'quantity' => $item['newPayment']['quantity'] ?? 1,
                         'amount' => $subscription->price,
@@ -233,6 +244,10 @@ class CustomerController extends Controller
                                 'to' => $item['newPayment']['to'],
                             ],
                         ],
+                    ]);
+
+                    $payment->subscription()->update([
+                        'status' => 'paid',
                     ]);
                 }
             }

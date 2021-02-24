@@ -3,19 +3,30 @@
 namespace App\Models;
 
 use App\Filters\SubscriptionFilter;
+use App\Services\CloudPaymentsService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
-
+use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 class Subscription extends Model
 {
     use HasFactory, SoftDeletes, ModelBase, LogsActivity;
+
+    const CLOUDPAYMENTS_STATUSES = [
+        'Active' => 'paid',
+        'PastDue' => 'waiting',
+        'Cancelled' => 'refused',
+        'Rejected' => 'rejected',
+        'Expired' => 'refused',
+    ];
 
     const STATUSES = [
         'tries' => 'Пробует',
         'waiting' => 'Жду оплату',
         'paid' => 'Оплачено',
+        'rejected' => 'Отклонена (3 раза)',
         'refused' => 'Отказался',
         'frozen' => 'Заморожен',
     ];
@@ -79,6 +90,14 @@ class Subscription extends Model
 
     protected static function boot() {
         parent::boot();
+
+        // auto-sets values on creation
+        static::creating(function ($query) {
+            $data = [
+                'cloudpayments' => $query->data['cloudpayments'] ?? [],
+            ];
+            $query->data = $data;
+        });
     
         static::deleting(function($subscription) {
             $subscription->payments()->delete();
@@ -105,6 +124,46 @@ class Subscription extends Model
         $filters->apply($query);
     }
 
+    /**
+     * Клиенты
+     *
+     * @param $query
+     * @return void
+     */
+    public function scopeClient($query)
+    {
+        return $query->whereHas('payments', function (Builder $q) {
+            $q->where('status', 'Completed');
+        }, '>=', 1);
+    }
+
+    /**
+     * Пробные
+     *
+     * @param $query
+     * @return void
+     */
+    public function scopeTrial($query)
+    {
+        return $query->whereDoesntHave('payments', function (Builder $q) {
+            $q->where('status', 'Completed');
+        });
+    }
+
+    /**
+     * Должники
+     *
+     * @param $query
+     * @return void
+     */
+    public function scopeDeptors($query)
+    {
+        $now = Carbon::now()->format('Y-m-d 00:00:00');
+
+        return $query->where('ended_at', '<=', $now)
+            ->where('status', '!=', 'refused');
+    }
+
     public function getEndDate()
     {
         $endedAt = strtotime($this->ended_at ?? $this->tries_at);
@@ -123,5 +182,18 @@ class Subscription extends Model
         $datediff = strtotime($this->getEndDate()) - $now;
 
         return round($datediff / (60 * 60 * 24));
+    }
+
+    /**
+     * Отмена подписки в Cloudpayments
+     *
+     * @return void
+     */
+    public function cancelCPSubscription()
+    {
+        if ($this->cp_subscription_id) {
+            $cloudPaymentsService = new CloudPaymentsService();
+            $cloudPaymentsService->cancelSubscription($this->cp_subscription_id);
+        }
     }
 }
