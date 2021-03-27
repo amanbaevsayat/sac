@@ -240,6 +240,7 @@ return [
 
         // statistics
         [
+            'key'  => 'statistics',
             'text' => 'Статистика',
             'url'  => '/statistics',
             'icon' => 'fas fa-binoculars',
@@ -306,6 +307,19 @@ return [
                 'can-head',
                 'can-host',
             ]
+        ],
+
+        // notifications
+        [
+            'key'  => 'notifications',
+            'text' => 'Уведомления',
+            'url'  => '/notifications',
+            'icon' => 'fa fa-id-badge',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ],
         ],
     ],
 

@@ -43,7 +43,7 @@ class PaymentCollection extends ResourceCollection
                 ],
                 [
                     'title' => 'Кол-во платежей',
-                    'key' => 'payments',
+                    // 'key' => 'payments',
                 ],
                 [
                     'title' => 'Статус',

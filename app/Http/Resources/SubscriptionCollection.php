@@ -20,17 +20,11 @@ class SubscriptionCollection extends ResourceCollection
                 'statuses' => Subscription::STATUSES,
             ],
             'dataTitles' => [
-                // [
-                //     'title' => 'ID',
-                //     'key' => 'id',
-                // ],
                 [
                     'title' => 'Клиенты',
-                    // 'key' => 'customer_id',
                 ],
                 [
                     'title' => 'Телефон',
-                    // 'key' => 'customers.phone',
                 ],
                 [
                     'title' => 'Ост. дней',

@@ -7,122 +7,180 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostThreeDSRequest;
 use App\Models\Customer;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Models\Subscription;
 use App\Services\CloudPaymentsService;
 use Illuminate\Support\Facades\View;
+use Illuminate\Database\Eloquent\Builder;
+use App\Services\SubscriptionService;
+use Carbon\Carbon;
 
 class CloudPaymentsController extends Controller
 {
-    public function pay(Request $request)
+    /**
+     * @var SubscriptionService
+     */
+    private $subscriptionService;
+
+    /**
+     * OrderController constructor.
+     * @param SubscriptionService $subscriptionService
+     */
+    public function __construct(SubscriptionService $subscriptionService)
     {
-        $packet = $request->get('packet');
-        $slug = $request->get('id');
-        $cardName = $request->get('cardName');
+        $this->subscriptionService = $subscriptionService;
+    }
 
-        $payment = Payment::whereSlug($slug)->first();
+    public function recurrentNotification(Request $request)
+    {
+        \Log::info('recurrent');
+        \Log::info($request->all());
+        $data = $request->all();
 
-        if (!isset($payment)) {
-            throw new \Exception('Платеж не найден.', 500);
-        }
-
-        $json_data = array(
-            'cloudPayments' => array(
-                'recurrent' => array(
-                    'Interval' => 'Month',
-                    'Period' => 1,
-                    'Amount' => $payment->subscription->price ?? $payment->amount,
-                    'SubscriptionId' => $payment->subscription->id,
-                    // 'Amount' => 10,
-                )
-            )
-        );
-
-        $data = [
-            'Currency' => 'KZT',
-            // "Amount" => 10,
-            "Amount" => $payment->subscription->price ?? $payment->amount,
-            "InvoiceId" => $payment->id,
-            "Description" => '',
-            "AccountId" => $payment->customer->phone,
-            "Email" => $request->get('email', $payment->customer->email),
-            "Name" => $cardName,
-            "CardCryptogramPacket" => $packet,
-            'JsonData' => json_encode($json_data),
-        ];
-
-        $cloudPaymentsService = new CloudPaymentsService();
-        $response = $cloudPaymentsService->paymentsCardsAuth($data);
-        if (isset($response['Model']['AcsUrl']) && $response['Success'] === false) {
-            $response['Model']['TermUrl'] = route('cloudpayments.post3ds');
-            $response['acs_form'] = view('cloudpayments.3ds-form', $response['Model'])->render();
-        } elseif ($response['Success'] === false && isset($response['Model']['StatusCode']) && $response['Model']['StatusCode'] == 5) {
-            $data = $payment->data ?? [];
-            $data['cloudpayments'] = $response['Model'];
-            $payment->update([
-                'status' => $response['Model']['Status'],
-                'data' => $data,
+        if ($data['Status'] == 'Cancelled') {
+            $subscription = Subscription::where('cp_subscription_id', $data['Id'])->whereHas('customer', function (Builder $query) use ($data) {
+                $query->where('phone', $data['AccountId']);
+            })->first();
+            if (! isset($subscription)) {
+                \Log::error('Абонемент не найден. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
+                return response()->json([
+                    'code' => 0
+                ]);
+            }
+            $subscription->update([
+                'status' => 'refused'
             ]);
-            $response['acs_form'] = view('page.failure', [
-                'message' => $response['Model']['CardHolderMessage'],
-            ])->render();
-        }
-
-        return response()->json($response, 200);
-    }
-
-    public function post3ds(PostThreeDSRequest $request)
-    {
-        $data = [
-            "TransactionId" => $request->get('MD'),
-            "PaRes" => $request->get('PaRes'),
-        ];
-        $cloudPaymentsService = new CloudPaymentsService();
-        $response = $cloudPaymentsService->paymentsCardsPost3ds($data);
-        if ($response['Success']) {
-            return view('page.success');
-        } else {
-            $payment = Payment::whereId($response['Model']['InvoiceId'])->first();
-            if ($payment) {
-                $data = $payment->data ?? [];
-                $data['cloudpayments'] = $response['Model'];
-                $payment->update([
-                    'transaction_id' => $response['Model']['TransactionId'],
-                    'status' => $response['Model']['Status'],
-                    'data' => $data,
-                ]);
-            }
-            if ($response['Model']['CardHolderMessage']) {
-                return view('page.failure', [
-                    'message' => $response['Model']['CardHolderMessage']
-                ]);
-            } else {
-                return view('page.failure', [
-                    'message' => $response['Message']
-                ]);
+            $notification = Notification::create([
+                'type' => Notification::TYPE_CANCEL_SUBSCRIPTION,
+                'subscription_id' => $subscription->id,
+                'product_id' => $subscription->product->id,
+                'data' => [],
+            ]);
+            if (! isset($notification)) {
+                \Log::error('Уведомление не создано. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
             }
         }
-    }
-
-    public function changeStatus(Request $request)
-    {
-        $phone = $request->get('phone');
-        $productId = $request->get('productId');
-
-        $customer = Customer::where('phone', $phone)->firstOr(function () {
-            abort(404);
-        });
-
-        $subscription = $customer->subscriptions()->where('product_id', $productId)->firstOr(function () {
-            abort(404);
-        });
-
-        $subscription->update([
-            'status' => 'paid'
-        ]);
 
         return response()->json([
-            'message' => 'Успешно обновлен',
-        ], 200);
+            'code' => 0
+        ]);
     }
+
+    public function checkNotification(Request $request)
+    {
+        \Log::info('check');
+        \Log::info($request->all());
+        return response()->json([
+            'code' => 0,
+        ]);
+    }
+
+    public function payFailNotification(Request $request)
+    {
+        \Log::info('pay-and-fail');
+        $data = $request->all();
+        \Log::info($data);
+        $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
+        $customer = Customer::wherePhone($data['AccountId'])->first();
+
+        if (! isset($customer)) {
+            \Log::error('Не найден клиент. Transaction Id: ' . $data['TransactionId']);
+            return response()->json([
+                'code' => 0,
+            ]);
+        }
+        $jsonData = '';
+        if (isset($data['Data']) && is_string($data['Data'])) {
+            $jsonData = json_decode($data['Data']);
+        }
+        
+        if (! isset($subscription)) {
+            if (isset($jsonData->subscription) && isset($jsonData->subscription->id) && json_last_error() == JSON_ERROR_NONE) {
+                $subscription = Subscription::whereId($jsonData->subscription->id)->first();
+            }
+        }
+
+        if (! isset($subscription)) {
+            \Log::error('Не найден абонемент. Transaction Id: ' . $data['TransactionId']);
+            return response()->json([
+                'code' => 0,
+            ]);
+        }
+
+        $subscriptionData = [
+            'from' => null,
+            'to' => null,
+        ];
+        if ($data['Status'] == 'Completed' && $data['SubscriptionId']) {
+            $subscriptionData = [
+                'from' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty'),
+                'to' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1),
+            ];
+        }
+
+        $data['CardHolderMessage'] = Payment::ERROR_CODES[$data['ReasonCode'] ?? 0];
+
+        $payment = Payment::updateOrCreate([
+            'transaction_id' => $data['TransactionId'],
+        ], [
+            'subscription_id' => $subscription->id,
+            'customer_id' => $customer->id,
+            'quantity' => 1,
+            'type' => $subscription->payment_type,
+            'status' => $data['Status'],
+            'amount' => $data['Amount'],
+            'paided_at' => Carbon::createFromFormat('Y-m-d H:i:s', $data['DateTime'], 'UTC')->setTimezone('Asia/Almaty'),
+            'data' => [
+                'cloudpayments' => $data,
+                'subscription' => $subscriptionData,
+            ],
+        ]);
+
+        if ($data['Status'] == 'Completed' && $data['SubscriptionId']) {
+            $subscription->update([
+                'cp_subscription_id' => $data['SubscriptionId'],
+                'status' => 'paid',
+                'ended_at' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1),
+            ]);
+        }
+
+        if (! isset($payment)) {
+            \Log::error('Не создался платеж. Transaction Id: ' . $data['TransactionId']);
+        }
+
+        return response()->json([
+            'code' => 0,
+        ]);
+    }
+
+    public function confirmNotification(Request $request)
+    {
+        \Log::info('confirm');
+        \Log::info($request->all());
+        return response()->json([
+            'code' => 0,
+        ]);
+    }
+
+    public function refundNotification(Request $request)
+    {
+        \Log::info('refund');
+        \Log::info($request->all());
+        return response()->json([
+            'code' => 0,
+        ]);
+    }
+
+    public function cancelNotification(Request $request)
+    {
+        \Log::info('cancel');
+        \Log::info($request->all());
+        return response()->json([
+            'code' => 0,
+        ]);
+    }
+
 }

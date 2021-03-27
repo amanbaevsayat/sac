@@ -205,81 +205,94 @@ export default {
       });
     },
     submit() {
-      var widget = new cp.CloudPayments();
-      var receipt = {
-        Items: [//товарные позиции
-          {
-            label: this.product.title, //наименование товара
-            price: this.payment.amount, //цена
-            quantity: 1.00, //количество
-            amount: this.payment.amount, //сумма
-            object: this.product.id, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
-          }
-        ],
-        taxationSystem: 0, // Система налогооблажения (необязательный, если у вас одна система налогообложения)
-        email: this.customer.email, //e-mail покупателя, если нужно отправить письмо с чеком
-        phone: this.customer.phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
-        isBso: false, //чек является бланком строгой отчётности
+      // var widget = new cp.CloudPayments();
+      // var receipt = {
+      //   Items: [//товарные позиции
+      //     {
+      //       label: this.product.title, //наименование товара
+      //       price: this.payment.amount, //цена
+      //       quantity: 1.00, //количество
+      //       amount: this.payment.amount, //сумма
+      //       object: this.product.id, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
+      //     }
+      //   ],
+      //   taxationSystem: 0, // Система налогооблажения (необязательный, если у вас одна система налогообложения)
+      //   email: this.customer.email, //e-mail покупателя, если нужно отправить письмо с чеком
+      //   phone: this.customer.phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+      //   isBso: false, //чек является бланком строгой отчётности
+      // };
+
+      // var data = {};
+      // data.cloudPayments = {
+      //   recurrent: { 
+      //     interval: 'Month',
+      //     period: 1,
+      //     customerReceipt: receipt
+      //   },
+      //   customerReceipt: {
+      //     Items: [ //товарные позиции
+      //       {
+      //         label: this.product.title, // наименование товара
+      //         price: this.payment.amount, // цена
+      //         quantity: 1.00, //количество
+      //         amount: this.payment.amount, // сумма
+      //         vat: 0, // ставка НДС
+      //         method: 0, // тег-1214 признак способа расчета - признак способа расчета
+      //         object: 0, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
+      //         measurementUnit: "шт" //единица измерения
+      //       },
+      //     ],
+      //     calculationPlace: "www.strela-academy.ru", //место осуществления расчёта, по умолчанию берется значение из кассы
+      //     taxationSystem: 0, //система налогообложения; необязательный, если у вас одна система налогообложения
+      //     email: this.customer.email, //e-mail покупателя, если нужно отправить письмо с чеком
+      //     phone: this.customer.phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+      //     //customerInfo: "", // тег-1227 Покупатель - наименование организации или фамилия, имя, отчество (при наличии), серия и номер паспорта покупателя (клиента)
+      //     //customerInn: "7708806063", // тег-1228 ИНН покупателя 
+      //     isBso: false, //чек является бланком строгой отчётности
+      //     // AgentSign: null, //признак агента, тег ОФД 1057
+      //     // amounts: {
+      //     //     electronic: 1300.00, // Сумма оплаты электронными деньгами
+      //     //     advancePayment: 0.00, // Сумма из предоплаты (зачетом аванса) (2 знака после запятой)
+      //     //     credit: 0.00, // Сумма постоплатой(в кредит) (2 знака после запятой)
+      //     //     provision: 0.00 // Сумма оплаты встречным предоставлением (сертификаты, др. мат.ценности) (2 знака после запятой)
+      //     // }
+      //   }
+      // }; //создание ежемесячной подписки
+
+      // widget.charge({ // options
+      //     publicId: this.publicId, //id из личного кабинета
+      //     description: 'Подписка на ежемесячный онлайн-абонемент', //назначение
+      //     amount: this.payment.amount, //сумма
+      //     currency: 'KZT', //валюта
+      //     invoiceId: this.payment.id, //номер заказа  (необязательно)
+      //     accountId: this.customer.phone, //идентификатор плательщика (обязательно для создания подписки)
+      //     data: data
+      // },
+      // function (options) { // success
+      //     console.log('Успешно');
+      //     console.log(options);
+      //     this.showResultPage('Оплата завершена успешно!', true);
+      //     this.sendSuccess();
+      // }.bind(this),
+      // function (reason, options) { // fail
+      //     console.log('Fail');
+      //     console.log(reason);
+      //     console.log(options);
+      //     this.showResultPage(reason, false);
+      // }.bind(this));
+      let data = {
+        subscription_id: this.subscription.id,
+        product_id: this.product.id,
+        customer: this.customer,
       };
-
-      var data = {};
-      data.cloudPayments = {
-        recurrent: { 
-          interval: 'Month',
-          period: 1,
-          customerReceipt: receipt
-        },
-        customerReceipt: {
-          Items: [ //товарные позиции
-            {
-              label: this.product.title, // наименование товара
-              price: this.payment.amount, // цена
-              quantity: 1.00, //количество
-              amount: this.payment.amount, // сумма
-              vat: 0, // ставка НДС
-              method: 0, // тег-1214 признак способа расчета - признак способа расчета
-              object: 0, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
-              measurementUnit: "шт" //единица измерения
-            },
-          ],
-          calculationPlace: "www.strela-academy.ru", //место осуществления расчёта, по умолчанию берется значение из кассы
-          taxationSystem: 0, //система налогообложения; необязательный, если у вас одна система налогообложения
-          email: this.customer.email, //e-mail покупателя, если нужно отправить письмо с чеком
-          phone: this.customer.phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
-          //customerInfo: "", // тег-1227 Покупатель - наименование организации или фамилия, имя, отчество (при наличии), серия и номер паспорта покупателя (клиента)
-          //customerInn: "7708806063", // тег-1228 ИНН покупателя 
-          isBso: false, //чек является бланком строгой отчётности
-          // AgentSign: null, //признак агента, тег ОФД 1057
-          // amounts: {
-          //     electronic: 1300.00, // Сумма оплаты электронными деньгами
-          //     advancePayment: 0.00, // Сумма из предоплаты (зачетом аванса) (2 знака после запятой)
-          //     credit: 0.00, // Сумма постоплатой(в кредит) (2 знака после запятой)
-          //     provision: 0.00 // Сумма оплаты встречным предоставлением (сертификаты, др. мат.ценности) (2 знака после запятой)
-          // }
+      axios.post('/api/cloudpayments/generate-payment', data).then(response => {
+        if (response.data.data.Url) {
+          location.href = response.data.data.Url;
         }
-      }; //создание ежемесячной подписки
-
-      widget.charge({ // options
-          publicId: this.publicId, //id из личного кабинета
-          description: 'Подписка на ежемесячный онлайн-абонемент', //назначение
-          amount: this.payment.amount, //сумма
-          currency: 'KZT', //валюта
-          invoiceId: this.payment.id, //номер заказа  (необязательно)
-          accountId: this.customer.phone, //идентификатор плательщика (обязательно для создания подписки)
-          data: data
-      },
-      function (options) { // success
-          console.log('Успешно');
-          console.log(options);
-          this.showResultPage('Оплата завершена успешно!', true);
-          this.sendSuccess();
-      }.bind(this),
-      function (reason, options) { // fail
-          console.log('Fail');
-          console.log(reason);
-          console.log(options);
-          this.showResultPage(reason, false);
-      }.bind(this));
+      })
+      .catch(err => {
+        throw err;
+      });
     },
     showResultPage(message, success) {
       this.message = message;

@@ -183,6 +183,13 @@ class CloudPaymentsService
         ]));
     }
 
+    // Создание счета для отправки по почте.
+    // https://developers.cloudpayments.ru/#sozdanie-scheta-dlya-otpravki-po-pochte
+    public function ordersCreate(array $request)
+    {
+        return $this->response($this->call('/orders/create', $request));
+    }
+
     private function call(string $uri, array $data = null)
     {
         return $this->http->post("{$this->baseURL}{$uri}", $data);

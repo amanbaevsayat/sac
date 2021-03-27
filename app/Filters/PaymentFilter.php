@@ -4,6 +4,7 @@ namespace App\Filters;
 
 use App\Models\Customer;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class PaymentFilter extends BaseFilter
 {
@@ -32,7 +33,6 @@ class PaymentFilter extends BaseFilter
     {
         if ($value) {
             $customerIds = Customer::where('name', 'LIKE', "%{$value}%")->orWhere('phone', 'LIKE', "%{$value}%")->pluck('id')->toArray();
-            // dd($customerIds);
             return $this->builder->whereIn('customer_id', $customerIds);
         }
     }
@@ -43,6 +43,17 @@ class PaymentFilter extends BaseFilter
             return $this->builder->whereIn('type', $value);
         } else {
             return $this->builder->where('type', $value);
+        }
+    }
+
+    public function newPayment($value)
+    {
+        if (filter_var($value, FILTER_VALIDATE_BOOLEAN) === true) {
+            return $this->builder->whereHas('subscription', function (Builder $query) {
+                $query->whereHas('payments', function (Builder $query) {
+                    $query->where('status', 'Completed');
+                }, '=', 1);
+            });
         }
     }
 
@@ -73,7 +84,6 @@ class PaymentFilter extends BaseFilter
 
     public function sort($value)
     {
-        $builder = $this->builder;
         preg_match('#\((.*?)\)#', $value, $match);
         $name = preg_replace("/\([^)]+\)/", "", $value);
         if ($match[1] == 'asc') {

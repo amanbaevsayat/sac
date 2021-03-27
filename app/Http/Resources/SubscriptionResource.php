@@ -43,7 +43,7 @@ class SubscriptionResource extends JsonResource
                 'value' => strftime('%d %b', (new \DateTime($this->started_at))->getTimestamp()),
             ],
             'ended_at' => [
-                'value' => strftime('%d %b', (new \DateTime($this->getEndDate()))->getTimestamp()),
+                'value' => strftime('%d %b (%H:%M)', (new \DateTime($this->getEndDate()))->getTimestamp()),
             ],
             'status' => [
                 'collection' => 'statuses',

@@ -80,6 +80,7 @@ class CustomerController extends Controller
     {
         $data = $request->all();
         $type = '';
+
         if (isset($data['customer']['id']) && Customer::where('id', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
             // Обновить существующего клиента
             $customer = Customer::updateOrCreate([
@@ -91,6 +92,16 @@ class CustomerController extends Controller
                 'comments' => $data['customer']['comments'],
             ]);
         } else if (!isset($data['customer']['id'])) {
+            if (Customer::where('phone', $data['customer']['phone'])->exists()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'customer.phone' => [
+                            'Клиент с таким номером уже существует.'
+                        ],
+                    ]
+                ], 422);
+            }
             $type = 'create';
             // Создать или обновить клиента, если есть телефон
             $customer = Customer::updateOrCreate([
@@ -106,7 +117,7 @@ class CustomerController extends Controller
                     'message' => 'The given data was invalid.',
                     'errors' => [
                         'customer.phone' => [
-                            'Такое значение поля Телефон уже существует.'
+                            'Клиент с таким номером уже существует.'
                         ],
                     ]
                 ], 422);
@@ -121,6 +132,7 @@ class CustomerController extends Controller
                 'comments' => $data['customer']['comments'],
             ]);
         }
+        
 
         foreach ($data['subscriptions'] as $item) {
             $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();

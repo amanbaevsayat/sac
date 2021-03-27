@@ -57,7 +57,7 @@
                 Сумма: {{ $payment->amount }} <br>
                 Количество: {{ $payment->quantity }} <br>
                 PaidedAt: {{ $payment->paided_at }} <br>
-                Статус платежа: {{ \App\Models\Payment::STATUSES[$payment->status] ?? $payment->status ?? null }} <br>
+                Статус платежа: {{ \App\Models\Payment::STATUSES[$payment->status] ?? $payment->status ?? null }} ({{ $payment->status }})<br>
                 {{-- Рекуррент: {{ $payment->recurrent }} <br> --}}
                 {{-- Дата старта: {{ $payment->start_date }} <br> --}}
                 {{-- Интервал: {{ $payment->interval }} <br> --}}

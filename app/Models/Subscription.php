@@ -28,7 +28,7 @@ class Subscription extends Model
         'paid' => 'Оплачено',
         'rejected' => 'Отклонена (3 раза)',
         'refused' => 'Отказался',
-        'frozen' => 'Заморожен',
+        // 'frozen' => 'Заморожен',
     ];
 
     const PAYMENT_TYPE = [
@@ -61,13 +61,11 @@ class Subscription extends Model
         'frozen_at',
         'defrozen_at',
         'ended_at',
-        'product_id',
         'customer_id',
         'price',
         'description',
         'status',
         'payment_type',
-        'data',
         'cp_subscription_id',
     ];
 

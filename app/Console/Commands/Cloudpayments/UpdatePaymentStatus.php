@@ -45,121 +45,121 @@ class UpdatePaymentStatus extends Command
      */
     public function handle()
     {
-        $cloudPaymentsService = new CloudPaymentsService();
+        // $cloudPaymentsService = new CloudPaymentsService();
 
-        $cpPayments = $cloudPaymentsService->getTransactions($this->getDate());
-        $ids = [];
-        foreach ($cpPayments['Model'] as $item) {
-            $payment = Payment::whereId($item['InvoiceId'])->first();
-            $subscription = $payment->subscription ?? null;
+        // $cpPayments = $cloudPaymentsService->getTransactions($this->getDate());
+        // $ids = [];
+        // foreach ($cpPayments['Model'] as $item) {
+        //     $payment = Payment::whereId($item['InvoiceId'])->first();
+        //     $subscription = $payment->subscription ?? null;
 
-            if (!isset($subscription)) {
-                $subscription = Subscription::whereNotNull('cp_subscription_id')->where('cp_subscription_id', $item['SubscriptionId'])->first();
+        //     if (!isset($subscription)) {
+        //         $subscription = Subscription::whereNotNull('cp_subscription_id')->where('cp_subscription_id', $item['SubscriptionId'])->first();
 
-                if (!isset($subscription)) {
-                    if (is_string($item['JsonData'])) {
-                        $jsonData = json_decode($item['JsonData']);
-                        if (json_last_error() == JSON_ERROR_NONE) {
-                            if (isset($jsonData->cloudPayments->recurrent->SubscriptionId)) {
-                                $id = $jsonData->cloudPayments->recurrent->SubscriptionId;
-                                $subscription = Subscription::whereId($id)->first();
-                            }
-                        }
-                    }
-                }
-            }
+        //         if (!isset($subscription)) {
+        //             if (is_string($item['JsonData'])) {
+        //                 $jsonData = json_decode($item['JsonData']);
+        //                 if (json_last_error() == JSON_ERROR_NONE) {
+        //                     if (isset($jsonData->cloudPayments->recurrent->SubscriptionId)) {
+        //                         $id = $jsonData->cloudPayments->recurrent->SubscriptionId;
+        //                         $subscription = Subscription::whereId($id)->first();
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
 
-            if (!isset($subscription)) {
-                \Log::info('Subscription is null. TransactionId: ' . $item['TransactionId']);
-                continue;
-            }
+        //     if (!isset($subscription)) {
+        //         \Log::info('Subscription is null. TransactionId: ' . $item['TransactionId']);
+        //         continue;
+        //     }
 
-            if (in_array($item['InvoiceId'], $ids)) {
-                \Log::info('Платеж дублируется. TransactionId: ' . $item['TransactionId']);
+        //     if (in_array($item['InvoiceId'], $ids)) {
+        //         \Log::info('Платеж дублируется. TransactionId: ' . $item['TransactionId']);
 
-                $payment = $subscription->payments()->updateOrCreate([
-                    'transaction_id' => $item['TransactionId'],
-                ], [
-                    'subscription_id' => $subscription->id,
-                    'customer_id' => $subscription->customer->id,
-                    'quantity' => 1,
-                    'type' => $subscription->payment_type,
-                    'status' => $item['Status'],
-                    'amount' => $item['Amount'],
-                    'paided_at' => $item['CreatedDateIso'] ?? $item['AuthDateIso'],
-                    'data' => [
-                        'cloudpayments' => $item,
-                    ],
-                ]);
-            }
+        //         $payment = $subscription->payments()->updateOrCreate([
+        //             'transaction_id' => $item['TransactionId'],
+        //         ], [
+        //             'subscription_id' => $subscription->id,
+        //             'customer_id' => $subscription->customer->id,
+        //             'quantity' => 1,
+        //             'type' => $subscription->payment_type,
+        //             'status' => $item['Status'],
+        //             'amount' => $item['Amount'],
+        //             'paided_at' => $item['CreatedDateIso'] ?? $item['AuthDateIso'],
+        //             'data' => [
+        //                 'cloudpayments' => $item,
+        //             ],
+        //         ]);
+        //     }
 
-            if (is_null($item['InvoiceId'])) {
-                $payment = $subscription->payments()->updateOrCreate([
-                    'transaction_id' => $item['TransactionId'],
-                ], [
-                    'customer_id' => $subscription->customer_id,
-                    'user_id' => null,
-                    'type' => 'cloudpayments',
-                    'status' => $item['Status'],
-                    'amount' => $item['Amount'],
-                    'paided_at' => Carbon::now(),
-                ]);
-                \Log::info('InvoiceId is null. TransactionId: ' . $item['TransactionId']);
-            }
+        //     if (is_null($item['InvoiceId'])) {
+        //         $payment = $subscription->payments()->updateOrCreate([
+        //             'transaction_id' => $item['TransactionId'],
+        //         ], [
+        //             'customer_id' => $subscription->customer_id,
+        //             'user_id' => null,
+        //             'type' => 'cloudpayments',
+        //             'status' => $item['Status'],
+        //             'amount' => $item['Amount'],
+        //             'paided_at' => Carbon::now(),
+        //         ]);
+        //         \Log::info('InvoiceId is null. TransactionId: ' . $item['TransactionId']);
+        //     }
 
-            if (!isset($payment)) {
-                \Log::info('Payment is null. TransactionId: ' . $item['TransactionId']);
-                continue;
-            }
-            $this->updatePayment($payment, $item);
+        //     if (!isset($payment)) {
+        //         \Log::info('Payment is null. TransactionId: ' . $item['TransactionId']);
+        //         continue;
+        //     }
+        //     $this->updatePayment($payment, $item);
 
-            // Если статус успешный, то создаем карту для платежа
-            if ($item['Status'] == 'Completed') {
-                // $this->updateOrCreateCard($payment, $item);
+        //     // Если статус успешный, то создаем карту для платежа
+        //     if ($item['Status'] == 'Completed') {
+        //         // $this->updateOrCreateCard($payment, $item);
 
-                // Если у платежа есть SubscriptionId, значит он рекуррентный
-                if ($item['SubscriptionId']) {
-                    // Проверяем, есть ли метка у платежа, чтобы можно было продлить абонемент
-                    $data = $payment->data ?? [];
-                    if ((isset($data['subscription']) && $data['subscription']['renewed'] == false)) {
-                        $endedAt = $payment->subscription->ended_at;
-                        $data['subscription'] = [
-                            'renewed' => true,
-                            'from' => $endedAt,
-                            'to' => Carbon::parse($endedAt)->addMonths(1),
-                        ];
-                    } else {
-                        if (isset($data['subscription'])) {
-                            $data['subscription']['renewed'] == false;
-                        } else {
-                            $endedAt = $payment->subscription->ended_at;
-                            $data['subscription'] = [
-                                'renewed' => false,
-                                'from' => $endedAt,
-                                'to' => Carbon::parse($endedAt)->addMonths(1),
-                            ];
-                        }
-                    }
+        //         // Если у платежа есть SubscriptionId, значит он рекуррентный
+        //         if ($item['SubscriptionId']) {
+        //             // Проверяем, есть ли метка у платежа, чтобы можно было продлить абонемент
+        //             $data = $payment->data ?? [];
+        //             if ((isset($data['subscription']) && $data['subscription']['renewed'] == false)) {
+        //                 $endedAt = $payment->subscription->ended_at;
+        //                 $data['subscription'] = [
+        //                     'renewed' => true,
+        //                     'from' => $endedAt,
+        //                     'to' => Carbon::parse($endedAt)->addMonths(1),
+        //                 ];
+        //             } else {
+        //                 if (isset($data['subscription'])) {
+        //                     $data['subscription']['renewed'] == false;
+        //                 } else {
+        //                     $endedAt = $payment->subscription->ended_at;
+        //                     $data['subscription'] = [
+        //                         'renewed' => false,
+        //                         'from' => $endedAt,
+        //                         'to' => Carbon::parse($endedAt)->addMonths(1),
+        //                     ];
+        //                 }
+        //             }
 
-                    $payment->update([
-                        'data' => $data
-                    ]);
-                }
-            } else if ($item['Status'] == 'Authorized' && $item['ReasonCode'] == 0) {
-                \Log::info('Status = Authorized, ReasonCode = 0. TransactionId: ' . $item['TransactionId']);
-                // $cloudPaymentsService = new CloudPaymentsService();
-                // $response = $cloudPaymentsService->paymentsConfirm([
-                //     'TransactionId' => $item['TransactionId'],
-                //     'Amount' => $item['Amount'],
-                // ]);
-                // if (isset($response["Success"]) && $response["Success"] == false) {
-                //     \Log::info('Ошибка при подтверждение оплаты. TransactionId: ' . $item['TransactionId'] . '. Message: ' . ($data['Message'] ?? null));
-                //     continue;
-                // }
-            }
+        //             $payment->update([
+        //                 'data' => $data
+        //             ]);
+        //         }
+        //     } else if ($item['Status'] == 'Authorized' && $item['ReasonCode'] == 0) {
+        //         \Log::info('Status = Authorized, ReasonCode = 0. TransactionId: ' . $item['TransactionId']);
+        //         // $cloudPaymentsService = new CloudPaymentsService();
+        //         // $response = $cloudPaymentsService->paymentsConfirm([
+        //         //     'TransactionId' => $item['TransactionId'],
+        //         //     'Amount' => $item['Amount'],
+        //         // ]);
+        //         // if (isset($response["Success"]) && $response["Success"] == false) {
+        //         //     \Log::info('Ошибка при подтверждение оплаты. TransactionId: ' . $item['TransactionId'] . '. Message: ' . ($data['Message'] ?? null));
+        //         //     continue;
+        //         // }
+        //     }
 
-            $ids[] = $item['InvoiceId'];
-        }
+        //     $ids[] = $item['InvoiceId'];
+        // }
     }
 
     private function updateOrCreateCard(Payment $payment, $item)

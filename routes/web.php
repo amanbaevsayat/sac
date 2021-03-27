@@ -2,7 +2,11 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StatisticsController;
 use App\Models\Customer;
+use App\Models\Payment;
+use App\Models\Subscription;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -23,8 +27,9 @@ Auth::routes();
 
 Route::middleware(["auth"])->group(function () {
     Route::get("/dashboard", [HomeController::class, "dashboard"])->name("dashboard");
-    Route::get("/statistics", [HomeController::class, "statistics"])->name("statistics.index");
-    Route::post("/statistics", [HomeController::class, "statisticsPost"])->name("statistics.post");
+    Route::post("/statistics", [StatisticsController::class, "update"])->name("statistics.update");
+    Route::get("/statistics/quantitative", [StatisticsController::class, "quantitative"])->name("statistics.quantitative");
+    Route::get("/statistics/financial", [StatisticsController::class, "financial"])->name("statistics.financial");
     Route::get("/search", 'SearchController@search')->name("search");
 
     Route::post('customers/update-with-data', 'CustomerController@createWithData');
@@ -38,6 +43,9 @@ Route::middleware(["auth"])->group(function () {
 
     Route::get('users/list', 'UserController@getList');
     Route::get('users/filter', 'UserController@getFilters');
+
+    Route::get('notifications/list', 'NotificationController@getList');
+    Route::get('notifications/filter', 'NotificationController@getFilters');
 
     Route::get('subscriptions/list', 'SubscriptionController@getList');
     Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
@@ -53,8 +61,10 @@ Route::middleware(["auth"])->group(function () {
         'subscriptions' => 'SubscriptionController',
         'payments' => 'PaymentController',
         'users' => 'UserController',
+        'notifications' => 'NotificationController',
     ]);
 });
 
 Route::get("/pull", [HomeController::class, "pull"])->name("pull");
 Route::get('cloudpayments/{subscriptionId}', 'CloudPaymentsController@showWidget')->name('cloudpayments.show_widget');
+Route::get('cloudpayments/{subscriptionId}/thank-you', 'CloudPaymentsController@thankYou')->name('cloudpayments.thank_you');

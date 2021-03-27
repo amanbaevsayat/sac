@@ -1,226 +1,161 @@
 <template>
     <div class="container-fluid">
-        <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
-        <div class="row">
-            <div class="col">
-                <div class="card card-body">
-                    <div class="form-group">
-                        <label for="started_at" class="col-form-label">С</label>
-                        <datetime
-                            name="from"
-                            type="date"
-                            v-model="statistics.dates.from"
-                            input-class="form-control"
-                            valueZone="Asia/Almaty"
-                            value-zone="Asia/Almaty"
-                            zone="Asia/Almaty"
-                            format="dd LLLL"
-                            :auto="true"
-                        ></datetime>
+        <form :action="route">
+            <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
+            <div class="row">
+                <div class="col">
+                    <div class="card card-body">
+                        <div class="form-group">
+                            <label for="started_at" class="col-form-label">Выберите продукт</label>
+                            <select v-model="data.productId" name="productId" class="form-control">
+                                <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card card-body">
+                        <div class="form-group">
+                            <label for="started_at" class="col-form-label">С</label>
+                            <datetime
+                                type="date"
+                                v-model="data.from"
+                                input-class="form-control"
+                                valueZone="Asia/Almaty"
+                                value-zone="Asia/Almaty"
+                                zone="Asia/Almaty"
+                                format="dd LLLL"
+                                :auto="true"
+                            ></datetime>
+                            <input type="hidden" name="from" :value="convertDate(data.from, 'YYYY-MM-DD')">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card card-body">
+                        <div class="form-group">
+                            <label for="started_at" class="col-form-label">По</label>
+                            <datetime
+                                type="date"
+                                v-model="data.to"
+                                input-class="form-control"
+                                valueZone="Asia/Almaty"
+                                value-zone="Asia/Almaty"
+                                zone="Asia/Almaty"
+                                format="dd LLLL"
+                                :auto="true"
+                            ></datetime>
+                            <input type="hidden" name="to" :value="convertDate(data.to, 'YYYY-MM-DD')">
+                        </div>
                     </div>
                 </div>
             </div>
+            <button style="margin-bottom: 15px;" type="submit" class="btn btn-primary">Перейти</button>
+        </form>
+
+        <div class="row" v-for="(chart, chartIndex) in charts" :key="chartIndex">
             <div class="col">
-                <div class="card card-body">
-                    <div class="form-group">
-                        <label for="started_at" class="col-form-label">По</label>
-                        <datetime
-                            name="to"
-                            type="date"
-                            v-model="statistics.dates.to"
-                            input-class="form-control"
-                            valueZone="Asia/Almaty"
-                            value-zone="Asia/Almaty"
-                            zone="Asia/Almaty"
-                            format="dd LLLL"
-                            :auto="true"
-                        ></datetime>
+                <div v-for="(item, seriesIndex) in chart.series" :key="seriesIndex">
+                    <div class="card card-body" v-if="item.editable == true">
+                        <h3>{{ item.name }}</h3>
+                        <div class="row">
+                            <div class="col-sm-3" v-for="(data, dataIndex) in item.data" :key="dataIndex">
+                                <div class="form-group">
+                                    <label for="form_name">{{ convertDate(data.x, 'LL') }}</label>
+                                    <input 
+                                        @change="inputChangeEvent($event, chartIndex, seriesIndex, dataIndex)" 
+                                        v-model="charts[chartIndex].series[seriesIndex].data[dataIndex]['y']" 
+                                        type="number" 
+                                        class="form-control" 
+                                        >
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button @click="saveCustomData(item)" class="btn btn-primary">Сохранить данные</button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h2 id="card-styles"><div>Пробные<a class="anchorjs-link " href="#card-styles" aria-label="Anchor" data-anchorjs-icon="#" style="padding-left: 0.375em;"></a></div></h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="bd-warning">Кол-во новых лидов</th>
-                            <th scope="col" class="bd-warning">Кол-во пробных</th>
-                            <th scope="col" class="bd-baza">Кол-во новых подключений (за период)</th>
-                            <th scope="col" class="bd-formula">Конверсия перехода с лидфида на ватсап</th>
-                            <th scope="col" class="bd-baza">Кол-во должников (за период)</th>
-                            <th scope="col" class="bd-baza">Кол-во оплат за (за период)</th>
-                            <th scope="col" class="bd-formula">Конверсия перехода пробных в клиентов</th>
-                            <th scope="col" class="bd-baza">Кол-во отказавшихся (за период)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.trials.leads">
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.trials.trial">
-                            </td>
-                            <td>{{ statistics.trials.new }}</td>
-                            <td>{{ statistics.trials.leadfeed_to_whatsap }}</td>
-                            <td>{{ statistics.trials.deptors }}</td>
-                            <td>{{ statistics.trials.from_beginners }}</td>
-                            <td>{{ statistics.trials.trial_to_customers }}</td>
-                            <td>{{ statistics.trials.refused_during_trial_period }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <h2 id="card-styles"><div>Клиенты<a class="anchorjs-link " href="#card-styles" aria-label="Anchor" data-anchorjs-icon="#" style="padding-left: 0.375em;"></a></div></h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="bd-warning">Кол-во клиентов</th>
-                            <th scope="col" class="bd-baza">Кол-во должников (за весь период)</th>
-                            <th scope="col" class="bd-baza">Кол-во покупок второго абонемента (за период)</th>
-                            <th scope="col" class="bd-baza">Кол-во держателей 1 абонемента (за период)</th>
-                            <th scope="col" class="bd-formula">Конверсия продления аб-тов после 1 месяца</th>
-                            <th scope="col" class="bd-formula">Кол-во оплат от стареньких</th>
-                            <th scope="col" class="bd-baza">Кол-во отказавшихся клиентов (за весь период)</th>
-                            <th scope="col" class="bd-formula">Приток новых клиентов</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.customers.clients">
-                            </td>
-                            <td>{{ statistics.customers.debtors }}</td>
-                            <td>{{ statistics.customers.second_subscription }}</td>
-                            <td>{{ statistics.customers.first_subscription }}</td>
-                            <td>{{ statistics.customers.conversion_after_month }}</td>
-                            <td>{{ statistics.customers.old }}</td>
-                            <td>{{ statistics.customers.refused }}</td>
-                            <td>{{ statistics.customers.new }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h2 id="card-styles"><div>Финансовые показатели<a class="anchorjs-link " href="#card-styles" aria-label="Anchor" data-anchorjs-icon="#" style="padding-left: 0.375em;"></a></div></h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="bd-formula">Оборот за неделю</th>
-                            <th scope="col" class="bd-warning">Расходы на рекламу</th>
-                            <th scope="col" class="bd-warning">Расходы на бонусы</th>
-                            <th scope="col" class="bd-warning">Расходы на съемки</th>
-                            <th scope="col" class="bd-warning">Расходы на оплату тренеру</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                {{ statistics.financial.turnover }}
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.financial.advertising_costs">
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.financial.bonus_costs">
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.financial.shooting_costs">
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.financial.coach_costs">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <hr>
-                <h2 id="card-styles"><div>Оплаты<a class="anchorjs-link " href="#card-styles" aria-label="Anchor" data-anchorjs-icon="#" style="padding-left: 0.375em;"></a></div></h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="bd-warning">Всего оплат за период</th>
-                            <th scope="col" class="bd-formula">Кол-во оплат от стареньких</th>
-                            <th scope="col" class="bd-formula">Кол-во оплат от новеньких</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <input type="text" class="form-control" v-model="statistics.payments.total_payments">
-                            </td>
-                            <td>{{ statistics.payments.old }}</td>
-                            <td>{{ statistics.payments.new }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <button type="button" class="btn btn-success btn-sm" @click="submit()" style="margin-top: 20px">Рассчитать</button>
+                <div class="card card-body">
+                    <highcharts 
+                        :options="charts[chartIndex]"
+                        :updateArgs="[true, true, true]"
+                        :ref="'chart-' + chartIndex"
+                    ></highcharts>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import {Chart} from 'highcharts-vue'
+import moment from 'moment-timezone';
+
     export default {
+        props: [
+            'dataProp',
+            'productsProp',
+            'chartsProp',
+            'routeProp'
+        ],
+        components: {
+            highcharts: Chart 
+        },
         data() {
             return {
+                route: this.routeProp,
+                charts: this.chartsProp,
+                charts: [],
+                products: this.productsProp,
+                data: {
+                    from: moment(this.dataProp.from).tz('Asia/Almaty').format(),
+                    to: moment(this.dataProp.to).tz('Asia/Almaty').format(),
+                    productId: this.dataProp.productId,
+                },
                 spinnerData: {
                     loading: false,
                     color: '#6cb2eb',
                     size: '100px',
                 },
-                statistics: {
-                    dates: {
-                        from: null,
-                        to: null,
-
-                    },
-                    trials: {
-                        leads: null,
-                        trial: null,
-                        new: null,
-                        leadfeed_to_whatsap: null,
-                        deptors: null,
-                        from_beginners: null,
-                        trial_to_customers: null,
-                        refused_during_trial_period: null,
-                    },
-                    customers: {
-                        clients: null,
-                        debtors: null,
-                        second_subscription: null,
-                        first_subscription: null,
-                        conversion_after_month: null,
-                        old: null,
-                        refused: null,
-                        new: null,
-                    },
-                    financial: {
-                        turnover: null, // disabled
-                        advertising_costs: null,
-                        bonus_costs: null,
-                        shooting_costs: null,
-                        coach_costs: null,
-                    },
-                    payments: {
-                        total_payments: null,
-                        old: null, // disabled
-                        new: null, // disabled
-
-                    },
-                },
             }
         },
+        mounted() {
+            this.chartsProp.forEach(function(chart, index) {
+                this.charts[index] = chart;
+                this.charts[index].xAxis.labels = {
+                    formatter: function(value) {
+                        return moment(value.value).tz('Asia/Almaty').lang("ru").format('LL');
+                    }
+                };
+            }.bind(this));
+        },
         methods: {
+            saveCustomData(item) {
+                this.spinnerData.loading = true;
+                let data = {
+                    item: item,
+                    productId: this.data.productId
+                };
+                axios.post(`/statistics`, data)
+                .then(response => {
+                    let message = response.data.message;
+                    if (response.data.message) {
+                        Vue.$toast.success(message);
+                    }
+                    this.spinnerData.loading = false;
+                })
+                .catch(err => {
+                    this.spinnerData.loading = false;
+                    throw err;
+                });
+            },
+            inputChangeEvent(e, chartIndex, seriesIndex, categoryIndex) {
+                this.charts[chartIndex].series[seriesIndex].data[categoryIndex]['y'] = parseInt(e.target.value);
+                this.$refs['chart-' + chartIndex][0].chart.series[seriesIndex].setData(this.charts[chartIndex].series[seriesIndex].data, true);
+            },
+            convertDate(date, format) {
+                return moment(date).tz('Asia/Almaty').lang("ru").format(format);
+            },
             submit() {
                 this.spinnerData.loading = true;
                 axios.post(`/statistics`, this.statistics)
@@ -228,6 +163,8 @@
                     let responseData = response.data;
                     console.log(response);
                     this.spinnerData.loading = false;
+                    this.statistics.dates.from = responseData.from;
+                    this.statistics.dates.to = responseData.to;
                     this.statistics.trials = responseData.trials;
                     this.statistics.customers = responseData.customers;
                     this.statistics.financial = responseData.financial;

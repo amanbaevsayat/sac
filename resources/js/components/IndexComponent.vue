@@ -34,6 +34,9 @@
                                             
                                         </v-select> -->
                                     </div>
+                                    <div v-if="filter.type == 'checkbox'">
+                                        <input @change="changeFilterValue($event, filter.name, filter.type)" type="checkbox" :name="filter.name" :value="queryParams[filter.name]">
+                                    </div>
                                     <div v-if="filter.type == 'select-search'">
                                         <v-select v-model="queryParams[filter.name]" :reduce="field => field.value" :filterable="false" :options="options[filter.key]" @search="onSearch(...arguments, filter.key)">
                                             <template slot="no-options">
@@ -124,7 +127,7 @@
                                 #
                             </span>
                         </th>
-                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex" :style="{width: item.width}">
+                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex" :style="{width: item.width, 'text-align': item.textAlign}">
                             <a v-if="item.key" class="thead-title" @click="changeSortQueryParams(item.key)">
                                 {{ item.title }}
                             </a>
@@ -149,18 +152,18 @@
                             </div>
                             <div v-else-if="item.type == 'select'">
                                 <select :name="name" v-model="item.value" class="form-control form-control-custom" :class="{ 
-                                    'status-tries': item.value == 'tries' && prefix == 'subscriptions', 
-                                    'status-waiting': item.value == 'waiting' && prefix == 'subscriptions', 
-                                    'status-paid': item.value == 'paid' && prefix == 'subscriptions',
-                                    'status-refused': item.value == 'refused' && prefix == 'subscriptions',
-                                    'status-frozen': item.value == 'frozen' && prefix == 'subscriptions'
+                                    'status-tries': item.value == 'tries' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                    'status-waiting': item.value == 'waiting' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                    'status-paid': item.value == 'paid' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                    'status-refused': item.value == 'refused' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                    'status-frozen': item.value == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications')
                                 }">
                                     <option :class="{ 
-                                        'status-tries': collectionIndex == 'tries' && prefix == 'subscriptions', 
-                                        'status-waiting': collectionIndex == 'waiting' && prefix == 'subscriptions', 
-                                        'status-paid': collectionIndex == 'paid' && prefix == 'subscriptions',
-                                        'status-refused': collectionIndex == 'refused' && prefix == 'subscriptions',
-                                        'status-frozen': collectionIndex == 'frozen' && prefix == 'subscriptions'
+                                        'status-tries': collectionIndex == 'tries' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                        'status-waiting': collectionIndex == 'waiting' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                        'status-paid': collectionIndex == 'paid' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                        'status-refused': collectionIndex == 'refused' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                        'status-frozen': collectionIndex == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications')
                                     }" v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
                                         {{ collection }}
                                     </option>
@@ -185,6 +188,12 @@
                                     format="dd LLLL"
                                 ></datetime>
                             </div>
+                            <div v-else-if="item.type == 'checkbox'">
+                                <input type="checkbox"
+                                    :name="name"
+                                    v-model="item.value" 
+                                    @change="saveItem(items, items.id.value)">
+                            </div>
                             <div v-else>
                                 <div class="custom-text" v-if="name == 'status'">
                                     <span class="status" :class="{ 
@@ -203,10 +212,10 @@
                             </div>
                         </td>
                         <td class="text-right" v-if="prefix != 'payments'">
-                            <button v-if="prefix == 'subscriptions'" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
+                            <button v-if="prefix == 'subscriptions' || prefix == 'notifications'" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
-                            <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions'">
+                            <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions' && prefix != 'notifications'">
                                 <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" :id="'dropdownMenuButton' + itemsIndex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="fa fa-cog"></i>
                                 </button>
@@ -306,7 +315,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 this.spinnerData.loading = true;
                 this.getFilters();
                 // this.setQueryParams();
-                this.getData();
+                // this.getData();
             });
             // let externalScript = document.createElement('script');
             // externalScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments');
@@ -413,7 +422,11 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 this.getData();
             },
             changeFilterValue(e, filterName, filterType) {
-                this.queryParams[filterName] = e.target.value;
+                if (filterType == 'checkbox') {
+                    this.queryParams[filterName] = e.target.checked;
+                } else {
+                    this.queryParams[filterName] = e.target.value;
+                }
             },
             setAddressBar() {
                 if (Object.keys(this.queryParams).length > 0) {
@@ -490,7 +503,8 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
 
                 })])
                 .then((allResults) => {
-                    this.setQueryParams();
+                    // После выполнении функции setQueryParams() выполняется this.getData()
+                    Promise.resolve(this.setQueryParams()).then(this.getData())
                 });
             }
         }

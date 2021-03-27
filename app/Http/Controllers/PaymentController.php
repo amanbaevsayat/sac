@@ -75,6 +75,11 @@ class PaymentController extends Controller
                 'title' => 'ID',
                 'type' => 'input',
             ],
+            [
+                'name' => 'newPayment',
+                'title' => 'Только новые платежи',
+                'type' => 'checkbox',
+            ],
         ];
         $data['second'] = [
             [

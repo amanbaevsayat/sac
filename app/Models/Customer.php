@@ -10,7 +10,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Customer extends Model
 {
-    use HasFactory, SoftDeletes, ModelBase, LogsActivity;
+    use HasFactory, ModelBase, LogsActivity;
 
     protected $fillable = [
         'name',
