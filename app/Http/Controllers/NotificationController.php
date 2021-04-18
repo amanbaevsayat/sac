@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Filters\NotificationFilter;
 use App\Http\Resources\CustomerCollection;
 use App\Http\Resources\NotificationCollection;
+use App\Models\UserLog;
+use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -162,6 +164,8 @@ class NotificationController extends Controller
         ];
 
         if (isset($notification->subscription)) {
+            $subscription = $notification->subscription;
+            
             $notification->subscription->update([
                 'status' => $request->get('status'),
             ]);

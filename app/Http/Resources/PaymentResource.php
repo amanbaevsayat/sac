@@ -14,7 +14,7 @@ class PaymentResource extends JsonResource
      * @param  Request $request
      * @return array
      * @throws \JsonException
-     */
+    */
     public function toArray($request): array
     {
         return [
@@ -24,11 +24,17 @@ class PaymentResource extends JsonResource
                 'type' => 'link',
                 'value' => route('payments.show', [$this->id]),
             ],
+            'sub_status' => [
+                'value' => Subscription::STATUSES[$this->subscription->status]
+            ],
             'customer' => [
-                'id' => $this->customer->id,
-                'title' => $this->customer->name,
+                'id' => $this->customer->id ?? null,
+                'title' => $this->customer->name ?? null,
                 'type' => 'customer-link',
-                'value' => route('customers.show', [$this->customer->id]),
+                'value' => isset($this->customer->id) ? route('customers.show', [$this->customer->id]) : null,
+            ],
+            'customer_phone' => [
+                'value' => $this->customer->phone ?? null,
             ],
             'product_id' => [
                 'value' => $this->subscription->product->title ?? null,
@@ -41,7 +47,7 @@ class PaymentResource extends JsonResource
                 'value' => $this->amount * ($this->quantity ?? 1),
             ],
             'payments' => [
-                'value' => $this->subscription->payments->where('status', 'Completed')->count() ?? 0,
+                'value' => (isset($this->subscription) && isset($this->subscription->payments)) ? ($this->subscription->payments->where('status', 'Completed')->count() ?? 0) : null,
                 'textAlign' => 'center',
             ],
             'status' => [
@@ -59,14 +65,9 @@ class PaymentResource extends JsonResource
             'to' => [
                 'value' => isset($this->data['subscription']['to']) ? Carbon::parse($this->data['subscription']['to'])->isoFormat('DD MMM, YY') : null,
             ],
-            // 'interval' => [
-            //     'type' => 'input',
-            //     'value' => $this->interval,
-            // ],
-            // 'period' => [
-            //     'type' => 'input',
-            //     'value' => $this->period
-            // ],
+            'transaction_id' => [
+                'value' => $this->transaction_id,
+            ],
         ];
     }
 }

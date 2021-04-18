@@ -3,10 +3,11 @@
 namespace App\Console\Commands\Statistics;
 
 use App\Models\Product;
-use App\Models\Statistics;
+use App\Models\StatisticsModel;
 use Illuminate\Console\Command;
 use App\Models\Subscription;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class UpdateStatistics extends Command
 {
@@ -45,35 +46,62 @@ class UpdateStatistics extends Command
 
         $products = Product::get();
 
-        foreach ($products as $product) {
-            // Страница количественные - 1-диаграмма: Новые лиды
-            $this->updateSecondStatistics($product);
+        $periods = [
+            StatisticsModel::PERIOD_TYPE_WEEK,
+            StatisticsModel::PERIOD_TYPE_MONTH,
+        ];
 
-            // Страница количественные - 2-диаграмма: Отток клиентов
-            $this->updateThirdStatistics($product);
+        foreach ($periods as $period) {
+            foreach ($products as $product) {
+                // Страница количественные - 1-диаграмма: Новые лиды
+                $this->updateSecondStatistics($product, $period);
+    
+                // Страница количественные - 2-диаграмма: Отток клиентов
+                $this->updateThirdStatistics($product, $period);
+    
+                // Страница количественные - 2-диаграмма: Отток пробных
+                $this->updateFourthStatistics($product, $period);
 
-            // Страница количественные - 2-диаграмма: Отток пробных
-            $this->updateFourthStatistics($product);
+                // Страница количественные - 3-диаграмма: Отток пробных
+                $this->updateFifthStatistics($product, $period);
+
+                // Страница количественные - 3-диаграмма: Отток клиентов
+                $this->updateSeventhStatistics($product, $period);
+
+                // Страница количественные - 3-диаграмма: Приток клиентов
+                $this->updateEighthStatistics($product, $period);
+
+                // Страница количественные - 4-диаграмма: Купили второй абонемент
+                $this->updateTenthStatistics($product, $period);
+
+                // Страница количественные - 4-диаграмма: Есть один платеж, но отказались.
+                $this->updateEleventhStatistics($product, $period);
+
+                // Страница количественные - 5-диаграмма: Активные абонементы.
+                $this->updateTwelfthStatistics($product, $period);
+            }
         }
     }
 
-    private function updateSecondStatistics(Product $product)
+    private function updateSecondStatistics(Product $product, string $period)
     {
-        $subscriptions = Subscription::
-            whereProductId($product->id)
+        $subscriptions = Subscription::whereProductId($product->id)
             ->whereHas('payments', function ($q) {
                 $q->where('status', 'Completed');
             })->get()
-            ->groupBy(function($subscription) {
+            ->groupBy(function($subscription) use ($period) {
                 $firstCompletePayment = $subscription->payments->where('status', 'Completed')->sortBy('paided_at')->first();
-
-                return (int) Carbon::parse($firstCompletePayment->paided_at)->endOfWeek()->startOfDay()->valueOf(); // grouping by years
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($firstCompletePayment->paided_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($firstCompletePayment->paided_at)->endOfWeek()->startOfDay()->valueOf();
+                }
             })->toArray();
-        
         foreach ($subscriptions as $key => $value) {
-            Statistics::updateOrCreate([
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'type' => StatisticsModel::SECOND_STATISTICS,
                 'product_id' => $product->id,
-                'type' => Statistics::SECOND_STATISTICS,
                 'key' => $key,
             ], [
                 'value' => count($value ?? []),
@@ -81,7 +109,7 @@ class UpdateStatistics extends Command
         }
     }
 
-    private function updateThirdStatistics(Product $product)
+    private function updateThirdStatistics(Product $product, string $period)
     {
         $subscriptions = Subscription::
             whereProductId($product->id)
@@ -90,14 +118,19 @@ class UpdateStatistics extends Command
             })
             ->whereStatus('refused')
             ->get()
-            ->groupBy(function($subscription) {
-                return (int) Carbon::parse($subscription->updated_at)->endOfWeek()->startOfDay()->valueOf();
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->updated_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->updated_at)->endOfWeek()->startOfDay()->valueOf();
+                }
             })->toArray();
         
         foreach ($subscriptions as $key => $value) {
-            Statistics::updateOrCreate([
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'type' => StatisticsModel::THIRD_STATISTICS,
                 'product_id' => $product->id,
-                'type' => Statistics::THIRD_STATISTICS,
                 'key' => $key,
             ], [
                 'value' => count($value ?? []),
@@ -105,7 +138,7 @@ class UpdateStatistics extends Command
         }
     }
 
-    private function updateFourthStatistics(Product $product)
+    private function updateFourthStatistics(Product $product, string $period)
     {
         $subscriptions = Subscription::
             whereProductId($product->id)
@@ -114,18 +147,188 @@ class UpdateStatistics extends Command
             })
             ->whereStatus('refused')
             ->get()
-            ->groupBy(function($subscription) {
-                return (int) Carbon::parse($subscription->updated_at)->endOfWeek()->startOfDay()->valueOf(); // grouping by years
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->updated_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->updated_at)->endOfWeek()->startOfDay()->valueOf();
+                }
             })->toArray();
         
         foreach ($subscriptions as $key => $value) {
-            Statistics::updateOrCreate([
+            StatisticsModel::updateOrCreate([
                 'product_id' => $product->id,
-                'type' => Statistics::FOURTH_STATISTICS,
+                'type' => StatisticsModel::FOURTH_STATISTICS,
                 'key' => $key,
             ], [
                 'value' => count($value ?? []),
             ]);
         }
+    }
+
+    private function updateFifthStatistics(Product $product, string $period)
+    {
+        $subscriptions = Subscription::
+            whereProductId($product->id)
+            ->whereDoesntHave('payments', function($q) {
+                $q->where('status', 'Completed');
+            })
+            ->whereStatus('refused')
+            ->get()
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfWeek()->startOfDay()->valueOf();
+                }
+            })->toArray();
+        
+        foreach ($subscriptions as $key => $value) {
+            StatisticsModel::updateOrCreate([
+                'product_id' => $product->id,
+                'type' => StatisticsModel::SEVENTH_STATISTICS,
+                'key' => $key,
+            ], [
+                'value' => count($value ?? []),
+            ]);
+        }
+    }
+
+    private function updateSeventhStatistics(Product $product, string $period)
+    {
+        $subscriptions = Subscription::
+            whereProductId($product->id)
+            ->whereHas('payments', function ($q) {
+                $q->where('status', 'Completed');
+            })
+            ->whereStatus('refused')
+            ->get()
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfWeek()->startOfDay()->valueOf();
+                }
+            })->toArray();
+        
+        foreach ($subscriptions as $key => $value) {
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'type' => StatisticsModel::EIGHTH_STATISTICS,
+                'product_id' => $product->id,
+                'key' => $key,
+            ], [
+                'value' => count($value ?? []),
+            ]);
+        }
+    }
+
+    private function updateEighthStatistics(Product $product, string $period)
+    {
+        $subscriptions = Subscription::whereProductId($product->id)
+            ->whereStatus('paid')
+            ->whereHas('payments', function ($q) {
+                $q->where('status', 'Completed');
+            })->get()
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfWeek()->startOfDay()->valueOf();
+                }
+            })->toArray();
+        foreach ($subscriptions as $key => $value) {
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'type' => StatisticsModel::NINTH_STATISTICS,
+                'product_id' => $product->id,
+                'key' => $key,
+            ], [
+                'value' => count($value ?? []),
+            ]);
+        }
+    }
+
+    private function updateTenthStatistics(Product $product, string $period)
+    {
+        $subscriptions = Subscription::
+            whereProductId($product->id)
+            ->whereHas('payments', function (Builder $query) {
+                $query->where('status', 'Completed');
+            }, '=', 2)
+            // ->whereStatus('refused')
+            ->get()
+            ->groupBy(function($subscription) use ($period) {
+                $lastPayment = $subscription->payments()->latest()->first();
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($lastPayment->paided_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($lastPayment->paided_at)->endOfWeek()->startOfDay()->valueOf();
+                }
+            })->toArray();
+        
+        foreach ($subscriptions as $key => $value) {
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'type' => StatisticsModel::TENTH_STATISTICS,
+                'product_id' => $product->id,
+                'key' => $key,
+            ], [
+                'value' => count($value ?? []),
+            ]);
+        }
+    }
+
+    private function updateEleventhStatistics(Product $product, string $period)
+    {
+        $subscriptions = Subscription::whereProductId($product->id)
+            ->whereStatus('refused')
+            ->whereHas('payments', function (Builder $query) {
+                $query->where('status', 'Completed');
+            }, '=', 1)
+            ->get()
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->updated_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->updated_at)->endOfWeek()->startOfDay()->valueOf();
+                }
+            })->toArray();
+        foreach ($subscriptions as $key => $value) {
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'type' => StatisticsModel::ELEVENTH_STATISTICS,
+                'product_id' => $product->id,
+                'key' => $key,
+            ], [
+                'value' => count($value ?? []),
+            ]);
+        }
+    }
+
+    private function updateTwelfthStatistics(Product $product, string $period)
+    {
+        if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+            $date = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
+        } else {
+            $date = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
+        }
+        $subscriptionsCount = Subscription::whereProductId($product->id)
+            ->whereIn('status', ['paid', 'waiting'])
+            ->whereIn('payment_type', ['transfer', 'cloudpayments'])
+            ->whereHas('payments', function ($q) {
+                $q->where('status', 'Completed');
+            })
+            ->count();
+
+        
+        StatisticsModel::updateOrCreate([
+            'period_type' => $period,
+            'type' => StatisticsModel::TWELFTH_STATISTICS,
+            'product_id' => $product->id,
+            'key' => $date,
+        ], [
+            'value' => $subscriptionsCount,
+        ]);
     }
 }

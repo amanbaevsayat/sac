@@ -43,25 +43,35 @@ class UpdateSubscription extends Command
     {
         $cloudPaymentsService = new CloudPaymentsService();
 
-        $subscriptions = Subscription::whereNotNull('cp_subscription_id')->wherePaymentType('cloudpayments')->get();
+        $subscriptions = Subscription::whereNotNull('cp_subscription_id')->whereStatus('paid')->wherePaymentType('cloudpayments')->get();
 
         foreach ($subscriptions as $subscription) {
-            $response = $cloudPaymentsService->getSubscription($subscription->cp_subscription_id);
-
-            if ($response['Success'] === true) {
-                $data = $subscription->data;
-                $endedAt = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::parse($response['Model']['NextTransactionDateIso']), 'UTC')->setTimezone('Asia/Almaty');
-                $data['cloudpayments'] = $response['Model'];
-                $subscription->update([
-                    'status' => $subscription->status != 'frozen' ? Subscription::CLOUDPAYMENTS_STATUSES[$response['Model']['Status']] : 'frozen',
-                    'data' => $data,
-                    'ended_at' => $endedAt,
-                ]);
-                $subscription->customer->update([
-                    'email' => $response['Model']['Email'],
-                ]);
-            } else {
-                \Log::info('Ошибка при поиске подписки. Subscription ID: ' . $subscription->id);
+            try {
+                sleep(1);
+                $response = $cloudPaymentsService->getSubscription($subscription->cp_subscription_id);
+    
+                if ($response['Success'] === true) {
+                    $data = $subscription->data;
+                    $endedAt = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::parse($response['Model']['NextTransactionDateIso']), 'UTC')->setTimezone('Asia/Almaty');
+                    $data['cloudpayments'] = $response['Model'];
+                    $subscription->update([
+                        'status' => $subscription->status != 'frozen' ? Subscription::CLOUDPAYMENTS_STATUSES[$response['Model']['Status']] : 'frozen',
+                        'data' => $data,
+                        // 'ended_at' => $endedAt,
+                    ]);
+                    if (isset($subscription->customer)) {
+                        $subscription->customer->update([
+                            'email' => $response['Model']['Email'],
+                        ]);
+                    } else {
+                        \Log::info('У абонемента нет клиента. Subscription ID: ' . $subscription->id);
+                    }
+                } else {
+                    \Log::info('Ошибка при поиске подписки. Subscription ID: ' . $subscription->id);
+                }
+            } catch (\Throwable $e) {
+                \Log::info($response);
+                \Log::error($e);
             }
         }
     }

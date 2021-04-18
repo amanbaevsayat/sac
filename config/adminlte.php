@@ -245,7 +245,7 @@ return [
             'url'  => '/statistics',
             'icon' => 'fas fa-binoculars',
             "can"  => [
-                'can-operator',
+                // 'can-operator',
                 'can-head',
                 'can-host',
             ]
@@ -315,6 +315,19 @@ return [
             'text' => 'Уведомления',
             'url'  => '/notifications',
             'icon' => 'fa fa-id-badge',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ],
+        ],
+
+        // userLogs
+        [
+            'key'  => 'userlogs',
+            'text' => 'Логи действий',
+            'url'  => '/userlogs',
+            'icon' => 'fa fa-flag',
             "can"  => [
                 'can-operator',
                 'can-head',

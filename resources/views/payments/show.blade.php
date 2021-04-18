@@ -52,7 +52,7 @@
                 @endif
                 <br>
                 TransactionId: {{ $payment->transaction_id }} <br>
-                SubscriptionId: {{ $payment->subscription->cp_subscription_id }} <br>
+                SubscriptionId: {{ $payment->subscription->cp_subscription_id ?? null }} <br>
                 @endif
                 Сумма: {{ $payment->amount }} <br>
                 Количество: {{ $payment->quantity }} <br>

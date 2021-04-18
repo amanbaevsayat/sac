@@ -43,10 +43,10 @@ class MenuServiceProvider extends ServiceProvider
                 'label_color' => 'success',
             ]);
             $event->menu->addIn('notifications', [
-                "key" => "notification_type_3",
-                "text" => Notification::TYPES[Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS],
-                "url" => "notifications?type=3&processed=0",
-                'label'       => Notification::whereType(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS)->whereProcessed(false)->count(),
+                "key" => "notification_type_7",
+                "text" => Notification::TYPES[Notification::WAITING_PAYMENT_CP],
+                "url" => "notifications?type=7&processed=0",
+                'label'       => Notification::whereType(Notification::WAITING_PAYMENT_CP)->whereProcessed(false)->count(),
                 'label_color' => 'success',
             ]);
             $event->menu->addIn('notifications', [

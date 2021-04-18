@@ -52,11 +52,9 @@ class NotificationCollection extends ResourceCollection
             ],
         ];
 
-        // if (in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || in_array(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
         $data['dataTitles'][] = [
             'title' => 'Услуги',
         ];
-        // }
 
         $data['dataTitles'][] = [
             'title' => 'Ост. дней',
@@ -84,7 +82,7 @@ class NotificationCollection extends ResourceCollection
             ];
         }
         
-        if (in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || in_array(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
+        if (in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
             $data['dataTitles'][] = [
                 'title' => 'Описание ошибки',
             ];
@@ -97,7 +95,7 @@ class NotificationCollection extends ResourceCollection
             'title' => 'В процессе',
         ];
 
-        if (in_array(Notification::TYPE_CANCEL_SUBSCRIPTION, $types) || in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || in_array(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
+        if (in_array(Notification::TYPE_CANCEL_SUBSCRIPTION, $types) || in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
             
             $data['dataTitles'][] = [
                 'title' => 'Обработано',

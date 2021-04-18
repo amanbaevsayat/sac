@@ -8,14 +8,12 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use App\Filters\CustomerFilter;
 use App\Http\Resources\CustomerCollection;
-use App\Http\Resources\CustomerResource;
 use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWithSubscriptionResource;
-use App\Models\Card;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Models\UserLog;
 use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
@@ -79,117 +77,27 @@ class CustomerController extends Controller
     public function createWithData(CreateCustomerWithDataRequest $request)
     {
         $data = $request->all();
-        $type = '';
-
-        if (isset($data['customer']['id']) && Customer::where('id', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
-            // Обновить существующего клиента
-            $customer = Customer::updateOrCreate([
-                'id' => $data['customer']['id'],
-                'phone' => $data['customer']['phone'],
-            ], [
-                'name' => $data['customer']['name'],
-                'email' => $data['customer']['email'],
-                'comments' => $data['customer']['comments'],
-            ]);
-        } else if (!isset($data['customer']['id'])) {
-            if (Customer::where('phone', $data['customer']['phone'])->exists()) {
-                return response()->json([
-                    'message' => 'The given data was invalid.',
-                    'errors' => [
-                        'customer.phone' => [
-                            'Клиент с таким номером уже существует.'
-                        ],
-                    ]
-                ], 422);
-            }
-            $type = 'create';
-            // Создать или обновить клиента, если есть телефон
-            $customer = Customer::updateOrCreate([
-                'phone' => $data['customer']['phone'],
-            ], [
-                'name' => $data['customer']['name'],
-                'email' => $data['customer']['email'],
-                'comments' => $data['customer']['comments'],
-            ]);
-        } else {
-            if (isset($data['customer']['id']) && Customer::where('id', '!=', $data['customer']['id'])->where('phone', $data['customer']['phone'])->exists()) {
-                return response()->json([
-                    'message' => 'The given data was invalid.',
-                    'errors' => [
-                        'customer.phone' => [
-                            'Клиент с таким номером уже существует.'
-                        ],
-                    ]
-                ], 422);
-            }
-            // Если у клиента сменился номер
-            $customer = Customer::updateOrCreate([
-                'id' => $data['customer']['id'],
-            ], [
-                'phone' => $data['customer']['phone'],
-                'name' => $data['customer']['name'],
-                'email' => $data['customer']['email'],
-                'comments' => $data['customer']['comments'],
-            ]);
+        try {
+            $customer = $this->getCustomer($data);
+        } catch (\Throwable $e) {
+            \Log::info($e->getMessage());
+            \Log::info('Ошибка getCustomer(). User ID: ' . Auth::id() . '. Phone: ' . ($data['customer']['phone'] ?? null) . '. ID: ' . ($data['customer']['id'] ?? null));
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'customer.phone' => [
+                        'Клиент с таким номером уже существует.'
+                    ],
+                ]
+            ], 422);
         }
-        
 
         foreach ($data['subscriptions'] as $item) {
             $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
+            $oldPaymentType = $subscription->payment_type ?? null;
             $oldStatus = $subscription->status ?? null;
             $oldEndedAt = Carbon::parse($subscription->ended_at ?? null);
             $endedAt = Carbon::parse($item['ended_at']);
-            // dd($oldEndedAt, $endedAt);
-            if ($subscription) {
-                // Если оператор поменял статус на frozen, то создаем или обновляем платеж
-                if ($subscription->status != 'frozen' && $item['status'] == 'frozen') {
-                    $subscription->update([
-                        'frozen_at' => Carbon::parse($item['frozen_at']),
-                        'defrozen_at' => Carbon::parse($item['defrozen_at']),
-                    ]);
-                    if ($subscription->payments()->where('status', 'frozen')->where('type', 'frozen')->where('data->subscription->renewed', false)->doesntExist()) {
-                        $subscription->payments()->create([
-                            'customer_id' => $customer->id,
-                            'user_id' => Auth::id(),
-                            'type' => 'frozen',
-                            'status' => 'frozen',
-                            'quantity' => 1,
-                            'paided_at' => Carbon::now(),
-                            'data' => [
-                                'subscription' => [
-                                    'renewed' => false,
-                                    'from' => Carbon::parse($item['frozen_at']),
-                                    'to' => Carbon::parse($item['defrozen_at']),
-                                ],
-                            ],
-                        ]);
-                    }
-                }
-
-                if ($item['status'] == 'refused') {
-                    $subscription->cancelCPSubscription();
-                }
-
-                // Если оператор разморозил абонемент, то
-                // 1) Находим платеж, меняем у него renewed на true
-                // 2) Продлеваем абонемент
-                if ($subscription->status == 'frozen' && $item['status'] != 'frozen') {
-                    if ($payment = $subscription->payments()->where('status', 'frozen')->where('type', 'frozen')->where('data->subscription->renewed', false)->first()) {
-                        $paymentData = $payment->data;
-                        $from = Carbon::parse($paymentData['subscription']['from']);
-                        $to = Carbon::parse($paymentData['subscription']['to']);
-
-                        $diff = $from->diffInDays($to);
-                        $endedAt = Carbon::parse($subscription->ended_at)->addDays($diff);
-
-                        $paymentData['subscription']['renewed'] = true;
-
-                        $payment->update([
-                            'data' => $paymentData,
-                        ]);
-                    }
-                }
-            }
 
             $subscription = $customer->subscriptions()->updateOrCreate([
                 'product_id' => $item['product_id'],
@@ -201,43 +109,14 @@ class CustomerController extends Controller
                 'status' => $item['status'],
             ]);
 
-            if ($type == 'create') {
+            if (! isset($data['customer']['id'])) {
                 $subscription->update([
                     'tries_at' => Carbon::parse($item['tries_at']),
                 ]);
             }
             if ($subscription->payment_type == 'cloudpayments') {
-                if ((strtotime($item['defrozen_at']) > strtotime($item['ended_at'])) && $item['status'] == 'frozen') {
-                    \Log::info('Кто-то меняет дату следующего платежа подписки. SubscriptionID: ' . $subscription->id . '. UserID: ' . Auth::id());
-
-                    $cloudPaymentsService = new CloudPaymentsService();
-                    $data = [
-                        "Id" => $subscription->cp_subscription_id,
-                        "StartDate" => Carbon::parse($item['defrozen_at'])->format('Y-m-d\TH:i:s.u'),
-                    ];
-                    $cloudPaymentsService->updateSubscription($data);
-                } else if ((strtotime($item['defrozen_at']) < strtotime($item['ended_at'])) && $item['status'] == 'frozen') {
-                    \Log::info('Кто-то меняет дату следующего платежа подписки. SubscriptionID: ' . $subscription->id . '. UserID: ' . Auth::id());
-
-                    $cloudPaymentsService = new CloudPaymentsService();
-                    $data = [
-                        "Id" => $subscription->cp_subscription_id,
-                        "StartDate" => Carbon::parse($item['ended_at'])->format('Y-m-d\TH:i:s.u'),
-                    ];
-                    $cloudPaymentsService->updateSubscription($data);
-                }
                 // Если оператор изменил дату следующего платежа, то делаем запрос в cp, на изменения даты
-                if (isset($item['next_transaction_date']) && isset($subscription->cp_subscription_id)) {
-                    \Log::info('Кто-то меняет дату следующего платежа подписки. SubscriptionID: ' . $subscription->id . '. UserID: ' . Auth::id());
-                    $cloudPaymentsService = new CloudPaymentsService();
-                    // dd($subscription->cp_subscription_id, );
-                    $data = [
-                        "Id" => $subscription->cp_subscription_id,
-                        "StartDate" => Carbon::parse($item['next_transaction_date'])->format('Y-m-d\TH:i:s.u'),
-                    ];
-
-                    $cloudPaymentsService->updateSubscription($data);
-                }
+                
             } elseif ($subscription->payment_type == 'transfer') {
                 if (isset($item['newPayment']['check'])) {
                     $payment = $subscription->payments()->create([
@@ -269,6 +148,72 @@ class CustomerController extends Controller
             'customer' => new CustomerWithSubscriptionResource($customer),
             'message' => 'Клиент успешно создан или обновлен'
         ], 200);
+    }
+
+    private function getCustomer(array $data): Customer
+    {
+        $customerExists = Customer::where('id', ($data['customer']['id'] ?? null))->where('phone', $data['customer']['phone'])->exists();
+        $updateCustomer = isset($data['customer']['id']);
+        
+        if ($updateCustomer) { // Обновить клиента
+            if ($customerExists) { // Обновить существующего клиента
+                $customer = Customer::updateOrCreate([
+                    'id' => $data['customer']['id'],
+                    'phone' => $data['customer']['phone'],
+                ], [
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                ]);
+            } else if (Customer::where('phone', $data['customer']['phone'])->exists()) { // Изменил phone на существующий
+                throw new \Exception('Клиент с таким номером уже существует.');
+            } else if (Customer::withTrashed()->where('phone', $data['customer']['phone'])->exists()) { // Изменил phone на удаленного клиента
+                Customer::withTrashed()->where('phone', $data['customer']['phone'])->forceDelete();
+                $customer = Customer::withTrashed()->updateOrCreate([
+                    'id' => $data['customer']['id'],
+                ], [
+                    'phone' => $data['customer']['phone'],
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                    'deleted_at' => null,
+                ]);
+            } else {
+                $customer = Customer::updateOrCreate([
+                    'id' => $data['customer']['id'],
+                ], [
+                    'phone' => $data['customer']['phone'],
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                ]);
+            }
+        } else { // Создать клиента
+            if (Customer::where('phone', $data['customer']['phone'])->exists()) { // Создал phone на существующий
+                throw new \Exception('Клиент с таким номером уже существует.');
+            } else if (Customer::withTrashed()->where('phone', $data['customer']['phone'])->exists()) { // Создал phone на удаленного клиента
+                Customer::withTrashed()->where('phone', $data['customer']['phone'])->forceDelete();
+                $customer = Customer::withTrashed()->updateOrCreate([
+                    'phone' => $data['customer']['phone'],
+                ], [
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                    'deleted_at' => null,
+                ]);
+            } else {
+                // Создать или обновить клиента, если есть телефон
+                $customer = Customer::updateOrCreate([
+                    'phone' => $data['customer']['phone'],
+                ], [
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                ]);
+            }
+        }
+
+        return $customer;
     }
 
     public function getList(CustomerFilter $filters)

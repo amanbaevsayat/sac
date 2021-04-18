@@ -21,7 +21,7 @@ class SubscriptionResource extends JsonResource
         return [
             'id' => [
                 'value' => $this->id,
-                'type' => 'hidden',
+                // 'type' => 'hidden',
             ],
             'customer' => [
                 'id' => $this->customer->id,

@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Filters\PaymentFilter;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Support\Facades\Auth;
 
 class Payment extends Model
 {
-    use HasFactory, SoftDeletes, ModelBase, LogsActivity;
+    use HasFactory, SoftDeletes, ModelBase;
 
     const QUANTITIES = [
         '1' => '1 месяц',
@@ -109,27 +109,6 @@ class Payment extends Model
         // 'period', // Для рекуррентных платежей
     ];
 
-    protected static $logAttributes = [
-        'subscription_id',
-        'card_id',
-        'customer_id',
-        'transaction_id',
-        'user_id',
-        'quantity',
-        'type',
-        'amount',
-        'status',
-        'paided_at',
-        // 'data',
-        // 'slug',
-        // 'recurrent', // Для рекуррентных платежей
-        // 'start_date', // Для рекуррентных платежей
-        // 'interval', // Для рекуррентных платежей
-        // 'period', // Для рекуррентных платежей
-    ];
-
-    protected static $ignoreChangedAttributes = [];
-
     protected $dates = [
         'start_date',
         'paided_at',
@@ -157,6 +136,16 @@ class Payment extends Model
                 'check' => $query->data['check'] ?? null,
             ];
             $query->data = $data;
+        });
+        static::deleting(function($payment) {
+            UserLog::create([
+                'subscription_id' => $payment->subscription_id,
+                'user_id' => Auth::id(),
+                'type' => UserLog::DELETE_PAYMENT,
+                'data' => [
+                    'paymentId' => $payment->id,
+                ],
+            ]);
         });
     }
 

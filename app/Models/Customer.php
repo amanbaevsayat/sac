@@ -6,11 +6,11 @@ use App\Filters\CustomerFilter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Support\Facades\Auth;
 
 class Customer extends Model
 {
-    use HasFactory, ModelBase, LogsActivity;
+    use HasFactory, ModelBase, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -19,17 +19,6 @@ class Customer extends Model
         'comments',
         'data',
     ];
-
-    protected static $logAttributes = [
-        'name',
-        'phone',
-        'email',
-        'comments',
-    ];
-
-    protected static $ignoreChangedAttributes = [];
-
-    protected static $logOnlyDirty = true;
 
     protected $casts = [
         'data' => 'array',
@@ -40,6 +29,22 @@ class Customer extends Model
     protected static function boot() {
         parent::boot();
     
+        static::updating(function ($customer) {
+            // dd($customer->getOriginal('phone'), $customer->phone);
+            if ($customer->getOriginal('phone') != $customer->phone) {
+                UserLog::create([
+                    'subscription_id' => null,
+                    'customer_id' => $customer->id,
+                    'user_id' => Auth::id(),
+                    'type' => UserLog::CUSTOMER_PHONE,
+                    'data' => [
+                        'old' => $customer->getOriginal('phone'),
+                        'new' => $customer->phone,
+                    ],
+                ]);
+            }
+        });
+
         static::deleting(function($customer) {
             $customer->subscriptions()->delete();
             $customer->payments()->delete();

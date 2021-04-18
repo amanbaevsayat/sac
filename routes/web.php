@@ -5,11 +5,11 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StatisticsController;
 use App\Models\Customer;
 use App\Models\Payment;
+use App\Models\StatisticsModel;
 use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,6 +50,9 @@ Route::middleware(["auth"])->group(function () {
     Route::get('subscriptions/list', 'SubscriptionController@getList');
     Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
 
+    Route::get('userlogs/list', 'UserLogController@getList');
+    Route::get('userlogs/filter', 'UserLogController@getFilters');
+
     Route::get('payments/list', 'PaymentController@getList');
     Route::get('payments/filter', 'PaymentController@getFilters');
 
@@ -62,6 +65,7 @@ Route::middleware(["auth"])->group(function () {
         'payments' => 'PaymentController',
         'users' => 'UserController',
         'notifications' => 'NotificationController',
+        'userlogs' => 'UserLogController',
     ]);
 });
 

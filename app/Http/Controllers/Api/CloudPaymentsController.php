@@ -2,21 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Exceptions\ErrorCodes;
+use App\Exceptions\NoticeException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PostThreeDSRequest;
 use App\Models\Customer;
 use App\Models\Notification;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Payment;
-use App\Models\Product;
 use App\Models\Subscription;
-use App\Services\CloudPaymentsService;
-use Illuminate\Support\Facades\View;
+use App\Models\UserLog;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\SubscriptionService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CloudPaymentsController extends Controller
 {
@@ -36,43 +33,55 @@ class CloudPaymentsController extends Controller
 
     public function recurrentNotification(Request $request)
     {
-        \Log::info('recurrent');
-        \Log::info($request->all());
-        $data = $request->all();
+        try {
+            $data = $request->all();
 
-        if ($data['Status'] == 'Cancelled') {
-            $subscription = Subscription::where('cp_subscription_id', $data['Id'])->whereHas('customer', function (Builder $query) use ($data) {
-                $query->where('phone', $data['AccountId']);
-            })->first();
-            if (! isset($subscription)) {
-                \Log::error('Абонемент не найден. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
-                return response()->json([
-                    'code' => 0
+            if ($data['Status'] == 'Cancelled') {
+                $subscription = Subscription::where('cp_subscription_id', $data['Id'])
+                // ->whereHas('customer', function (Builder $query) use ($data) {
+                //     $query->where('phone', $data['AccountId']);
+                // })
+                ->first();
+                if (! isset($subscription)) {
+                    throw new NoticeException('Абонемент не найден. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
+                }
+                if ($subscription->status != 'refused') {
+                    $notification = Notification::create([
+                        'type' => Notification::TYPE_CANCEL_SUBSCRIPTION,
+                        'subscription_id' => $subscription->id,
+                        'product_id' => $subscription->product->id,
+                        'data' => [],
+                    ]);
+
+                    if (! isset($notification)) {
+                        \Log::error('Уведомление не создано. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
+                    }
+                }
+                $subscription->update([
+                    'status' => 'refused'
                 ]);
             }
-            $subscription->update([
-                'status' => 'refused'
-            ]);
-            $notification = Notification::create([
-                'type' => Notification::TYPE_CANCEL_SUBSCRIPTION,
-                'subscription_id' => $subscription->id,
-                'product_id' => $subscription->product->id,
-                'data' => [],
-            ]);
-            if (! isset($notification)) {
-                \Log::error('Уведомление не создано. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
-            }
-        }
 
-        return response()->json([
-            'code' => 0
-        ]);
+            return response()->json([
+                'code' => 0
+            ]);
+        } catch (NoticeException $e) {
+            \Log::info($data);
+            \Log::error($e->getMessage());
+            return response()->json([
+                'code' => 500
+            ], 500);
+        } catch (\Throwable $e) {
+            \Log::info($data);
+            \Log::error($e);
+            return response()->json([
+                'code' => 500
+            ], 500);
+        }
     }
 
     public function checkNotification(Request $request)
     {
-        \Log::info('check');
-        \Log::info($request->all());
         return response()->json([
             'code' => 0,
         ]);
@@ -80,34 +89,51 @@ class CloudPaymentsController extends Controller
 
     public function payFailNotification(Request $request)
     {
-        \Log::info('pay-and-fail');
-        $data = $request->all();
-        \Log::info($data);
-        $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
-        $customer = Customer::wherePhone($data['AccountId'])->first();
+        try {
+            $data = $request->all();
+            $this->savePayment($data);
 
-        if (! isset($customer)) {
-            \Log::error('Не найден клиент. Transaction Id: ' . $data['TransactionId']);
             return response()->json([
                 'code' => 0,
             ]);
+        } catch (NoticeException $e) {
+            \Log::info($data);
+            \Log::error($e->getMessage());
+            return response()->json([
+                'code' => 500
+            ], 500);
+        } catch (\Throwable $e) {
+            \Log::info($data);
+            \Log::error($e);
+            return response()->json([
+                'code' => 500
+            ], 500);
         }
-        $jsonData = '';
-        if (isset($data['Data']) && is_string($data['Data'])) {
-            $jsonData = json_decode($data['Data']);
-        }
-        
+    }
+
+    private function savePayment(array $data)
+    {
+        $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
+
         if (! isset($subscription)) {
-            if (isset($jsonData->subscription) && isset($jsonData->subscription->id) && json_last_error() == JSON_ERROR_NONE) {
-                $subscription = Subscription::whereId($jsonData->subscription->id)->first();
+            $subscription = Subscription::whereId($data['AccountId'])->first();
+            if (! isset($subscription)) {
+                $jsonData = '';
+                if (isset($data['Data']) && is_string($data['Data'])) {
+                    $jsonData = json_decode($data['Data']);
+                }
+                if (isset($jsonData->subscription->id)) {
+                    $subscription = Subscription::whereId($jsonData->subscription->id)->first();
+                }
             }
         }
 
         if (! isset($subscription)) {
-            \Log::error('Не найден абонемент. Transaction Id: ' . $data['TransactionId']);
-            return response()->json([
-                'code' => 0,
-            ]);
+            throw new NoticeException('Не найден абонемент. Transaction Id: ' . $data['TransactionId']);
+        }
+
+        if (! isset($subscription->customer)) {
+            throw new NoticeException('Не найден клиент. Transaction Id: ' . $data['TransactionId']);
         }
 
         $subscriptionData = [
@@ -119,6 +145,25 @@ class CloudPaymentsController extends Controller
                 'from' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty'),
                 'to' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1),
             ];
+
+            $oldEndedAt = Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty');
+            $newEndedAt = Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1);
+            UserLog::create([
+                'subscription_id' => $subscription->id,
+                'user_id' => Auth::id() ?? null,
+                'type' => UserLog::CP_AUTO_RENEWAL,
+                'data' => [
+                    'old' => $oldEndedAt,
+                    'new' => $newEndedAt,
+                    'request' => $data,
+                ],
+            ]);
+
+            $subscription->update([
+                'cp_subscription_id' => $data['SubscriptionId'],
+                'status' => 'paid',
+                'ended_at' => $newEndedAt,
+            ]);
         }
 
         $data['CardHolderMessage'] = Payment::ERROR_CODES[$data['ReasonCode'] ?? 0];
@@ -127,9 +172,9 @@ class CloudPaymentsController extends Controller
             'transaction_id' => $data['TransactionId'],
         ], [
             'subscription_id' => $subscription->id,
-            'customer_id' => $customer->id,
+            'customer_id' => $subscription->customer->id,
             'quantity' => 1,
-            'type' => $subscription->payment_type,
+            'type' => 'cloudpayments',
             'status' => $data['Status'],
             'amount' => $data['Amount'],
             'paided_at' => Carbon::createFromFormat('Y-m-d H:i:s', $data['DateTime'], 'UTC')->setTimezone('Asia/Almaty'),
@@ -139,27 +184,13 @@ class CloudPaymentsController extends Controller
             ],
         ]);
 
-        if ($data['Status'] == 'Completed' && $data['SubscriptionId']) {
-            $subscription->update([
-                'cp_subscription_id' => $data['SubscriptionId'],
-                'status' => 'paid',
-                'ended_at' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1),
-            ]);
-        }
-
         if (! isset($payment)) {
-            \Log::error('Не создался платеж. Transaction Id: ' . $data['TransactionId']);
+            throw new NoticeException('Не создался платеж. Transaction Id: ' . $data['TransactionId']);
         }
-
-        return response()->json([
-            'code' => 0,
-        ]);
     }
 
     public function confirmNotification(Request $request)
     {
-        \Log::info('confirm');
-        \Log::info($request->all());
         return response()->json([
             'code' => 0,
         ]);
@@ -167,8 +198,6 @@ class CloudPaymentsController extends Controller
 
     public function refundNotification(Request $request)
     {
-        \Log::info('refund');
-        \Log::info($request->all());
         return response()->json([
             'code' => 0,
         ]);
@@ -176,11 +205,8 @@ class CloudPaymentsController extends Controller
 
     public function cancelNotification(Request $request)
     {
-        \Log::info('cancel');
-        \Log::info($request->all());
         return response()->json([
             'code' => 0,
         ]);
     }
-
 }

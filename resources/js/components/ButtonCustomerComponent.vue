@@ -3,7 +3,7 @@
         <a data-toggle="modal" data-target="#modal-customer-create" class="btn btn-info text-white" title="Добавить">
             <i class="fa fa-plus"></i>
         </a>
-        <customer-component type-prop="create"></customer-component>
+        <customer-component type-prop="create" :customer-id-prop="'create'"></customer-component>
     </div>
 </template>
 

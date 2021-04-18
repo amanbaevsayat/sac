@@ -69,16 +69,16 @@ class PaymentFilter extends BaseFilter
     public function from($value)
     {
         if (is_numeric(strtotime($value))) {
-            $day = Carbon::parse($value)->startOfDay();
-            $this->builder->whereDate('paided_at', '>=', $day->format('Y-m-d 00:00:00'));
+            $day = Carbon::parse($value)->setTimezone('Asia/Almaty')->startOfDay();
+            $this->builder->whereDate('paided_at', '>=', $day);
         }
     }
 
     public function to($value)
     {
         if (is_numeric(strtotime($value))) {
-            $day = Carbon::parse($value)->endOfDay();
-            $this->builder->whereDate('paided_at', '<=', $day->format('Y-m-d 23:59:59'));
+            $day = Carbon::parse($value)->setTimezone('Asia/Almaty')->endOfDay();
+            $this->builder->whereDate('paided_at', '<=', $day);
         }
     }
 

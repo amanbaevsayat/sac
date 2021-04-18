@@ -1,78 +1,110 @@
 <template>
     <div class="container-fluid">
         <form :action="route">
-            <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
-            <div class="row">
-                <div class="col">
-                    <div class="card card-body">
-                        <div class="form-group">
-                            <label for="started_at" class="col-form-label">Выберите продукт</label>
-                            <select v-model="data.productId" name="productId" class="form-control">
-                                <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option }}</option>
-                            </select>
-                        </div>
+            <div>
+                <div class="card mb-2" id="filter">
+                    <div 
+                        style="line-height: 25px; cursor: pointer;" 
+                        @click="filterOpen = !filterOpen" 
+                        class="card-header py-1"
+                    >
+                        Фильтр
+                        <small class="float-right">
+                            <a id="filter-toggle" class="btn btn-default btn-sm" title="Скрыть/показать">
+                                <i class="fa fa-toggle-off " :class="{'fa-toggle-on': filterOpen}"></i>
+                            </a>
+                        </small>
                     </div>
-                </div>
-                <div class="col">
-                    <div class="card card-body">
-                        <div class="form-group">
-                            <label for="started_at" class="col-form-label">С</label>
-                            <datetime
-                                type="date"
-                                v-model="data.from"
-                                input-class="form-control"
-                                valueZone="Asia/Almaty"
-                                value-zone="Asia/Almaty"
-                                zone="Asia/Almaty"
-                                format="dd LLLL"
-                                :auto="true"
-                            ></datetime>
-                            <input type="hidden" name="from" :value="convertDate(data.from, 'YYYY-MM-DD')">
+                    <div class="card-body" v-show="filterOpen" :class="{slide: filterOpen}">
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="started_at" class="col-form-label">Выберите продукт</label>
+                                    <select v-model="data.productId" name="productId" class="form-control">
+                                        <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="started_at" class="col-form-label">С</label>
+                                    <datetime
+                                        type="date"
+                                        v-model="data.from"
+                                        input-class="form-control"
+                                        valueZone="Asia/Almaty"
+                                        value-zone="Asia/Almaty"
+                                        zone="Asia/Almaty"
+                                        format="dd LLLL"
+                                        :auto="true"
+                                    ></datetime>
+                                    <input type="hidden" name="from" :value="convertDate(data.from, 'YYYY-MM-DD')">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="started_at" class="col-form-label">По</label>
+                                    <datetime
+                                        type="date"
+                                        v-model="data.to"
+                                        input-class="form-control"
+                                        valueZone="Asia/Almaty"
+                                        value-zone="Asia/Almaty"
+                                        zone="Asia/Almaty"
+                                        format="dd LLLL"
+                                        :auto="true"
+                                    ></datetime>
+                                    <input type="hidden" name="to" :value="convertDate(data.to, 'YYYY-MM-DD')">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="started_at" class="col-form-label">Выберите период</label>
+                                    <select v-model="data.period" name="period" class="form-control">
+                                        <option v-for="(option, optionIndex) in periods" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card card-body">
-                        <div class="form-group">
-                            <label for="started_at" class="col-form-label">По</label>
-                            <datetime
-                                type="date"
-                                v-model="data.to"
-                                input-class="form-control"
-                                valueZone="Asia/Almaty"
-                                value-zone="Asia/Almaty"
-                                zone="Asia/Almaty"
-                                format="dd LLLL"
-                                :auto="true"
-                            ></datetime>
-                            <input type="hidden" name="to" :value="convertDate(data.to, 'YYYY-MM-DD')">
+                        <div class="row">
+                            <div class="col">
+                                <button style="margin-bottom: 15px;" type="submit" class="btn btn-primary">Перейти</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <button style="margin-bottom: 15px;" type="submit" class="btn btn-primary">Перейти</button>
+            
         </form>
 
         <div class="row" v-for="(chart, chartIndex) in charts" :key="chartIndex">
             <div class="col">
-                <div v-for="(item, seriesIndex) in chart.series" :key="seriesIndex">
-                    <div class="card card-body" v-if="item.editable == true">
-                        <h3>{{ item.name }}</h3>
-                        <div class="row">
-                            <div class="col-sm-3" v-for="(data, dataIndex) in item.data" :key="dataIndex">
-                                <div class="form-group">
-                                    <label for="form_name">{{ convertDate(data.x, 'LL') }}</label>
-                                    <input 
-                                        @change="inputChangeEvent($event, chartIndex, seriesIndex, dataIndex)" 
-                                        v-model="charts[chartIndex].series[seriesIndex].data[dataIndex]['y']" 
-                                        type="number" 
-                                        class="form-control" 
-                                        >
-                                    <div class="help-block with-errors"></div>
+                <div style="display: inline-block;margin-bottom: 10px;" v-for="(item, seriesIndex) in chart.series" :key="seriesIndex">
+                    <div v-if="item.editable == true">
+                        <b-button v-b-toggle="'collapse-' + chartIndex + '-' + seriesIndex" class="m-1">{{ item.name }}</b-button>
+
+                        <!-- Element to collapse -->
+                        <b-collapse :id="'collapse-' + chartIndex + '-' + seriesIndex">
+                            <b-card>
+                                <div class="row">
+                                    <div class="col-sm-3" v-for="(data, dataIndex) in item.data" :key="dataIndex">
+                                        <div class="form-group">
+                                            <label for="form_name">{{ convertDate(data.x, 'LL') }}</label>
+                                            <input 
+                                                @change="inputChangeEvent($event, chartIndex, seriesIndex, dataIndex)" 
+                                                v-model="charts[chartIndex].series[seriesIndex].data[dataIndex]['y']" 
+                                                type="number" 
+                                                class="form-control" 
+                                                >
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <button @click="saveCustomData(item)" class="btn btn-primary">Сохранить данные</button>
+                                <div>
+                                    <button @click="saveCustomData(item)" class="btn btn-primary">Сохранить данные</button>
+                                </div>
+                            </b-card>
+                        </b-collapse>
                     </div>
                 </div>
                 <div class="card card-body">
@@ -81,6 +113,9 @@
                         :updateArgs="[true, true, true]"
                         :ref="'chart-' + chartIndex"
                     ></highcharts>
+                    <div v-for="(item, seriesIndex) in chart.series" :key="seriesIndex" style="font-size: 11px">
+                        <p v-show="item.description" style="margin-bottom: 0px"><span :style="'font-size: 24px; color:' + item.color">•</span> - {{ item.description }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -95,6 +130,7 @@ import moment from 'moment-timezone';
         props: [
             'dataProp',
             'productsProp',
+            'periodsProp',
             'chartsProp',
             'routeProp'
         ],
@@ -103,14 +139,17 @@ import moment from 'moment-timezone';
         },
         data() {
             return {
+                filterOpen: false,
                 route: this.routeProp,
                 charts: this.chartsProp,
                 charts: [],
                 products: this.productsProp,
+                periods: this.periodsProp,
                 data: {
                     from: moment(this.dataProp.from).tz('Asia/Almaty').format(),
                     to: moment(this.dataProp.to).tz('Asia/Almaty').format(),
                     productId: this.dataProp.productId,
+                    period: this.dataProp.period,
                 },
                 spinnerData: {
                     loading: false,
@@ -134,7 +173,8 @@ import moment from 'moment-timezone';
                 this.spinnerData.loading = true;
                 let data = {
                     item: item,
-                    productId: this.data.productId
+                    productId: this.data.productId,
+                    period: this.data.period,
                 };
                 axios.post(`/statistics`, data)
                 .then(response => {

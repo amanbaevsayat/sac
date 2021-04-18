@@ -9,7 +9,9 @@ use App\Filters\SubscriptionFilter;
 use App\Http\Resources\SubscriptionCollection;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\UserLog;
 use App\Services\CloudPaymentsService;
+use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
 {
@@ -75,6 +77,11 @@ class SubscriptionController extends Controller
             [
                 'name' => 'cp_subscription_id',
                 'title' => 'Cloudpayment ID',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'id',
+                'title' => 'ID абонемента',
                 'type' => 'input',
             ],
         ];
@@ -181,12 +188,6 @@ class SubscriptionController extends Controller
     public function update(CreateSubscriptionRequest $request, Subscription $subscription)
     {
         access(['can-operator', 'can-head', 'can-host']);
-        if ($request->get('status') == 'refused') {
-            if ($subscription->cp_subscription_id) {
-                $cloudPaymentsService = new CloudPaymentsService();
-                $cloudPaymentsService->cancelSubscription($subscription->cp_subscription_id);
-            }
-        }
 
         $subscription->update([
             'status' => $request->get('status'),
@@ -212,11 +213,6 @@ class SubscriptionController extends Controller
     public function destroy(Subscription $subscription, Request $request)
     {
         access(['can-operator', 'can-head', 'can-host']);
-
-        if ($subscription->cp_subscription_id) {
-            $cloudPaymentsService = new CloudPaymentsService();
-            $cloudPaymentsService->cancelSubscription($subscription->cp_subscription_id);
-        }
 
         $subscription->delete();
 

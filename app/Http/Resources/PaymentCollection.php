@@ -26,8 +26,14 @@ class PaymentCollection extends ResourceCollection
                     'key' => 'id',
                 ],
                 [
+                    'title' => 'Статус абонемента',
+                ],
+                [
                     'title' => 'Клиент',
                     'key' => 'customer_id',
+                ],
+                [
+                    'title' => 'Телефон',
                 ],
                 [
                     'title' => 'Абонемент',
@@ -65,14 +71,10 @@ class PaymentCollection extends ResourceCollection
                     'title' => 'По',
                     'key' => 'to',
                 ],
-                // [
-                //     'title' => 'Интервал списания',
-                //     'key' => 'interval',
-                // ],
-                // [
-                //     'title' => 'Период списания',
-                //     'key' => 'period',
-                // ],
+                [
+                    'title' => 'Transaction ID',
+                    'key' => 'transaction_id',
+                ],
             ],
             'pagination' => [
                 'current_page' => $this->currentPage(),

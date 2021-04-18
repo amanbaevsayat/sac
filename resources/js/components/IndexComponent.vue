@@ -156,14 +156,16 @@
                                     'status-waiting': item.value == 'waiting' && (prefix == 'subscriptions' || prefix == 'notifications'), 
                                     'status-paid': item.value == 'paid' && (prefix == 'subscriptions' || prefix == 'notifications'),
                                     'status-refused': item.value == 'refused' && (prefix == 'subscriptions' || prefix == 'notifications'),
-                                    'status-frozen': item.value == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications')
+                                    'status-frozen': item.value == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                    'status-rejected': item.value == 'rejected' && (prefix == 'subscriptions' || prefix == 'notifications')
                                 }">
                                     <option :class="{ 
                                         'status-tries': collectionIndex == 'tries' && (prefix == 'subscriptions' || prefix == 'notifications'), 
                                         'status-waiting': collectionIndex == 'waiting' && (prefix == 'subscriptions' || prefix == 'notifications'), 
                                         'status-paid': collectionIndex == 'paid' && (prefix == 'subscriptions' || prefix == 'notifications'),
                                         'status-refused': collectionIndex == 'refused' && (prefix == 'subscriptions' || prefix == 'notifications'),
-                                        'status-frozen': collectionIndex == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications')
+                                        'status-frozen': collectionIndex == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                        'status-rejected': collectionIndex == 'rejected' && (prefix == 'subscriptions' || prefix == 'notifications')
                                     }" v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
                                         {{ collection }}
                                     </option>
@@ -201,10 +203,13 @@
                                         'status-waiting': item.value == 'Жду оплату' && prefix == 'subscriptions', 
                                         'status-paid': item.value == 'Оплачено' && prefix == 'subscriptions',
                                         'status-refused': item.value == 'Отказался' && prefix == 'subscriptions',
-                                        'status-frozen': item.value == 'Заморожен' && prefix == 'subscriptions'
+                                        'status-frozen': item.value == 'Заморожен' && prefix == 'subscriptions',
+                                        'status-rejected': item.value == 'Отклонена (3 раза)' && prefix == 'subscriptions'
                                     }">
                                         {{ item.value }}
                                     </span>
+                                </div>
+                                <div class="custom-text" v-else-if="item.type == 'html'" v-html="item.value">
                                 </div>
                                 <div class="custom-text" v-else>
                                     {{ item.value }}
@@ -348,6 +353,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 });
             }, 350),
             openModal(customerId) {
+                this.customerId = null;
                 this.customerId = customerId;
             },
             saveItem(items, id) {
@@ -579,6 +585,9 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
 }
 .status-frozen {
     background: #e44361ab;
+}
+.status-rejected {
+    background: #e665658f;
 }
 .status {
     padding: 2px 6px;

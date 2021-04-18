@@ -21,6 +21,9 @@ class SubscriptionCollection extends ResourceCollection
             ],
             'dataTitles' => [
                 [
+                    'title' => 'ID',
+                ],
+                [
                     'title' => 'Клиенты',
                 ],
                 [

@@ -78,7 +78,8 @@ $( "#cloudpayment-widget-form" ).submit(function( event ) {
         amount: {{ $payment->amount }}, //сумма
         currency: 'KZT', //валюта
         email: null, // Email
-        accountId: '{{ $customer->phone }}', //идентификатор плательщика (обязательно для создания подписки)
+        skin: "modern",
+        accountId: '{{ $subscription->id }}', //идентификатор плательщика (обязательно для создания подписки)
         data: data
     },
     function (options) { // success

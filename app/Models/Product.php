@@ -16,6 +16,11 @@ class Product extends Model
         'code',
         'title',
         'description',
+        'data',
+    ];
+
+    protected $casts = [
+        'data' => 'array',
     ];
 
     public function subscriptions()

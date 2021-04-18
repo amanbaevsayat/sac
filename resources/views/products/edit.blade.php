@@ -37,6 +37,41 @@
                 </div>
             </div>
 
+            <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Имя тренера</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ $product->data['name'] ?? null }}" name="data[name]">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Описание тренера</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ $product->data['position'] ?? null }}" name="data[position]">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Телефон</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ $product->data['phone'] ?? null }}" name="data[phone]">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Instagram (account)</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ $product->data['instagram'] ?? null }}" name="data[instagram]">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="period" class="col-sm-2 col-form-label">Добавить картинку</label>
+                <div class="col-sm-10">
+                    <upload-file name-prop="data[image]" value-prop="{{ $product->data['image'] ?? null }}"></upload-file>
+                </div>
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Сохранить" class="btn btn-success" />
             </div>

@@ -48,42 +48,22 @@ class UpdateNotifications extends Command
     public function handle()
     {
         $now = Carbon::now()->addDays(2)->toDateString();
-        $threeDaysAhead = Carbon::now()->addDays(4)->toDateString();
+        $threeDaysAhead = Carbon::now()->addDays(6)->toDateString();
 
-        $secondTypePayments = Payment::where('type', 'cloudpayments')->whereStatus('Declined')->whereHas('subscription', function (Builder $query) {
-            $query->whereIn('status', ['tries', 'waiting', 'paid', 'rejected'])->whereHas('payments', function ($q) {
-                $q->where('status', 'Completed');
-            });
-        })->get();
+        $secondTypePayments = Payment::where('type', 'cloudpayments')->whereHas('subscription', function ($q) {
+            $q->where('status', '!=', 'refused');
+        })->whereStatus('Declined')->get();
 
         foreach ($secondTypePayments as $payment) {
             Notification::updateOrCreate([
                 'type' => Notification::TYPE_SUBSCRIPTION_ERRORS,
                 'subscription_id' => $payment->subscription->id,
+                'payment_id' => $payment->id,
             ], [
                 'product_id' => $payment->subscription->product->id,
                 'data' => [
                     'error_description' => $payment->data['cloudpayments']['CardHolderMessage'] ?? null,
                     'paided_at' => $payment->paided_at,
-                ],
-            ]);
-        }
-
-        $thirdTypePayments = Payment::where('type', 'cloudpayments')->whereStatus('Declined')->whereHas('subscription', function (Builder $query) {
-            $query->whereIn('status', ['tries', 'waiting', 'paid', 'rejected'])->whereDoesntHave('payments', function (Builder $q) {
-                $q->where('status', 'Completed');
-            });
-        })->get();
-
-        foreach ($thirdTypePayments as $payment) {
-            $notification = Notification::updateOrCreate([
-                'type' => Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS,
-                'subscription_id' => $payment->subscription->id,
-            ], [
-                'product_id' => $payment->subscription->product->id,
-                'data' => [
-                    'error_description' => $payment->data['cloudpayments']['CardHolderMessage'] ?? null,
-                    'paided_at' => $payment->paided_at ?? null,
                 ],
             ]);
         }
@@ -130,5 +110,19 @@ class UpdateNotifications extends Command
             ]);
         }
         Notification::where('type', Notification::TYPE_ENDED_TRIAL_PERIOD)->whereNotIn('subscription_id', $sixthTypeSubscriptionsIds)->delete();
+
+        $seventhTypeSubscriptions = Subscription::whereIn('status', ['waiting', 'rejected'])->wherePaymentType('cloudpayments')->get();
+        $seventhTypeSubscriptionsIds = [];
+        foreach ($seventhTypeSubscriptions as $subscription) {
+            $seventhTypeSubscriptionsIds[] = $subscription->id;
+            Notification::updateOrCreate([
+                'type' => Notification::WAITING_PAYMENT_CP,
+                'subscription_id' => $subscription->id,
+            ], [
+                'product_id' => $subscription->product->id,
+                'data' => [],
+            ]);
+        }
+        Notification::where('type', Notification::WAITING_PAYMENT_CP)->whereNotIn('subscription_id', $seventhTypeSubscriptionsIds)->delete();
     }
 }

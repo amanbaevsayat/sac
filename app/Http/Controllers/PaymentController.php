@@ -10,8 +10,10 @@ use App\Http\Resources\PaymentCollection;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Subscription;
+use App\Models\UserLog;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
@@ -73,6 +75,11 @@ class PaymentController extends Controller
             [
                 'name' => 'id',
                 'title' => 'ID',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'transaction_id',
+                'title' => 'Transaction ID',
                 'type' => 'input',
             ],
             [
@@ -216,7 +223,6 @@ class PaymentController extends Controller
     public function destroy(Payment $payment, Request $request)
     {
         access(['can-operator', 'can-head', 'can-host']);
-
         $payment->delete();
         $message = 'Платеж успешно удален.';
         if ($request->ajax()) {

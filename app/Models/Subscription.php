@@ -7,12 +7,12 @@ use App\Services\CloudPaymentsService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 class Subscription extends Model
 {
-    use HasFactory, SoftDeletes, ModelBase, LogsActivity;
+    use HasFactory, SoftDeletes, ModelBase;
 
     const CLOUDPAYMENTS_STATUSES = [
         'Active' => 'paid',
@@ -54,25 +54,6 @@ class Subscription extends Model
         'cp_subscription_id',
     ];
 
-    protected static $logAttributes = [
-        'started_at',
-        'paused_at',
-        'tries_at',
-        'frozen_at',
-        'defrozen_at',
-        'ended_at',
-        'customer_id',
-        'price',
-        'description',
-        'status',
-        'payment_type',
-        'cp_subscription_id',
-    ];
-
-    protected static $ignoreChangedAttributes = [];
-
-    protected static $logOnlyDirty = true;
-
     protected $dates = [
         'started_at',
         'paused_at',
@@ -89,15 +70,92 @@ class Subscription extends Model
     protected static function boot() {
         parent::boot();
 
-        // auto-sets values on creation
         static::creating(function ($query) {
             $data = [
                 'cloudpayments' => $query->data['cloudpayments'] ?? [],
             ];
             $query->data = $data;
         });
+
+        static::updating(function ($subscription) {
+            $oldEndedAt = Carbon::parse($subscription->getOriginal('ended_at') ?? null);
+            $endedAt = Carbon::parse($subscription->ended_at);
+            $isEqualTwoEndedAt = Carbon::parse($subscription->getOriginal('ended_at') ?? null)->format('Y-m-d') == Carbon::parse($subscription->ended_at ?? null)->format('Y-m-d');
+            if (! $isEqualTwoEndedAt) {
+                if ($subscription->status != 'refused' && $subscription->payment_type == 'cloudpayments' && isset($subscription->cp_subscription_id)) {
+                    $cloudPaymentsService = new CloudPaymentsService();
+                    $data = [
+                        'Id' => $subscription->cp_subscription_id,
+                        'StartDate' => Carbon::parse($endedAt)->format('Y-m-d\TH:i:s.u'),
+                    ];
+
+                    $response = $cloudPaymentsService->updateSubscription($data);
+
+                    UserLog::create([
+                        'subscription_id' => $subscription->id,
+                        'user_id' => Auth::id(),
+                        'type' => UserLog::CP_NEXT_PAYMENT_DATE,
+                        'data' => [
+                            'old' => $oldEndedAt,
+                            'new' => Carbon::parse($endedAt),
+                            'request' => $data,
+                            'response' => $response,
+                        ],
+                    ]);
+                } else {
+                    UserLog::create([
+                        'subscription_id' => $subscription->id,
+                        'user_id' => Auth::id(),
+                        'type' => UserLog::END_DATE,
+                        'data' => [
+                            'old' => $oldEndedAt,
+                            'new' => $endedAt,
+                        ],
+                    ]);
+                }
+            }
+
+            if ($subscription->status == 'refused') {
+                $subscription->cancelCPSubscription();
+            }
+
+            if ($subscription->getOriginal('status') != $subscription->status) {
+                UserLog::create([
+                    'subscription_id' => $subscription->id,
+                    'user_id' => Auth::id(),
+                    'type' => UserLog::SUBSCRIPTION_STATUS,
+                    'data' => [
+                        'old' => $subscription->getOriginal('status'),
+                        'new' => $subscription->status,
+                    ],
+                ]);
+            }
+
+            if ($subscription->getOriginal('payment_type') != $subscription->payment_type) {
+                UserLog::create([
+                    'subscription_id' => $subscription->id,
+                    'user_id' => Auth::id(),
+                    'type' => UserLog::PAYMENT_TYPE,
+                    'data' => [
+                        'old' => $subscription->getOriginal('payment_type'),
+                        'new' => $subscription->payment_type,
+                    ],
+                ]);
+
+                if ($subscription->getOriginal('payment_type') == 'cloudpayments') {
+                    $subscription->cancelCPSubscription();
+                }
+            }
+        });
     
         static::deleting(function($subscription) {
+            UserLog::create([
+                'subscription_id' => $subscription->id,
+                'user_id' => Auth::id(),
+                'type' => UserLog::DELETE_SUBSCRIPTION,
+                'data' => [],
+            ]);
+            $subscription->cancelCPSubscription();
             $subscription->payments()->delete();
         });
     }
@@ -191,7 +249,16 @@ class Subscription extends Model
     {
         if ($this->cp_subscription_id) {
             $cloudPaymentsService = new CloudPaymentsService();
-            $cloudPaymentsService->cancelSubscription($this->cp_subscription_id);
+            $response = $cloudPaymentsService->cancelSubscription($this->cp_subscription_id);
+            UserLog::create([
+                'subscription_id' => $this->id,
+                'user_id' => Auth::id(),
+                'type' => UserLog::CP_UNSUBSCRIBE,
+                'data' => [
+                    'request' => $this->cp_subscription_id,
+                    'response' => $response,
+                ],
+            ]);
         }
     }
 }

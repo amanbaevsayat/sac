@@ -112,9 +112,9 @@ Highcharts.setOptions({
     },
     time: {
         timezone: 'Asia/Almaty',
-        // timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timezoneOffset: -1160,
-        useUTC: false,
+        // // timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezoneOffset: -1860,
+        // useUTC: false,
     },
     global: {
         /**

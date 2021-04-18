@@ -52,11 +52,9 @@ class NotificationResource extends JsonResource
             ],
         ];
 
-        // if (in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || in_array(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
         $data['product_id'] = [
             'value' => $this->subscription->product->title ?? null,
         ];
-        // }
 
         $data['days_left'] = [
             'value' => $this->subscription->daysLeft(),
@@ -86,7 +84,7 @@ class NotificationResource extends JsonResource
                 'value' => ($this->type == Notification::TYPE_CANCEL_SUBSCRIPTION) ? strftime('%d %b, %H:%M', (new \DateTime($this->created_at))->getTimestamp()) : null,
             ];
         }
-        if (in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || in_array(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
+        if (in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
             $data['error_description'] = [
                 'value' => $this->data['error_description'] ?? null,
             ];
@@ -100,7 +98,7 @@ class NotificationResource extends JsonResource
             'type' => 'checkbox'
         ];
 
-        if (in_array(Notification::TYPE_CANCEL_SUBSCRIPTION, $types) || in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || in_array(Notification::TYPE_FIRST_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
+        if (in_array(Notification::TYPE_CANCEL_SUBSCRIPTION, $types) || in_array(Notification::TYPE_SUBSCRIPTION_ERRORS, $types) || $typeEmpty) {
             
             $data['processed'] = [
                 'value' => $this->processed,

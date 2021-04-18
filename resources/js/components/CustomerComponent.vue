@@ -3,6 +3,7 @@
         <div class="modal bd-example-modal-lg" :id="'modal-customer-' + type">
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
+                    <pulse-loader style="z-index: 999; background: rgba(0, 0, 0, 0.19); height: 100%; line-height: 100vh;" class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
                     <div class="card" style="padding-bottom: 0px">
                         <div class="card-body">
                             <div class="row">
@@ -96,61 +97,44 @@
                                             :auto="true"
                                         ></datetime>
                                     </div>
-                                    <div class="form-group col-sm-6" v-if="subscription.payment_type == 'tries'">
-                                        <label for="tries_at" class="col-form-label">Дата окончания</label>
-                                        <datetime
-                                            :name="'subscriptions.' + subIndex + '.tries_at'"
-                                            type="date"
-                                            v-model="subscription.tries_at"
-                                            input-class="col-sm-10 my-class form-control"
-                                            valueZone="Asia/Almaty"
-                                            value-zone="Asia/Almaty"
-                                            zone="Asia/Almaty"
-                                            format="dd LLLL"
-                                            :auto="true"
-                                        ></datetime>
-                                    </div>
-                                    <div class="form-group col-sm-6" v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
-                                        <label for="ended_at" class="col-form-label">Дата окончания</label>
-                                        <datetime
-                                            :name="'subscriptions.' + subIndex + '.ended_at'"
-                                            type="date"
-                                            v-model="subscription.ended_at"
-                                            input-class="col-sm-10 my-class form-control"
-                                            valueZone="Asia/Almaty"
-                                            value-zone="Asia/Almaty"
-                                            zone="Asia/Almaty"
-                                            format="dd LLLL"
-                                            :auto="true"
-                                        ></datetime>
-                                    </div>
-                                    <div class="form-group col-sm-6" v-if="subscription.status == 'frozen'">
-                                        <label for="frozen_at" class="col-form-label">Дата заморозки</label>
-                                        <datetime
-                                            :name="'subscriptions.' + subIndex + '.frozen_at'"
-                                            type="date"
-                                            v-model="subscription.frozen_at"
-                                            input-class="col-sm-10 my-class form-control"
-                                            valueZone="Asia/Almaty"
-                                            value-zone="Asia/Almaty"
-                                            zone="Asia/Almaty"
-                                            format="dd LLLL"
-                                            :auto="true"
-                                        ></datetime>
-                                    </div>
-                                    <div class="form-group col-sm-6" v-if="subscription.status == 'frozen'">
-                                        <label for="defrozen_at" class="col-form-label">Дата разморозки</label>
-                                        <datetime
-                                            :name="'subscriptions.' + subIndex + '.defrozen_at'"
-                                            type="date"
-                                            v-model="subscription.defrozen_at"
-                                            input-class="col-sm-10 my-class form-control"
-                                            valueZone="Asia/Almaty"
-                                            value-zone="Asia/Almaty"
-                                            zone="Asia/Almaty"
-                                            format="dd LLLL"
-                                            :auto="true"
-                                        ></datetime>
+                                    <div class="form-group col-sm-6">
+                                        <label for="tries_at" class="col-form-label">Дата окончания абонемента и следующего платежа</label>
+                                        <div v-if="subscription.payment_type == 'tries'">
+                                            <div v-show="!subscription.is_edit_ended_at">
+                                                <span class="ended_at-span">{{ showDate(subscription.tries_at) }}</span>
+                                                <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
+                                            </div>
+                                            <datetime
+                                                v-show="subscription.is_edit_ended_at"
+                                                :name="'subscriptions.' + subIndex + '.tries_at'"
+                                                type="date"
+                                                v-model="subscription.tries_at"
+                                                input-class="col-sm-10 my-class form-control"
+                                                valueZone="Asia/Almaty"
+                                                value-zone="Asia/Almaty"
+                                                zone="Asia/Almaty"
+                                                format="dd LLLL"
+                                                :auto="true"
+                                            ></datetime>
+                                        </div>
+                                        <div v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
+                                            <div v-show="!subscription.is_edit_ended_at">
+                                                <span class="ended_at-span">{{ showDate(subscription.ended_at) }}</span>
+                                                <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
+                                            </div>
+                                            <datetime
+                                                v-show="subscription.is_edit_ended_at"
+                                                :name="'subscriptions.' + subIndex + '.ended_at'"
+                                                type="date"
+                                                v-model="subscription.ended_at"
+                                                input-class="col-sm-10 my-class form-control"
+                                                valueZone="Asia/Almaty"
+                                                value-zone="Asia/Almaty"
+                                                zone="Asia/Almaty"
+                                                format="dd LLLL"
+                                                :auto="true"
+                                            ></datetime>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-bottom: 15px">
@@ -187,42 +171,6 @@
                                                 <footer class="modal-footer">
                                                     <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
                                                     <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
-                                                </footer>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6" v-if="subscription.payment_type == 'cloudpayments'">
-                                        <button data-toggle="modal" class="btn btn-danger" @click="showCloudpaymentsModal(subIndex)">Cloudpayments - Изменить дату следующего платежа</button>
-                                    </div>
-                                    <div v-if="subscription.payment_type == 'cloudpayments'" :id="'modalCloudpayments-' + subIndex" class="modal">
-                                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalLongTitle">Изменить дату следующего платежа</h5>
-                                                    <button type="button" class="close" @click="hideCloudpaymentsModal(subIndex)">
-                                                    <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="form-group col-sm-12">
-                                                            <label for="check" class="col-form-label">Дата следующего платежа</label>
-                                                            <datetime
-                                                                :name="'subscriptions.' + subIndex + '.newPayment.from'"
-                                                                type="date"
-                                                                v-model="subscription.next_transaction_date"
-                                                                input-class="col-sm-10 my-class form-control"
-                                                                valueZone="Asia/Almaty"
-                                                                value-zone="Asia/Almaty"
-                                                                zone="Asia/Almaty"
-                                                                format="dd LLLL"
-                                                                :auto="true"
-                                                            ></datetime>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <footer class="modal-footer">
-                                                    <button @click="hideCloudpaymentsModal(subIndex)" type="button" class="btn btn-primary">Сохранить</button>
                                                 </footer>
                                             </div>
                                         </div>
@@ -306,6 +254,11 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div v-show="type == 'edit'" class="row" style="margin-bottom: 15px;">
+                                    <div class="col-sm-12">
+                                        <a target="_blank" :href="'/userlogs?subscription_id=' + subscription.id">Логи абонемента</a>
+                                    </div>
+                                </div>
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <ul class="list-group">
@@ -325,6 +278,7 @@
                                         </ul>
                                     </div>
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -389,14 +343,21 @@ export default {
                 frozen: 'green',
                 transfer: 'red',
                 cloudpayments: 'yellow',
-            }
+            },
+            spinnerData: {
+                loading: false,
+                color: '#6cb2eb',
+                size: '100px',
+            },
         }
     },
     watch: {
         customerIdProp: function(newVal, oldVal) { // watch it
             console.log('Prop changed: ', newVal, ' | was: ', oldVal);
             this.customerId = newVal;
-            this.getCustomerWithData();
+            if (this.customerId !== null) {
+                this.getCustomerWithData();
+            }
         },
         customer: function (newVal, oldVal) {
             console.log('Customer changed: ', newVal, ' | was: ', oldVal);
@@ -408,9 +369,10 @@ export default {
     },
     mounted() {
         if (this.type == 'create') {
+            console.log('create');
             this.addProduct();
         } else if (this.type == 'edit') {
-
+            console.log('edit');
         }
 
         this.getOptions();
@@ -475,7 +437,7 @@ export default {
             }
         },
         showDate(date) {
-            return moment(date).locale('ru').format('DD MMM');
+            return moment(date).locale('ru').format('DD MMM YY');
         },
         closeModal() {
             // this.customer = {
@@ -528,9 +490,11 @@ export default {
             }
         },
         getCustomerWithData() {
+            this.spinnerData.loading = true;
             axios.get('/customers/' + this.customerId + '/with-data').then(response => {
                 let data = response.data.data;
                 if (response.data.data) {
+                    this.spinnerData.loading = false;
                     console.log(data.phone, new Date());
                     if (data.phone.length == 10) {
                         data.phone = '+7' + data.phone;
@@ -580,9 +544,17 @@ export default {
         submit() {
             this.spinnerData.loading = true;
             let data = {
-                customer: this.customer,
+                customer: {
+                    name: this.customer.name,
+                    phone: this.customer.phone,
+                    email: this.customer.email,
+                    comments: this.customer.comments,
+                },
                 subscriptions: this.subscriptions,
             };
+            if (this.type != 'create') {
+                data.customer.id = this.customer.id;
+            }
             this.removeClassInvalid();
             axios.post('/customers/update-with-data', data).then(response => {
                 this.spinnerData.loading = false;
@@ -590,6 +562,7 @@ export default {
                 let customer = response.data.customer;
                 if (response.data.customer) {
                     this.customer = {
+                        id: customer.id,
                         name: customer.name,
                         phone: customer.phone,
                         email: customer.email,
@@ -601,6 +574,17 @@ export default {
 
                 this.subscriptions.forEach((value, index, self) => {
                     if (value.payment_type != 'cloudpayments') {
+                        this.customer = {
+                            name: '',
+                            phone: '',
+                            email: '',
+                            comments: '',
+                        };
+
+                        this.subscriptions = [];
+                        this.addProduct();
+                        this.customerId = null;
+                        this.customerIdProp = null;
                         $('#modal-customer-create').modal('hide');
                         $('#modal-customer-edit').modal('hide');
                     }
@@ -671,7 +655,6 @@ export default {
                 payment_type: null,
                 started_at: now.format(),
                 paused_at: null,
-                next_transaction_date: null,
                 ended_at: moment().format(),
                 frozen_at: null,
                 defrozen_at: null,
@@ -715,6 +698,11 @@ export default {
 }
 </script>
 <style scoped>
+.ended_at-span {
+    padding: 5px 0px;
+    padding-right: 10px;
+    display: inline-block;
+}
 .v-spinner {
     width: 100%;
     height: 100%;

@@ -19,6 +19,7 @@ class SubscriptionResource extends JsonResource
         $data = [
             'id' => $this->id,
             'product_id'    => $this->product_id,
+            'is_edit_ended_at'  => false,
             'price'         => $this->price,
             'payment_type'  => $this->payment_type,
             'started_at'    => $this->started_at ? date(DATE_ATOM, strtotime($this->started_at)) : null,
