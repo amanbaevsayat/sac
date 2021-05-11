@@ -24,12 +24,15 @@ class CreatePaymentRequest extends FormRequest
     public function rules()
     {
         return [
-            'customer_id' => 'required',
-            'subscription_id' => 'required',
-            'type' => 'required',
-            'start_date' => 'date|nullable|required_if:recurrent,on',
-            'period' => 'required_if:recurrent,on',
-            'interval' => 'required_if:recurrent,on',
+            'amount' => 'required',
+            // 'from' => 'required',
+            // 'to' => 'required',
+            'quantity' => 'required',
+            'file' => 'required_if:type,==,transfer',
+            // 'type' => 'required',
+            // 'start_date' => 'date|nullable|required_if:recurrent,on',
+            // 'period' => 'required_if:recurrent,on',
+            // 'interval' => 'required_if:recurrent,on',
         ];
     }
 

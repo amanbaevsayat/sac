@@ -17,7 +17,7 @@
                     </div>
                     <div class="card-body" v-show="filterOpen" :class="{slide: filterOpen}">
                         <div class="row">
-                            <div class="col-3" v-for="(filter, filterIndex) in mainFilters" :key="filterIndex">
+                            <div class="col-4" v-for="(filter, filterIndex) in mainFilters" :key="filterIndex">
                                 <div class="form-group">
                                     <label for="subscriptionStatus">{{ filter.title }}</label>
                                     <div v-if="filter.type == 'select'">
@@ -33,6 +33,9 @@
                                         <!-- <v-select v-model="queryParams[filter.name]" :options="filter.options" multiple :reduce="field => field.value" :filterable="false">
                                             
                                         </v-select> -->
+                                    </div>
+                                    <div v-if="filter.type == 'checkbox'">
+                                        <input @change="changeFilterValue($event, filter.name, filter.type)" type="checkbox" :name="filter.name" :value="queryParams[filter.name]">
                                     </div>
                                     <div v-if="filter.type == 'select-search'">
                                         <v-select v-model="queryParams[filter.name]" :reduce="field => field.value" :filterable="false" :options="options[filter.key]" @search="onSearch(...arguments, filter.key)">
@@ -53,6 +56,30 @@
                                     </div>
                                     <div v-if="filter.type == 'input'">
                                         <input class="form-control" type="text" :name="filter.name" :value="queryParams[filter.name]" @change="changeFilterValue($event, filter.name, filter.type)">
+                                    </div>
+                                    <div v-if="filter.type == 'datetime'">
+                                        <datetime
+                                            type="datetime"
+                                            :name="filter.name"
+                                            v-model="queryParams[filter.name]"
+                                            input-class="form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            :auto="true"
+                                        ></datetime>
+                                    </div>
+                                    <div v-if="filter.type == 'date'">
+                                        <datetime
+                                            type="date"
+                                            :name="filter.name"
+                                            v-model="queryParams[filter.name]"
+                                            input-class="form-control"
+                                            valueZone="Asia/Almaty"
+                                            value-zone="Asia/Almaty"
+                                            zone="Asia/Almaty"
+                                            :auto="true"
+                                        ></datetime>
                                     </div>
                                 </div>
                             </div>
@@ -80,7 +107,7 @@
                 <button v-if="mainFilters.length > 0 || secondFilters.length > 0" type="button" class="btn btn-success btn-sm" @click="applyFilter()">Найти</button>
                 <button v-if="mainFilters.length > 0 || secondFilters.length > 0" type="button" style="margin: 0 7px" class="btn btn-dark btn-sm" @click="resetFilter()">Сброс фильтра</button>
                 <button-customer-component v-if="prefix == 'customers' || prefix == 'subscriptions'"></button-customer-component>
-                <a v-else :href="createLink" class="btn btn-info text-white" title="Добавить">
+                <a v-else-if="prefix != 'payments'" :href="createLink" class="btn btn-info text-white" title="Добавить">
                     <i class="fa fa-plus"></i>
                 </a>
                 <div style="flex: 0 1 auto; margin-left: 7px; line-height: 28px; margin-right: 10px;">
@@ -90,23 +117,24 @@
                 </div>
             </div>
         </div>
-        <div style="overflow: hidden!important" class="table-responsive bg-white">
+        <div class="table-responsive bg-white">
             <pulse-loader class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
             <table style="overflow: hidden" class="table table-striped table-sm">
                 <thead>
                     <tr>
                         <th scope="col">
-                            <a class="thead-title">
+                            <span>
                                 #
-                            </a>
+                            </span>
                         </th>
-                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex">
-                            <a class="thead-title" @click="changeSortQueryParams(item.key)">
+                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex" :style="{width: item.width, 'text-align': item.textAlign}">
+                            <a v-if="item.key" class="thead-title" @click="changeSortQueryParams(item.key)">
                                 {{ item.title }}
                             </a>
+                            <span v-else>{{ item.title }}</span>
                         </th>
                         <th scope="col">
-                            <i class="fa fa-cog"></i>
+                            <!-- <i class="fa fa-cog"></i> -->
                         </th>
                     </tr>
                 </thead>
@@ -119,10 +147,26 @@
                                 </div>
                             </div>
                         </td>
-                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link' }">
-                            <div v-if="item.type == 'select'">
-                                <select :name="name" v-model="item.value" class="form-control form-control-sm">
-                                    <option v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
+                        <td v-for="(item, name) in items" :key="name" :class="{ editable: item.type, link: item.type == 'link', tdhidden: item.type == 'hidden' }" :style="{'text-align': item.textAlign}">
+                            <div v-if="item.type == 'hidden'">
+                            </div>
+                            <div v-else-if="item.type == 'select'">
+                                <select :name="name" v-model="item.value" class="form-control form-control-custom" :class="{ 
+                                    'status-tries': item.value == 'tries' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                    'status-waiting': item.value == 'waiting' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                    'status-paid': item.value == 'paid' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                    'status-refused': item.value == 'refused' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                    'status-frozen': item.value == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                    'status-rejected': item.value == 'rejected' && (prefix == 'subscriptions' || prefix == 'notifications')
+                                }">
+                                    <option :class="{ 
+                                        'status-tries': collectionIndex == 'tries' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                        'status-waiting': collectionIndex == 'waiting' && (prefix == 'subscriptions' || prefix == 'notifications'), 
+                                        'status-paid': collectionIndex == 'paid' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                        'status-refused': collectionIndex == 'refused' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                        'status-frozen': collectionIndex == 'frozen' && (prefix == 'subscriptions' || prefix == 'notifications'),
+                                        'status-rejected': collectionIndex == 'rejected' && (prefix == 'subscriptions' || prefix == 'notifications')
+                                    }" v-for="(collection, collectionIndex) in others[item.collection]" :key="collectionIndex" :value="collectionIndex">
                                         {{ collection }}
                                     </option>
                                 </select>
@@ -146,25 +190,45 @@
                                     format="dd LLLL"
                                 ></datetime>
                             </div>
+                            <div v-else-if="item.type == 'checkbox'">
+                                <input type="checkbox"
+                                    :name="name"
+                                    v-model="item.value" 
+                                    @change="saveItem(items, items.id.value)">
+                            </div>
                             <div v-else>
-                                <div class="custom-text">
+                                <div class="custom-text" v-if="name == 'status'">
+                                    <span class="status" :class="{ 
+                                        'status-tries': item.value == 'Пробует' && prefix == 'subscriptions', 
+                                        'status-waiting': item.value == 'Жду оплату' && prefix == 'subscriptions', 
+                                        'status-paid': item.value == 'Оплачено' && prefix == 'subscriptions',
+                                        'status-refused': item.value == 'Отказался' && prefix == 'subscriptions',
+                                        'status-frozen': item.value == 'Заморожен' && prefix == 'subscriptions',
+                                        'status-rejected': item.value == 'Отклонена (3 раза)' && prefix == 'subscriptions'
+                                    }">
+                                        {{ item.value }}
+                                    </span>
+                                </div>
+                                <div class="custom-text" v-else-if="item.type == 'html'" v-html="item.value">
+                                </div>
+                                <div class="custom-text" v-else>
                                     {{ item.value }}
                                 </div>
                             </div>
                         </td>
-                        <td class="text-right">
-                            <button @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
+                        <td class="text-right" v-if="prefix != 'payments'">
+                            <button v-if="prefix == 'subscriptions' || prefix == 'notifications'" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
-                            <div class="dropdown btn-group" role="group">
+                            <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions' && prefix != 'notifications'">
                                 <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" :id="'dropdownMenuButton' + itemsIndex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="fa fa-cog"></i>
                                 </button>
                                 <div class="dropdown-menu" :aria-labelledby="'dropdownMenuButton' + itemsIndex">
-                                    <a :href="'/'+ prefix +'/'+ items.id.value +'/edit'" class="dropdown-item" title="Редактировать">
+                                    <a v-if="prefix != 'payments'" :href="'/'+ prefix +'/'+ items.id.value +'/edit'" class="dropdown-item" title="Редактировать">
                                         Редактировать
                                     </a>
-                                    <a :href="'/'+ prefix +'/'+ items.id.value" class="dropdown-item" title="Подробнее">
+                                    <a v-if="prefix != 'users'" :href="'/'+ prefix +'/'+ items.id.value" class="dropdown-item" title="Подробнее">
                                         Подробнее
                                     </a>
                                 </div>
@@ -256,7 +320,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 this.spinnerData.loading = true;
                 this.getFilters();
                 // this.setQueryParams();
-                this.getData();
+                // this.getData();
             });
             // let externalScript = document.createElement('script');
             // externalScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments');
@@ -266,6 +330,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
             inputSearch(event, filterName, filterType, type) {
                 console.log(type);
                 this.queryParams[filterName] = event.target.value;
+                this.queryParams.page = 1;
                 this.setAddressBar();
                 if (event.target.value.length > 1) {
                     this.getData();
@@ -288,6 +353,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 });
             }, 350),
             openModal(customerId) {
+                this.customerId = null;
                 this.customerId = customerId;
             },
             saveItem(items, id) {
@@ -322,6 +388,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 this.getData();
             },
             applyFilter() {
+                this.queryParams.page = 1;
                 this.setAddressBar();
                 this.getData();
             },
@@ -361,7 +428,11 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                 this.getData();
             },
             changeFilterValue(e, filterName, filterType) {
-                this.queryParams[filterName] = e.target.value;
+                if (filterType == 'checkbox') {
+                    this.queryParams[filterName] = e.target.checked;
+                } else {
+                    this.queryParams[filterName] = e.target.value;
+                }
             },
             setAddressBar() {
                 if (Object.keys(this.queryParams).length > 0) {
@@ -416,24 +487,30 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                     this.spinnerData.loading = false;
                     this.mainFilters = response.data.main.map(function(item, key) {
                         let data = item;
-                        data.options = Object.keys(item.options).map(function(key, index) {
-                            return { value: key, text: item.options[key] };
-                        });
+                        if (data.options) {
+                            data.options = Object.keys(item.options).map(function(key, index) {
+                                return { value: key, text: item.options[key] };
+                            });
+                        }
                         return data;
                     });
                     console.log(response.data.second);
-                    this.secondFilters = response.data.second.map(function(item, key) {
-                        let data = item;
-                        data.options = Object.keys(item.options).map(function(key, index) {
-                            return { value: key, text: item.options[key] };
+                    if (response.data.second) {
+                        this.secondFilters = response.data.second.map(function(item, key) {
+                            let data = item;
+                            if (data.options) {
+                                data.options = Object.keys(item.options).map(function(key, index) {
+                                    return { value: key, text: item.options[key] };
+                                });
+                            }
+                            return data;
                         });
-                        return data;
-                    });
+                    }
 
                 })])
                 .then((allResults) => {
-                    console.log(123123);
-                    this.setQueryParams();
+                    // После выполнении функции setQueryParams() выполняется this.getData()
+                    Promise.resolve(this.setQueryParams()).then(this.getData())
                 });
             }
         }
@@ -479,4 +556,45 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
   .vs__open-indicator {
     fill: #394066;
   }
+.tdhidden {
+    display: none;
+}
+.page-link {
+    cursor: pointer;
+}
+
+.table .custom-link {
+    font-size: 15px;
+}
+
+.table .custom-text {
+    font-size: 15px;
+}
+
+.status-tries {
+    background: #b3f7de;
+}
+.status-waiting {
+    background: #91c7ff;
+}
+.status-paid {
+    background: #FFFFFF;
+}
+.status-refused {
+    background: #f9f578;
+}
+.status-frozen {
+    background: #e44361ab;
+}
+.status-rejected {
+    background: #e665658f;
+}
+.status {
+    padding: 2px 6px;
+}
+.form-control-custom {
+    width: 110px;
+    padding: 3px;
+    font-size: 15px;
+}
 </style>

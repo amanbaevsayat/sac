@@ -2,6 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Subscription;
+use App\Models\Payment;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,53 +14,59 @@ class PaymentResource extends JsonResource
      * @param  Request $request
      * @return array
      * @throws \JsonException
-     */
+    */
     public function toArray($request): array
     {
         return [
             'id' => [
-                'value' => $this->id,
-            ],
-            'customer' => [
-                'id' => $this->customer->id,
-                'title' => $this->customer->name,
-                'type' => 'customer-link',
-                'value' => route('customers.show', [$this->customer->id]),
-            ],
-            'subscription_id' => [
-                'title' => $this->subscription_id ?? null,
+                'id' => $this->id,
+                'title' => $this->id,
                 'type' => 'link',
-                'value' => isset($this->subscription_id) ? route('subscriptions.show', [$this->subscription_id]) : null,
+                'value' => route('payments.show', [$this->id]),
+            ],
+            // 'sub_status' => [
+            //     'value' => Subscription::STATUSES[$this->subscription->status]
+            // ],
+            'customer' => [
+                'id' => $this->customer->id ?? null,
+                'title' => $this->customer->name ?? null,
+                'type' => 'customer-link',
+                'value' => isset($this->customer->id) ? route('customers.show', [$this->customer->id]) : null,
+            ],
+            'customer_phone' => [
+                'value' => $this->customer->phone ?? null,
+            ],
+            'product_id' => [
+                'value' => $this->subscription->product->title ?? null,
             ],
             'payment_type' => [
-                'type' => 'select',
-                'collection' => 'payment_types',
-                'value' => $this->type,
+                'value' => Subscription::PAYMENT_TYPE[$this->type],
             ],
             'amount' => [
-                'type' => 'input',
-                'value' => $this->amount,
+                // 'type' => 'input',
+                'value' => $this->amount * ($this->quantity ?? 1),
+            ],
+            'payments' => [
+                'value' => (isset($this->subscription) && isset($this->subscription->payments)) ? ($this->subscription->payments->where('status', 'Completed')->count() ?? 0) : null,
+                'textAlign' => 'center',
             ],
             'status' => [
-                'type' => 'select',
-                'collection' => 'statuses',
-                'value' => $this->status,
+                'value' => Payment::STATUSES[$this->status] ?? $this->status,
             ],
-            'recurrent' => [
-                'type' => 'input',
-                'value' => $this->recurrent,
+            'errors' => [
+                'value' => $this->data['cloudpayments']['CardHolderMessage'] ?? null,
             ],
-            'start_date' => [
-                'type' => 'date',
-                'value' => $this->start_date,
+            'paided_at' => [
+                'value' => Carbon::parse($this->paided_at)->isoFormat('DD MMM YYYY, HH:mm'),
             ],
-            'interval' => [
-                'type' => 'input',
-                'value' => $this->interval,
+            'from' => [
+                'value' => isset($this->data['subscription']['from']) ? Carbon::parse($this->data['subscription']['from'])->isoFormat('DD MMM, YY') : null,
             ],
-            'period' => [
-                'type' => 'input',
-                'value' => $this->period
+            'to' => [
+                'value' => isset($this->data['subscription']['to']) ? Carbon::parse($this->data['subscription']['to'])->isoFormat('DD MMM, YY') : null,
+            ],
+            'transaction_id' => [
+                'value' => $this->transaction_id,
             ],
         ];
     }

@@ -29,9 +29,9 @@ class CreateCustomerWithDataRequest extends FormRequest
         return [
             'customer' => 'required|array',
             'customer.name' => 'required',
-            'customer.phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|starts_with:+',
+            'customer.phone' => 'required|numeric|regex:/^\+?(\d{11})$/',
             // 'customer.phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|starts_with:+|unique:customers,phone',
-            'customer.email' => 'email|nullable',
+            'customer.email' => 'nullable|email',
             'subscriptions' => 'required|array',
             'subscriptions.*.product_id' => 'required|exists:products,id',
             'subscriptions.*.price' => 'required',

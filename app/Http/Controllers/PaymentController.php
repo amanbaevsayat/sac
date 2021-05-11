@@ -10,7 +10,11 @@ use App\Http\Resources\PaymentCollection;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Subscription;
+use App\Models\UserLog;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+
 class PaymentController extends Controller
 {
     private $root;
@@ -24,31 +28,71 @@ class PaymentController extends Controller
 
     public function getList(PaymentFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $query = Payment::query();
-        $payments = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $payments = $query->filter($filters)->orderBy('paided_at', 'DESC')->where('type', '!=', 'frozen')->where('status', '!=', 'new')->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new PaymentCollection($payments), 200);
     }
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
+        // $products = Product::get()->pluck('title', 'id');
+        $paymentTypes = Subscription::PAYMENT_TYPE;
+        unset($paymentTypes['tries']);
+        unset($paymentTypes['frozen']);
         $products = Product::get()->pluck('title', 'id');
-        
+
         $data['main'] = [
+            [
+                'name' => 'product_id',
+                'title' => 'Услуги',
+                'type' => 'select-multiple',
+                'options' => $products,
+            ],
             [
                 'name' => 'type',
                 'title' => 'Тип оплаты',
                 'type' => 'select-multiple',
-                'options' => Subscription::PAYMENT_TYPE,
+                'options' => $paymentTypes,
             ],
             [
                 'name' => 'status',
                 'title' => 'Статус платежа',
                 'type' => 'select-multiple',
                 'options' => Payment::STATUSES,
+            ],
+            [
+                'name' => 'amount',
+                'title' => 'Сумма',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'from',
+                'title' => 'С даты',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'to',
+                'title' => 'По дату',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'id',
+                'title' => 'ID',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'transaction_id',
+                'title' => 'Transaction ID',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'newPayment',
+                'title' => 'Только новые платежи',
+                'type' => 'checkbox',
             ],
         ];
         $data['second'] = [
@@ -73,7 +117,7 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -85,7 +129,7 @@ class PaymentController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $customers = Customer::get();
         $subscriptions = Subscription::get();
 
@@ -103,10 +147,8 @@ class PaymentController extends Controller
      */
     public function store(CreatePaymentRequest $request, Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $data = $request->all();
-        $data['slug'] = Str::uuid();
-        $data['recurrent'] = $request->get('recurrent') == 'on' ? true : false;
         $data['status'] = 'new';
         $data['data'] = [
             'check' => $request->get('image'),
@@ -124,7 +166,7 @@ class PaymentController extends Controller
      */
     public function show(Request $request, Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'payment' => $payment,
@@ -139,8 +181,7 @@ class PaymentController extends Controller
      */
     public function edit(Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
+        access(['can-operator', 'can-head', 'can-host']);
         return view("{$this->root}.edit", [
             'payment' => $payment,
         ]);
@@ -155,8 +196,19 @@ class PaymentController extends Controller
      */
     public function update(CreatePaymentRequest $request, Payment $payment)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $payment->update($request->all());
+        access(['can-operator', 'can-head', 'can-host']);
+        $data = $request->all();
+        $paymentData = $payment->data;
+        if (isset($data['file'])) {
+            $paymentData['check'] = $data['file'];
+        }
+        $paymentData['subscription']['from'] = $data['from'];
+        $paymentData['subscription']['to'] = $data['to'];
+        $payment->update([
+            'quantity' => $data['quantity'],
+            'amount' => $data['amount'],
+            'data' => $paymentData,
+        ]);
 
         $message = 'Данные платежа успешно изменены.';
         if ($request->ajax()) {
@@ -172,13 +224,20 @@ class PaymentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Payment $payment
+     * @param  Request $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Payment $payment)
+    public function destroy(Payment $payment, Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
+        access(['can-operator', 'can-head', 'can-host']);
         $payment->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Платеж успешно удален.');
+        $message = 'Платеж успешно удален.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->route("{$this->root}.index")->with('success', $message);
+        }
     }
 }

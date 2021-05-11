@@ -25,15 +25,15 @@ class CustomerResource extends JsonResource
                 'value' => route('customers.show', [$this->id]),
             ],
             'phone' => [
-                'type' => 'input',
+                // 'type' => 'input',
                 'value' => $this->phone,
             ],
             'email' => [
-                'type' => 'input',
+                // 'type' => 'input',
                 'value' => $this->email,
             ],
             'subscriptions' => [
-                'title' => 'Подписки',
+                'title' => 'Абонементы',
                 'type' => 'link',
                 'value' => route('subscriptions.index', ['customer_id' => $this->id]),
             ],

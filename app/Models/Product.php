@@ -16,6 +16,11 @@ class Product extends Model
         'code',
         'title',
         'description',
+        'data',
+    ];
+
+    protected $casts = [
+        'data' => 'array',
     ];
 
     public function subscriptions()
@@ -26,6 +31,11 @@ class Product extends Model
     public function prices()
     {
         return $this->hasMany(Price::class, 'product_id');
+    }
+
+    public function paymentTypes()
+    {
+        return $this->hasMany(PaymentType::class, 'product_id');
     }
 
     public function scopeFilter($query, ProductFilter $filters)

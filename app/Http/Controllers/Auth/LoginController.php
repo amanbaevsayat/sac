@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -40,6 +41,10 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
+        if (Auth::check()) {
+            dd(1);
+            return redirect()->url('/subscriptions?sort=ended_at%28desc%29');
+        }
         return view('vendor.adminlte.auth.login');
     }
 

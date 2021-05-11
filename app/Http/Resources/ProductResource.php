@@ -17,6 +17,7 @@ class ProductResource extends JsonResource
         return [
             'id' => [
                 'value' => $this->id,
+                'type' => 'hidden',
             ],
             'title' => [
                 'title' => $this->title,
@@ -24,7 +25,6 @@ class ProductResource extends JsonResource
                 'value' => route('products.edit', [$this->id]),
             ],
             'description' => [
-                'type' => 'input',
                 'value' => $this->description,
             ],
         ];

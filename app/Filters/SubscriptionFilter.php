@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Models\Customer;
+use Carbon\Carbon;
 
 class SubscriptionFilter extends BaseFilter
 {
@@ -23,24 +24,90 @@ class SubscriptionFilter extends BaseFilter
 
     public function page($value)
     {
-        
     }
 
     public function paymentType($value)
     {
         if (is_array($value)) {
+            if ($value[0] == 'undefined') {
+                return $this->builder;
+            }
             return $this->builder->whereIn('payment_type', $value);
         } else {
+            if ($value == 'undefined') {
+                return $this->builder;
+            }
             return $this->builder->where('payment_type', $value);
+        }
+    }
+
+    public function status($value)
+    {
+        if (is_array($value)) {
+            if ($value[0] == 'undefined') {
+                return $this->builder;
+            }
+            return $this->builder->whereIn('status', $value);
+        } else {
+            if ($value == 'undefined') {
+                return $this->builder;
+            }
+            return $this->builder->where('status', $value);
         }
     }
 
     public function customerNameOrPhone($value)
     {
         if ($value) {
-            $customerIds = Customer::where('name', 'LIKE', "%{$value}%")->orWhere('phone', 'LIKE', "%{$value}%")->pluck('id')->toArray();
-            // dd($customerIds);
+            $customersQuery = Customer::query();
+            $phone = preg_replace('/[^0-9]/', '', $value);
+            $query = "(name like '%{$value}%'";
+            if (!empty($phone)) {
+                $query .= " OR phone like '%{$phone}%' OR '{$phone}' LIKE CONCAT('%', phone, '%')";
+            }
+            $query .= ")";
+            $customerIds = $customersQuery->whereRaw($query)->pluck('id')->toArray();
             return $this->builder->whereIn('customer_id', $customerIds);
+        }
+    }
+
+    public function sort($value)
+    {
+        preg_match('#\((.*?)\)#', $value, $match);
+        $name = preg_replace("/\([^)]+\)/", "", $value);
+        if ($match[1] == 'asc') {
+            if ($name == 'ended_at') {
+                $this->builder->orderByRaw(
+                    "CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END ASC"
+                );
+            } else {
+                $this->builder->orderBy($name);
+            }
+        } elseif ($match[1] == 'desc') {
+            if ($name == 'ended_at') {
+                $this->builder->orderByRaw(
+                    "CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END DESC"
+                );
+            } else {
+                $this->builder->orderBy($name, 'desc');
+            }
+        }
+        return $this->builder;
+    }
+
+    public function fromStartDate($value)
+    {
+        if (is_numeric(strtotime($value))) {
+            $day = Carbon::parse($value)->startOfDay();
+            $this->builder->whereDate('started_at', '>=', $day->format('Y-m-d 00:00:00'));
+        }
+    }
+
+    public function toStartDate($value)
+    {
+        if (is_numeric(strtotime($value))) {
+            $day = Carbon::parse($value)->endOfDay();
+            $this->builder->whereDate('started_at', '<=', $day->format('Y-m-d 23:59:59'));
         }
     }
 }

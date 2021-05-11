@@ -9,6 +9,9 @@ use App\Filters\SubscriptionFilter;
 use App\Http\Resources\SubscriptionCollection;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\UserLog;
+use App\Services\CloudPaymentsService;
+use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
 {
@@ -23,32 +26,26 @@ class SubscriptionController extends Controller
 
     public function getList(SubscriptionFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $query = Subscription::query();
-        $subscriptions = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $subscriptions = $query->filter($filters)->latest()->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new SubscriptionCollection($subscriptions), 200);
     }
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get()->pluck('title', 'id');
         $data['main'] = [
-            [
-                'name' => 'customer_id',
-                'title' => 'Клиенты',
-                'type' => 'select-search',
-                'key' => 'customer',
-                'options' => [],
-            ],
-            [
-                'name' => 'payment_type',
-                'title' => 'Тип оплаты',
-                'type' => 'select-multiple',
-                'options' => Subscription::PAYMENT_TYPE,
-            ],
+            // [
+            //     'name' => 'customer_id',
+            //     'title' => 'Клиенты',
+            //     'type' => 'select-search',
+            //     'key' => 'customer',
+            //     'options' => [],
+            // ],
             [
                 'name' => 'product_id',
                 'title' => 'Услуги',
@@ -60,6 +57,32 @@ class SubscriptionController extends Controller
                 'title' => 'Статус абонемента',
                 'type' => 'select-multiple',
                 'options' => Subscription::STATUSES,
+            ],
+            [
+                'name' => 'payment_type',
+                'title' => 'Тип оплаты',
+                'type' => 'select-multiple',
+                'options' => Subscription::PAYMENT_TYPE,
+            ],
+            [
+                'name' => 'from_start_date',
+                'title' => 'С даты старта',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'to_start_date',
+                'title' => 'По дату старта',
+                'type' => 'date',
+            ],
+            [
+                'name' => 'cp_subscription_id',
+                'title' => 'Cloudpayment ID',
+                'type' => 'input',
+            ],
+            [
+                'name' => 'id',
+                'title' => 'ID абонемента',
+                'type' => 'input',
             ],
         ];
 
@@ -85,7 +108,7 @@ class SubscriptionController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -97,7 +120,7 @@ class SubscriptionController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get();
         $customers = Customer::get();
 
@@ -115,10 +138,10 @@ class SubscriptionController extends Controller
      */
     public function store(CreateSubscriptionRequest $request, Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $subscription->create($request->all());
-        return redirect()->route("{$this->root}.index")->with('success', 'Подписка успешно создана.');
+        return redirect()->route("{$this->root}.index")->with('success', 'Абонемент успешно создан.');
     }
 
     /**
@@ -129,7 +152,7 @@ class SubscriptionController extends Controller
      */
     public function show(Request $request, Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'subscription' => $subscription,
@@ -144,7 +167,7 @@ class SubscriptionController extends Controller
      */
     public function edit(Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get();
         $customers = Customer::get();
 
@@ -164,8 +187,11 @@ class SubscriptionController extends Controller
      */
     public function update(CreateSubscriptionRequest $request, Subscription $subscription)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $subscription->update($request->all());
+        access(['can-operator', 'can-head', 'can-host']);
+
+        $subscription->update([
+            'status' => $request->get('status'),
+        ]);
 
         $message = 'Данные абонемента успешно изменены.';
         if ($request->ajax()) {
@@ -181,32 +207,22 @@ class SubscriptionController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Subscription $subscription
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Subscription $subscription)
-    {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
-        $subscription->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Подписка успешно удалена.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
      * @param  Request $request
      * @return \Illuminate\Http\Response
      */
-    public function delete(Request $request)
+    public function destroy(Subscription $subscription, Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-        $id = $request->get('id');
-        $subscription = Subscription::whereId($id)->firstOr(function () use ($id) {
-            throw new \Exception('Абонемент не найден. ID: ' . $id, 404);
-        });
+        access(['can-operator', 'can-head', 'can-host']);
+
         $subscription->delete();
-        return response()->json([
-            'message' => 'Абонемент успешно удален.'
-        ], 200);
+
+        $message = 'Абонемент успешно удален.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->route("{$this->root}.index")->with('success', $message);
+        }
     }
 }

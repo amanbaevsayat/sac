@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Filters\UserFilter;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,8 +20,11 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name',
+        'account',
         'email',
+        'phone',
+        'role_id',
+        'pass',
         'password',
     ];
 
@@ -53,18 +57,18 @@ class User extends Authenticatable
         return $this->role->code == "operator";
     }
 
-    public function isManager()
+    public function isHead()
     {
-        return $this->role->code == "manager";
-    }
-
-    public function isOwner()
-    {
-        return $this->role->code == "owner";
+        return $this->role->code == "head";
     }
 
     public function isHost()
     {
         return $this->role->code == "host";
+    }
+
+    public function scopeFilter($query, UserFilter $filters)
+    {
+        $filters->apply($query);
     }
 }

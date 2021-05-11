@@ -238,32 +238,101 @@ return [
             'topnav' => true
         ],
 
-        // customers
+        // statistics
         [
-            'text' => 'Клиенты',
-            'url'  => '/customers',
-            'icon' => 'fa fa-users'
+            'key'  => 'statistics',
+            'text' => 'Диаграммы',
+            'url'  => '/statistics',
+            'icon' => 'fas fa-binoculars',
+            "can"  => [
+                // 'can-operator',
+                'can-head',
+                'can-host',
+            ]
+        ],
+
+        // users
+        [
+            'text' => 'Пользователи',
+            'url'  => '/users',
+            'icon' => 'fa fa-users',
+            "can"  => [
+                'can-host',
+                'can-head',
+            ]
         ],
 
         // products
         [
             'text' => 'Услуги',
             'url'  => '/products',
-            'icon' => 'fa fa-boxes'
+            'icon' => 'fa fa-boxes',
+            "can"  => [
+                'can-head',
+                'can-host',
+            ]
+        ],
+
+        // customers
+        [
+            'text' => 'Клиенты',
+            'url'  => '/customers',
+            'icon' => 'fa fa-users',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ]
         ],
 
         // subscriptions
         [
             'text' => 'Абонементы',
             'url'  => '/subscriptions?sort=ended_at%28desc%29',
-            'icon' => 'fa fa-calendar-check'
+            'icon' => 'fa fa-calendar-check',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ]
         ],
 
         // payments
         [
             'text' => 'Платежи',
-            'url'  => '/payments',
-            'icon' => 'fa fa-money-check-alt'
+            'url'  => '/payments?sort=paided_at%28desc%29',
+            'icon' => 'fa fa-money-check-alt',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ]
+        ],
+
+        // notifications
+        [
+            'key'  => 'notifications',
+            'text' => 'Уведомления',
+            'url'  => '/notifications',
+            'icon' => 'fa fa-id-badge',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ],
+        ],
+
+        // userLogs
+        [
+            'key'  => 'userlogs',
+            'text' => 'Логи действий',
+            'url'  => '/userlogs',
+            'icon' => 'fa fa-flag',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ],
         ],
     ],
 

@@ -34,6 +34,10 @@ class CustomerCollection extends ResourceCollection
                     'title' => 'E-mail',
                     'key' => 'email',
                 ],
+                [
+                    'title' => 'Абонементы',
+                    // 'key' => 'email',
+                ],
             ],
             'pagination' => [
                 'current_page' => $this->currentPage(),

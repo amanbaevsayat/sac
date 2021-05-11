@@ -29,7 +29,7 @@ class CreatePaymentsTable extends Migration
             $table->unsignedInteger('period')->nullable(); // Период. В комбинации с интервалом, 1 Month значит раз в месяц, а 2 Week — раз в две недели. Должен быть больше 0
             
             $table->json('data')->nullable(); // Дополнительная информация
-            $table->date('paided_at')->nullable();
+            $table->timestamp('paided_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

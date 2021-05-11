@@ -31,6 +31,11 @@
 
     {{-- Custom Stylesheets (post AdminLTE) --}}
     @yield('adminlte_css')
+    <style>
+    .long-title p {
+        width: 194px;
+    }
+    </style>
 
     {{-- Favicon --}}
     <link rel="shortcut icon" href="{{ asset('favicons/favicon.png') }}" />

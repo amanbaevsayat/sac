@@ -24,42 +24,68 @@
             </div>
             <div class="card-body">
                 <a href="{{ route('payments.edit', [$payment->id]) }}" class="btn btn-warning btn-sm float-right">Изменить</a>
-                Клиент: {{ $payment->customer_id }} <br>
-                Абонемент: {{ $payment->subscription_id }} <br>
+                Клиент:
+                @if (isset($payment->customer_id))
+                <a target="_blank" href="{{ route('customers.index', ['id' => $payment->customer_id]) }}">{{ $payment->customer->name ?? null }}</a>
+                @endif
+                <br>
+                @if (isset($payment->customer))
+                Телефон: {{ $payment->customer->phone }}
+                @endif
+                <br>
+                Абонемент:
+                @if (isset($payment->subscription_id))
+                <a target="_blank" href="{{ route('subscriptions.index', ['id' => $payment->subscription_id]) }}">{{ $payment->subscription_id ?? null }}</a>
+                @endif
+                <br>
                 Карта клиента: {{ $payment->card_id }} <br>
+                Оператор:
+                @if (isset($payment->user_id))
+                <a target="_blank" href="{{ route('users.show', [$payment->user_id]) }}">{{ $payment->user->account ?? null }}</a>
+                @endif
+                <br>
                 Тип платежа: {{ $payment->type }} <br>
-                Slug: {{ $payment->slug }} <br>
-                Количество: {{ $payment->quantity }} <br>
-                Статус платежа: {{ $payment->status }} <br>
+                @if ($payment->type == 'cloudpayments')
+                Платежная страница:
+                @if (isset($payment->subscription_id))
+                <a target="_blank" href="{{ route('cloudpayments.show_widget', [$payment->subscription_id]) }}">Ссылка</a>
+                @endif
+                <br>
+                TransactionId: {{ $payment->transaction_id }} <br>
+                SubscriptionId: {{ $payment->subscription->cp_subscription_id ?? null }} <br>
+                @endif
                 Сумма: {{ $payment->amount }} <br>
-                Рекуррент: {{ $payment->recurrent }} <br>
-                Дата старта: {{ $payment->start_date }} <br>
-                Интервал: {{ $payment->interval }} <br>
-                Период: {{ $payment->period }} <br>
+                Количество: {{ $payment->quantity }} <br>
+                PaidedAt: {{ $payment->paided_at }} <br>
+                Статус платежа: {{ \App\Models\Payment::STATUSES[$payment->status] ?? $payment->status ?? null }} ({{ $payment->status }})<br>
+                {{-- Рекуррент: {{ $payment->recurrent }} <br> --}}
+                {{-- Дата старта: {{ $payment->start_date }} <br> --}}
+                {{-- Интервал: {{ $payment->interval }} <br> --}}
+                {{-- Период: {{ $payment->period }} <br> --}}
             </div>
             <div class="card-footer">
                 <a href="{{ route('payments.index') }}">К списку</a>
             </div>
         </div>
     </div>
-    @foreach($payment->data as $key=>$item)
-        <div class="col-6">
-            <div class="card mb-2">
-                <div class="card-header">
-                        <h5>
-                            {{$key}}
-                        </h5>
-                </div>
-                <div class="card-body">
-                    <pre>
-                        {{ print_r($item) }}
-                    </pre>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ route('payments.index') }}">К списку</a>
-                </div>
+    @foreach($payment->data ?? [] as $key=>$item)
+    <div class="col-6">
+        <div class="card mb-2">
+            <div class="card-header">
+                <h5>
+                    {{$key}}
+                </h5>
+            </div>
+            <div class="card-body">
+                <pre>
+                {{ print_r($item) }}
+                </pre>
+            </div>
+            <div class="card-footer">
+                <a href="{{ route('payments.index') }}">К списку</a>
             </div>
         </div>
+    </div>
     @endforeach
 </div>
 
@@ -79,13 +105,13 @@
     });
 </script>
 <script>
-    @if(session()->has('success'))
-        $(document).Toasts('create', {
-            title: 'Успешно.',
-            body: '{{ session()->get("success") }}',
-            autohide: true,
-            delay: 5000
-        });
+    '@if(session()->has("success"))'
+    $(document).Toasts('create', {
+        title: 'Успешно.',
+        body: '{{ session()->get("success") }}',
+        autohide: true,
+        delay: 5000
+    });
     @endif
 </script>
 @stop

@@ -6,8 +6,12 @@ use App\Http\Requests\CreateProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Filters\ProductFilter;
+use App\Http\Resources\PaymentTypeResource;
 use App\Http\Resources\ProductCollection;
+use App\Models\Bonus;
+use App\Models\PaymentType;
 use App\Models\Price;
+use App\Models\Subscription;
 
 class ProductController extends Controller
 {
@@ -22,17 +26,17 @@ class ProductController extends Controller
 
     public function getList(ProductFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
 
         $query = Product::query();
-        $products = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $products = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new ProductCollection($products), 200);
     }
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
 
         $data['main'] = [
             [
@@ -52,7 +56,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -64,9 +68,11 @@ class ProductController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
-
-        return view("{$this->root}.create");
+        access(['can-head', 'can-host']);
+        $paymentTypes = Subscription::PAYMENT_TYPE;
+        return view("{$this->root}.create", [
+            'paymentTypes' => $paymentTypes,
+        ]);
     }
 
     /**
@@ -77,9 +83,11 @@ class ProductController extends Controller
      */
     public function store(CreateProductRequest $request, Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
         $product = $product->create($request->all());
-        $priceIds = [];
+        $paymentTypeIds = [];
+        $prices = $request->get('prices', []);
+        $paymentTypes = $request->get('paymentTypes', []);
         $prices = $request->get('prices', []);
 
         foreach ($prices as $item) {
@@ -91,7 +99,39 @@ class ProductController extends Controller
                 $priceIds[] = $price->id;
             }
         }
+
+        foreach ($paymentTypes as $item) {
+            $bonusIds = [];
+            if ($item) {
+                $paymentType = PaymentType::updateOrCreate([
+                    'payment_type' => $item['type'],
+                    'product_id' => $product->id,
+                ]);
+                $paymentTypeIds[] = $paymentType->id;
+
+                if (isset($item['bonuses'])) {
+                    foreach ($item['bonuses'] as $type => $amount) {
+                        $bonus = Bonus::updateOrCreate([
+                            'type' => $type,
+                            'amount' => $amount,
+                            'product_id' => $product->id,
+                            'payment_type_id' => $paymentType->id,
+                        ], [
+                            'is_active' => true,
+                        ]);
+
+                        $bonusIds[] = $bonus->id;
+                    }
+
+                    $paymentType->bonuses()->whereNotIn('id', $bonusIds)->update([
+                        'is_active' => false,
+                    ]);
+                }
+            }
+        }
+
         $product->prices()->whereNotIn('id', $priceIds)->delete();
+        $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно создан.');
     }
 
@@ -103,7 +143,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'product' => $product,
@@ -118,11 +158,15 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
+        $productPaymentTypes = $product->paymentTypes;
+        $paymentTypes = Subscription::PAYMENT_TYPE;
         return view("{$this->root}.edit", [
             'product' => $product,
             'productPrices' => $productPrices,
+            'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
+            'paymentTypes' => $paymentTypes,
         ]);
     }
 
@@ -135,9 +179,11 @@ class ProductController extends Controller
      */
     public function update(CreateProductRequest $request, Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
         $priceIds = [];
+        $paymentTypeIds = [];
         $prices = $request->get('prices', []);
+        $paymentTypes = $request->get('paymentTypes', []);
         $product->update($request->all());
 
         foreach ($prices as $item) {
@@ -149,7 +195,39 @@ class ProductController extends Controller
                 $priceIds[] = $price->id;
             }
         }
+
+        foreach ($paymentTypes as $item) {
+            $bonusIds = [];
+            if ($item) {
+                $paymentType = PaymentType::updateOrCreate([
+                    'payment_type' => $item['type'],
+                    'product_id' => $product->id,
+                ]);
+                $paymentTypeIds[] = $paymentType->id;
+
+                if (isset($item['bonuses'])) {
+                    foreach ($item['bonuses'] as $type => $amount) {
+                        $bonus = Bonus::updateOrCreate([
+                            'type' => $type,
+                            'amount' => $amount,
+                            'product_id' => $product->id,
+                            'payment_type_id' => $paymentType->id,
+                        ], [
+                            'is_active' => true,
+                        ]);
+
+                        $bonusIds[] = $bonus->id;
+                    }
+
+                    $paymentType->bonuses()->whereNotIn('id', $bonusIds)->update([
+                        'is_active' => false,
+                    ]);
+                }
+            }
+        }
+
         $product->prices()->whereNotIn('id', $priceIds)->delete();
+        $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
 
         $message = 'Данные продукта успешно изменены.';
         if ($request->ajax()) {
@@ -169,7 +247,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host']);
 
         $product->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
@@ -177,7 +255,7 @@ class ProductController extends Controller
 
     public function withPrices()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-head', 'can-host', 'can-operator']);
 
         $products = Product::get();
         $data = [];

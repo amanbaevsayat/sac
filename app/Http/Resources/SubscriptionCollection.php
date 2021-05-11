@@ -22,15 +22,12 @@ class SubscriptionCollection extends ResourceCollection
             'dataTitles' => [
                 [
                     'title' => 'ID',
-                    'key' => 'id',
                 ],
                 [
                     'title' => 'Клиенты',
-                    'key' => 'customer_id',
                 ],
                 [
                     'title' => 'Телефон',
-                    'key' => 'customers.phone',
                 ],
                 [
                     'title' => 'Ост. дней',
@@ -41,6 +38,10 @@ class SubscriptionCollection extends ResourceCollection
                     'key' => 'payment_type',
                 ],
                 [
+                    'title' => 'Дата старта',
+                    'key' => 'started_at',
+                ],
+                [
                     'title' => 'Дата окончания',
                     'key' => 'ended_at',
                 ],
@@ -49,8 +50,16 @@ class SubscriptionCollection extends ResourceCollection
                     'key' => 'status',
                 ],
                 [
+                    'title' => 'Кол-во платежей',
+                    'key' => 'payments',
+                ],
+                [
                     'title' => 'Услуга',
                     'key' => 'product_id',
+                ],
+                [
+                    'title' => 'Cloudpayment ID',
+                    'key' => 'cp_subscription_id',
                 ],
             ],
             'pagination' => [

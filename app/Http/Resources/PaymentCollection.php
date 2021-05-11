@@ -25,12 +25,18 @@ class PaymentCollection extends ResourceCollection
                     'title' => 'ID',
                     'key' => 'id',
                 ],
+                // [
+                //     'title' => 'Статус абонемента',
+                // ],
                 [
                     'title' => 'Клиент',
                     'key' => 'customer_id',
                 ],
                 [
-                    'title' => 'Подписка',
+                    'title' => 'Телефон',
+                ],
+                [
+                    'title' => 'Абонемент',
                     'key' => 'subscription_id',
                 ],
                 [
@@ -38,28 +44,36 @@ class PaymentCollection extends ResourceCollection
                     'key' => 'type',
                 ],
                 [
-                    'title' => 'Сумма',
+                    'title' => 'Цена',
                     'key' => 'amount',
+                ],
+                [
+                    'title' => 'Кол-во платежей',
+                    // 'key' => 'payments',
                 ],
                 [
                     'title' => 'Статус',
                     'key' => 'status',
                 ],
                 [
-                    'title' => 'Рекуррентный платеж',
-                    'key' => 'recurrent',
+                    'title' => 'Описание платежа',
+                    'width' => '18vw',
                 ],
                 [
-                    'title' => 'Дата списания',
-                    'key' => 'start_date',
+                    'title' => 'Дата оплаты',
+                    'key' => 'paided_at',
                 ],
                 [
-                    'title' => 'Интервал списания',
-                    'key' => 'interval',
+                    'title' => 'С',
+                    'key' => 'from',
                 ],
                 [
-                    'title' => 'Период списания',
-                    'key' => 'period',
+                    'title' => 'По',
+                    'key' => 'to',
+                ],
+                [
+                    'title' => 'Transaction ID',
+                    'key' => 'transaction_id',
                 ],
             ],
             'pagination' => [

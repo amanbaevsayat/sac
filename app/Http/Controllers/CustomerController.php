@@ -8,11 +8,15 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use App\Filters\CustomerFilter;
 use App\Http\Resources\CustomerCollection;
-use App\Http\Resources\CustomerResource;
 use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWithSubscriptionResource;
 use App\Models\Subscription;
 use App\Models\Payment;
-use Illuminate\Support\Str;
+use App\Models\Product;
+use App\Models\User;
+use App\Models\UserLog;
+use App\Services\CloudPaymentsService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
@@ -39,64 +43,115 @@ class CustomerController extends Controller
 
     public function getOptions()
     {
+        $products = Product::all();
+        $data = [];
+        foreach ($products as $product) {
+            $paymentTypes = $product->paymentTypes()->pluck('payment_type')->toArray();
+            if (! empty($paymentTypes)) {
+                foreach ($paymentTypes as $paymentType) {
+                    $data[$product->id][$paymentType] = [
+                        'title' => Subscription::PAYMENT_TYPE[$paymentType],
+                        'statuses' => [],
+                    ];
+        
+                    switch ($paymentType) {
+                        case 'tries':
+                            $statuses = Subscription::STATUSES;
+                            unset($statuses['paid']);
+                            $data[$product->id][$paymentType]['statuses'] = $statuses;
+                            break;
+                        case 'cloudpayments':
+                            $statuses = Subscription::STATUSES;
+                            unset($statuses['tries']);
+                            $data[$product->id][$paymentType]['statuses'] = $statuses;
+                            break;
+                        case 'transfer':
+                            $statuses = Subscription::STATUSES;
+                            unset($statuses['tries']);
+                            unset($statuses['frozen']);
+                            $data[$product->id][$paymentType]['statuses'] = $statuses;
+                            break;
+                    }
+                }
+            }
+        }
+
+        $users = User::all()->pluck('account', 'id')->toArray();
+
         return response()->json([
-            'quantities' => Payment::QUANTITIES, 
-            'paymentTypes' => Subscription::PAYMENT_TYPE, 
-            'statuses' => Subscription::STATUSES,
+            'quantities' => Payment::QUANTITIES,
+            'paymentTypes' => $data,
+            'users' => $users,
+            'user' => Auth::id(),
         ], 200);
     }
 
     public function createWithData(CreateCustomerWithDataRequest $request)
     {
         $data = $request->all();
-
-        $customer = Customer::updateOrCreate([
-            'phone' => $data['customer']['phone'], 
-        ],[
-            'name' => $data['customer']['name'], 
-            'email' => $data['customer']['email'], 
-            'comments' => $data['customer']['comments'], 
-        ]);
+        try {
+            $customer = $this->getCustomer($data);
+        } catch (\Throwable $e) {
+            \Log::info($e->getMessage());
+            \Log::info('Ошибка getCustomer(). User ID: ' . Auth::id() . '. Phone: ' . ($data['customer']['phone'] ?? null) . '. ID: ' . ($data['customer']['id'] ?? null));
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'customer.phone' => [
+                        'Клиент с таким номером уже существует.'
+                    ],
+                ]
+            ], 422);
+        }
 
         foreach ($data['subscriptions'] as $item) {
+            $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
+            $endedAt = Carbon::parse($item['ended_at']);
+            $triesAt = Carbon::parse($item['tries_at']);
+
             $subscription = $customer->subscriptions()->updateOrCreate([
                 'product_id' => $item['product_id'],
             ], [
                 'price' => $item['price'],
                 'payment_type' => $item['payment_type'],
-                'started_at' => $item['started_at'],
-                'ended_at' => $item['ended_at'],
+                'started_at' => Carbon::parse($item['started_at']),
+                'ended_at' => $endedAt,
+                'tries_at' => $triesAt,
                 'status' => $item['status'],
+                'user_id' => $item['user_id'] ?? null,
             ]);
 
+            if (! isset($data['customer']['id'])) {
+                $subscription->update([
+                    'tries_at' => Carbon::parse($item['tries_at']),
+                ]);
+            }
             if ($subscription->payment_type == 'cloudpayments') {
-                if ($subscription->payments()->where('status', 'new')->where('type', 'cloudpayments')->doesntExist()) {
-                    $payment = $subscription->payments()->create([
-                        'customer_id' => $customer->id,
-                        'type' => 'cloudpayments',
-                        'slug' => Str::uuid(),
-                        'status' => 'new',
-                        'recurrent' => true,
-                        'amount' => $subscription->price,
-                        'start_date' => $item['started_at'], // TODO
-                        'interval' => 'Month',
-                        'period' => 1,
-                    ]);
-                }
+                // Если оператор изменил дату следующего платежа, то делаем запрос в cp, на изменения даты
+                
             } elseif ($subscription->payment_type == 'transfer') {
                 if (isset($item['newPayment']['check'])) {
-                    $paymentStatus = $subscription->status == 'paid' ? 'Completed' : 'new';
-    
                     $payment = $subscription->payments()->create([
                         'customer_id' => $customer->id,
+                        'product_id' => $subscription->product->id,
+                        'user_id' => Auth::id(),
                         'type' => 'transfer',
-                        'slug' => Str::uuid(),
-                        'status' => $paymentStatus,
+                        'status' => 'Completed',
                         'quantity' => $item['newPayment']['quantity'] ?? 1,
                         'amount' => $subscription->price,
+                        'paided_at' => Carbon::now(),
                         'data' => [
                             'check' => $item['newPayment']['check'],
+                            'subscription' => [
+                                'renewed' => true,
+                                'from' => $item['newPayment']['from'],
+                                'to' => $item['newPayment']['to'],
+                            ],
                         ],
+                    ]);
+
+                    $payment->subscription()->update([
+                        'status' => 'paid',
                     ]);
                 }
             }
@@ -108,35 +163,102 @@ class CustomerController extends Controller
         ], 200);
     }
 
+    private function getCustomer(array $data): Customer
+    {
+        $customerExists = Customer::where('id', ($data['customer']['id'] ?? null))->where('phone', $data['customer']['phone'])->exists();
+        $updateCustomer = isset($data['customer']['id']);
+        
+        if ($updateCustomer) { // Обновить клиента
+            if ($customerExists) { // Обновить существующего клиента
+                $customer = Customer::updateOrCreate([
+                    'id' => $data['customer']['id'],
+                    'phone' => $data['customer']['phone'],
+                ], [
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                ]);
+            } else if (Customer::where('phone', $data['customer']['phone'])->exists()) { // Изменил phone на существующий
+                throw new \Exception('Клиент с таким номером уже существует.');
+            } else if (Customer::withTrashed()->where('phone', $data['customer']['phone'])->exists()) { // Изменил phone на удаленного клиента
+                Customer::withTrashed()->where('phone', $data['customer']['phone'])->forceDelete();
+                $customer = Customer::withTrashed()->updateOrCreate([
+                    'id' => $data['customer']['id'],
+                ], [
+                    'phone' => $data['customer']['phone'],
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                    'deleted_at' => null,
+                ]);
+            } else {
+                $customer = Customer::updateOrCreate([
+                    'id' => $data['customer']['id'],
+                ], [
+                    'phone' => $data['customer']['phone'],
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                ]);
+            }
+        } else { // Создать клиента
+            if (Customer::where('phone', $data['customer']['phone'])->exists()) { // Создал phone на существующий
+                throw new \Exception('Клиент с таким номером уже существует.');
+            } else if (Customer::withTrashed()->where('phone', $data['customer']['phone'])->exists()) { // Создал phone на удаленного клиента
+                Customer::withTrashed()->where('phone', $data['customer']['phone'])->forceDelete();
+                $customer = Customer::withTrashed()->updateOrCreate([
+                    'phone' => $data['customer']['phone'],
+                ], [
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                    'deleted_at' => null,
+                ]);
+            } else {
+                // Создать или обновить клиента, если есть телефон
+                $customer = Customer::updateOrCreate([
+                    'phone' => $data['customer']['phone'],
+                ], [
+                    'name' => $data['customer']['name'],
+                    'email' => $data['customer']['email'],
+                    'comments' => $data['customer']['comments'],
+                ]);
+            }
+        }
+
+        return $customer;
+    }
+
     public function getList(CustomerFilter $filters)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $query = Customer::query();
-        $customers = $query->filter($filters)->paginate($this->perPage)->appends(request()->all());
+        $customers = $query->latest()->filter($filters)->paginate($this->perPage)->appends(request()->all());
 
         return response()->json(new CustomerCollection($customers), 200);
     }
 
     public function getFilters()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $data['main'] = [
-            [
-                'name' => 'name',
-                'title' => 'Имя',
-                'type' => 'input',
-            ],
-            [
-                'name' => 'phone',
-                'title' => 'Телефон',
-                'type' => 'input',
-            ],
             [
                 'name' => 'email',
                 'title' => 'E-mail',
                 'type' => 'input',
+            ],
+        ];
+
+        $data['second'] = [
+            [
+                'name' => 'customer_name_or_phone',
+                'placeholder' => 'Найти по имени и номеру',
+                'title' => 'Клиенты',
+                'type' => 'input-search',
+                'key' => 'customer',
+                'options' => [],
             ],
         ];
 
@@ -150,7 +272,7 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.index");
     }
@@ -162,7 +284,7 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.create");
     }
@@ -175,7 +297,7 @@ class CustomerController extends Controller
      */
     public function store(CreateCustomerRequest $request, Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $customer->create($request->all());
         return redirect()->route("{$this->root}.index")->with('success', 'Клиент успешно создан.');
@@ -189,7 +311,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.show", [
             'customer' => $customer,
@@ -204,7 +326,7 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         return view("{$this->root}.edit", [
             'customer' => $customer,
@@ -220,7 +342,7 @@ class CustomerController extends Controller
      */
     public function update(CreateCustomerRequest $request, Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
         $customer->update($request->all());
 
         $message = 'Данные клиента успешно изменены.';
@@ -241,7 +363,7 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        access(['can-operator', 'can-manager', 'can-owner', 'can-host']);
+        access(['can-operator', 'can-head', 'can-host']);
 
         $customer->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Клиент успешно удален.');
