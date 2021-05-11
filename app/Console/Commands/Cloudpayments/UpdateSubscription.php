@@ -43,7 +43,10 @@ class UpdateSubscription extends Command
     {
         $cloudPaymentsService = new CloudPaymentsService();
 
-        $subscriptions = Subscription::whereNotNull('cp_subscription_id')->whereStatus('paid')->wherePaymentType('cloudpayments')->get();
+        $subscriptions = Subscription::whereNotNull('cp_subscription_id')
+            ->whereIn('status', ['paid', 'waiting'])
+            ->wherePaymentType('cloudpayments')
+            ->get();
 
         foreach ($subscriptions as $subscription) {
             try {
@@ -52,12 +55,10 @@ class UpdateSubscription extends Command
     
                 if ($response['Success'] === true) {
                     $data = $subscription->data;
-                    $endedAt = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::parse($response['Model']['NextTransactionDateIso']), 'UTC')->setTimezone('Asia/Almaty');
                     $data['cloudpayments'] = $response['Model'];
                     $subscription->update([
-                        'status' => $subscription->status != 'frozen' ? Subscription::CLOUDPAYMENTS_STATUSES[$response['Model']['Status']] : 'frozen',
+                        'status' => Subscription::CLOUDPAYMENTS_STATUSES[$response['Model']['Status']] ?? 'refused',
                         'data' => $data,
-                        // 'ended_at' => $endedAt,
                     ]);
                     if (isset($subscription->customer)) {
                         $subscription->customer->update([

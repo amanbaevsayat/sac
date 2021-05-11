@@ -241,7 +241,7 @@ return [
         // statistics
         [
             'key'  => 'statistics',
-            'text' => 'Статистика',
+            'text' => 'Диаграммы',
             'url'  => '/statistics',
             'icon' => 'fas fa-binoculars',
             "can"  => [

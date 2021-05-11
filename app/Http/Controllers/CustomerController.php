@@ -11,6 +11,8 @@ use App\Http\Resources\CustomerCollection;
 use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWithSubscriptionResource;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Models\Product;
+use App\Models\User;
 use App\Models\UserLog;
 use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
@@ -41,36 +43,46 @@ class CustomerController extends Controller
 
     public function getOptions()
     {
+        $products = Product::all();
         $data = [];
-        foreach (Subscription::PAYMENT_TYPE as $key => $paymentType) {
-            $data[$key] = [
-                'title' => $paymentType,
-                'statuses' => [],
-            ];
-
-            switch ($paymentType) {
-                case Subscription::PAYMENT_TYPE['tries']:
-                    $statuses = Subscription::STATUSES;
-                    unset($statuses['paid']);
-                    $data[$key]['statuses'] = $statuses;
-                    break;
-                case Subscription::PAYMENT_TYPE['cloudpayments']:
-                    $statuses = Subscription::STATUSES;
-                    unset($statuses['tries']);
-                    $data[$key]['statuses'] = $statuses;
-                    break;
-                case Subscription::PAYMENT_TYPE['transfer']:
-                    $statuses = Subscription::STATUSES;
-                    unset($statuses['tries']);
-                    unset($statuses['frozen']);
-                    $data[$key]['statuses'] = $statuses;
-                    break;
+        foreach ($products as $product) {
+            $paymentTypes = $product->paymentTypes()->pluck('payment_type')->toArray();
+            if (! empty($paymentTypes)) {
+                foreach ($paymentTypes as $paymentType) {
+                    $data[$product->id][$paymentType] = [
+                        'title' => Subscription::PAYMENT_TYPE[$paymentType],
+                        'statuses' => [],
+                    ];
+        
+                    switch ($paymentType) {
+                        case 'tries':
+                            $statuses = Subscription::STATUSES;
+                            unset($statuses['paid']);
+                            $data[$product->id][$paymentType]['statuses'] = $statuses;
+                            break;
+                        case 'cloudpayments':
+                            $statuses = Subscription::STATUSES;
+                            unset($statuses['tries']);
+                            $data[$product->id][$paymentType]['statuses'] = $statuses;
+                            break;
+                        case 'transfer':
+                            $statuses = Subscription::STATUSES;
+                            unset($statuses['tries']);
+                            unset($statuses['frozen']);
+                            $data[$product->id][$paymentType]['statuses'] = $statuses;
+                            break;
+                    }
+                }
             }
         }
+
+        $users = User::all()->pluck('account', 'id')->toArray();
 
         return response()->json([
             'quantities' => Payment::QUANTITIES,
             'paymentTypes' => $data,
+            'users' => $users,
+            'user' => Auth::id(),
         ], 200);
     }
 
@@ -94,10 +106,8 @@ class CustomerController extends Controller
 
         foreach ($data['subscriptions'] as $item) {
             $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
-            $oldPaymentType = $subscription->payment_type ?? null;
-            $oldStatus = $subscription->status ?? null;
-            $oldEndedAt = Carbon::parse($subscription->ended_at ?? null);
             $endedAt = Carbon::parse($item['ended_at']);
+            $triesAt = Carbon::parse($item['tries_at']);
 
             $subscription = $customer->subscriptions()->updateOrCreate([
                 'product_id' => $item['product_id'],
@@ -106,7 +116,9 @@ class CustomerController extends Controller
                 'payment_type' => $item['payment_type'],
                 'started_at' => Carbon::parse($item['started_at']),
                 'ended_at' => $endedAt,
+                'tries_at' => $triesAt,
                 'status' => $item['status'],
+                'user_id' => $item['user_id'] ?? null,
             ]);
 
             if (! isset($data['customer']['id'])) {
@@ -121,6 +133,7 @@ class CustomerController extends Controller
                 if (isset($item['newPayment']['check'])) {
                     $payment = $subscription->payments()->create([
                         'customer_id' => $customer->id,
+                        'product_id' => $subscription->product->id,
                         'user_id' => Auth::id(),
                         'type' => 'transfer',
                         'status' => 'Completed',

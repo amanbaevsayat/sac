@@ -38,6 +38,13 @@
             </div>
 
             <div class="form-group row">
+                <label for="prices" class="col-sm-2 col-form-label">Доступные типы оплат</label>
+                <div class="col-sm-10">
+                    <product-payment-type-component :product-payment-types-prop="{{ json_encode($productPaymentTypes) }}" :payment-types-prop="{{ json_encode($paymentTypes) }}"></product-payment-type-component>
+                </div>
+            </div>
+
+            <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Имя тренера</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="title" value="{{ $product->data['name'] ?? null }}" name="data[name]">

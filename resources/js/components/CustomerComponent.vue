@@ -40,75 +40,57 @@
                         </div>
                     </div>
                     <div class="bd-example">
-                        <div class="card" v-for="(subscription, subIndex) in subscriptions" :key="subIndex">
-                            <div class="card-body">
-                                <div class="row">
-                                    <button 
-                                        type="button" 
-                                        @click="removeProduct(subscription.id, subIndex)" 
-                                        class="close" 
-                                        data-dismiss="alert" 
-                                        aria-label="Close"
-                                        style="right: 20px; position: absolute; z-index: 1"
-                                    ><span aria-hidden="true">&times;</span></button>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-6">
-                                        <label for="product_id" class="col-form-label">Услуга</label>
-                                        <select v-model="subscription.product_id" :name="'subscriptions.' + subIndex + '.product_id'" id="product_id" class="col-sm-10 form-control">
-                                            <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
-                                        </select>
+                        <b-card no-body>
+                            <b-tabs v-model="tabIndex" card>
+                                <!-- Render Tabs, supply a unique `key` to each tab -->
+                                <b-tab v-for="(subscription, subIndex) in subscriptions" :key="subIndex" :title="getSubscriptionTitle(subscription.product_id)" :class="'b-tab-' + subIndex">
+                                    <div class="row">
+                                        <button 
+                                            type="button" 
+                                            title="Удалить услугу"
+                                            @click="removeProduct(subscription.id, subIndex)" 
+                                            class="close" 
+                                            data-dismiss="alert" 
+                                            aria-label="Close"
+                                            style="right: 20px; position: absolute; z-index: 1"
+                                        ><span aria-hidden="true">&times;</span></button>
                                     </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="price" class="col-form-label">Цена</label>
-                                        <select v-model="subscription.price" :name="'subscriptions.' + subIndex + '.price'" id="price" class="col-sm-10 form-control">
-                                            <option v-if="subscription.price != null" :value="subscription.price" selected>{{ subscription.price }}</option>
-                                            <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="option" v-if="option != subscription.price">{{ option }}</option>
-                                        </select>
+                                    <div class="row">
+                                        <div class="form-group col-sm-6">
+                                            <label for="product_id" class="col-form-label">Услуга</label>
+                                            <select v-model="subscription.product_id" :name="'subscriptions.' + subIndex + '.product_id'" id="product_id" class="col-sm-10 form-control">
+                                                <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-sm-6">
+                                            <label for="price" class="col-form-label">Цена</label>
+                                            <select v-model="subscription.price" :name="'subscriptions.' + subIndex + '.price'" id="price" class="col-sm-10 form-control">
+                                                <option v-if="subscription.price != null" :value="subscription.price" selected>{{ subscription.price }}</option>
+                                                <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="option" v-if="option != subscription.price">{{ option }}</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
-                               
-                                <div class="row">
-                                    <div class="form-group col-sm-6">
-                                        <label for="payment_type" class="col-form-label">Тип оплаты</label>
-                                        <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="col-sm-10 form-control">
-                                            <option v-for="(option, optionIndex) in paymentTypes" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
-                                        </select>
+                                    <div class="row">
+                                        <div class="form-group col-sm-6">
+                                            <label for="payment_type" class="col-form-label">Тип оплаты</label>
+                                            <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="col-sm-10 form-control">
+                                                <option v-for="(option, optionIndex) in getPaymentTypes(subscription.product_id)" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-sm-6">
+                                            <label for="status" class="col-form-label">Статус абонемента</label>
+                                            <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="col-sm-10 form-control">
+                                                <option v-for="(option, optionIndex) in getStatuses(subscription.product_id, subscription.payment_type)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="status" class="col-form-label">Статус абонемента</label>
-                                        <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="col-sm-10 form-control">
-                                            <option v-for="(option, optionIndex) in getStatuses(subscription.payment_type)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group col-sm-6">
-                                        <label for="started_at" class="col-form-label">Дата старта</label>
-                                        <datetime
-                                            :name="'subscriptions.' + subIndex + '.started_at'"
-                                            type="date"
-                                            v-model="subscription.started_at"
-                                            input-class="col-sm-10 my-class form-control"
-                                            valueZone="Asia/Almaty"
-                                            value-zone="Asia/Almaty"
-                                            zone="Asia/Almaty"
-                                            format="dd LLLL"
-                                            :auto="true"
-                                        ></datetime>
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label for="tries_at" class="col-form-label">Дата окончания абонемента и следующего платежа</label>
-                                        <div v-if="subscription.payment_type == 'tries'">
-                                            <div v-show="!subscription.is_edit_ended_at">
-                                                <span class="ended_at-span">{{ showDate(subscription.tries_at) }}</span>
-                                                <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
-                                            </div>
+                                    <div class="row">
+                                        <div class="form-group col-sm-6">
+                                            <label for="started_at" class="col-form-label">Дата старта</label>
                                             <datetime
-                                                v-show="subscription.is_edit_ended_at"
-                                                :name="'subscriptions.' + subIndex + '.tries_at'"
+                                                :name="'subscriptions.' + subIndex + '.started_at'"
                                                 type="date"
-                                                v-model="subscription.tries_at"
+                                                v-model="subscription.started_at"
                                                 input-class="col-sm-10 my-class form-control"
                                                 valueZone="Asia/Almaty"
                                                 value-zone="Asia/Almaty"
@@ -117,176 +99,207 @@
                                                 :auto="true"
                                             ></datetime>
                                         </div>
-                                        <div v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
-                                            <div v-show="!subscription.is_edit_ended_at">
-                                                <span class="ended_at-span">{{ showDate(subscription.ended_at) }}</span>
-                                                <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
-                                            </div>
-                                            <datetime
-                                                v-show="subscription.is_edit_ended_at"
-                                                :name="'subscriptions.' + subIndex + '.ended_at'"
-                                                type="date"
-                                                v-model="subscription.ended_at"
-                                                input-class="col-sm-10 my-class form-control"
-                                                valueZone="Asia/Almaty"
-                                                value-zone="Asia/Almaty"
-                                                zone="Asia/Almaty"
-                                                format="dd LLLL"
-                                                :auto="true"
-                                            ></datetime>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row" style="margin-bottom: 15px">
-                                    <div class="col-sm-6">
-                                        <button data-toggle="modal" @click="showHistorySubscriptionModal(subscription.id)" class="btn btn-warning" >История абонемента</button>
-                                    </div>
-                                    <div :id="'modalHistorySubscription-' + subscription.id" class="modal">
-                                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalLongTitle">История абонемента</h5>
-                                                    <button type="button" class="close" @click="hideHistorySubscriptionModal(subscription.id)">
-                                                    <span aria-hidden="true">&times;</span>
-                                                    </button>
+                                        <div class="form-group col-sm-6">
+                                            <label for="tries_at" class="col-form-label">Дата окончания абонемента и следующего платежа</label>
+                                            <div v-if="subscription.payment_type == 'tries'">
+                                                <div v-show="!subscription.is_edit_ended_at">
+                                                    <span class="ended_at-span">{{ showDate(subscription.tries_at) }}</span>
+                                                    <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
                                                 </div>
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <vc-calendar
-                                                        :min-date='new Date(subscription.started_at)'
-                                                        :max-date='new Date(subscription.ended_at)'
-                                                        :columns="$screens({ default: 1, lg: 2 })"
-                                                        :rows="$screens({ default: 1, lg: 2 })"
-                                                        :is-expanded="$screens({ default: true, lg: true })"
-                                                        :attributes='subscription.history'
-                                                        />
+                                                <datetime
+                                                    v-show="subscription.is_edit_ended_at"
+                                                    :name="'subscriptions.' + subIndex + '.tries_at'"
+                                                    type="date"
+                                                    v-model="subscription.tries_at"
+                                                    input-class="col-sm-10 my-class form-control"
+                                                    valueZone="Asia/Almaty"
+                                                    value-zone="Asia/Almaty"
+                                                    zone="Asia/Almaty"
+                                                    format="dd LLLL"
+                                                    :auto="true"
+                                                ></datetime>
+                                            </div>
+                                            <div v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
+                                                <div v-show="!subscription.is_edit_ended_at">
+                                                    <span class="ended_at-span">{{ showDate(subscription.ended_at) }}</span>
+                                                    <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
+                                                </div>
+                                                <datetime
+                                                    v-show="subscription.is_edit_ended_at"
+                                                    :name="'subscriptions.' + subIndex + '.ended_at'"
+                                                    type="date"
+                                                    v-model="subscription.ended_at"
+                                                    input-class="col-sm-10 my-class form-control"
+                                                    valueZone="Asia/Almaty"
+                                                    value-zone="Asia/Almaty"
+                                                    zone="Asia/Almaty"
+                                                    format="dd LLLL"
+                                                    :auto="true"
+                                                ></datetime>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="margin-bottom: 15px">
+                                        <div class="form-group col-sm-6">
+                                            <label for="user_id" class="col-form-label">Оператор абонемента</label>
+                                            <select v-model="subscription.user_id" :name="'subscriptions.' + subIndex + '.user_id'" id="user_id" class="col-sm-10 form-control">
+                                                <option v-for="(option, optionIndex) in users" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="margin-bottom: 15px">
+                                        <div class="col-sm-6">
+                                            <button data-toggle="modal" @click="showHistorySubscriptionModal(subscription.id)" class="btn btn-warning" >История абонемента</button>
+                                        </div>
+                                        <div :id="'modalHistorySubscription-' + subscription.id" class="modal">
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="exampleModalLongTitle">История абонемента</h5>
+                                                        <button type="button" class="close" @click="hideHistorySubscriptionModal(subscription.id)">
+                                                        <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <vc-calendar
+                                                            :min-date='new Date(subscription.started_at)'
+                                                            :max-date='new Date(subscription.ended_at)'
+                                                            :columns="$screens({ default: 1, lg: 2 })"
+                                                            :rows="$screens({ default: 1, lg: 2 })"
+                                                            :is-expanded="$screens({ default: true, lg: true })"
+                                                            :attributes='subscription.history'
+                                                            />
 
-                                                        <div style="width: 100%; margin-top: 20px; text-align: center">
-                                                            <p><span style="color: green">Зеленый</span> - заморозка</p>
-                                                            <p><span style="color: red">Красный</span> - перевод</p>
-                                                            <p><span style="color: yellow">Желтый</span> - подписка</p>
+                                                            <div style="width: 100%; margin-top: 20px; text-align: center">
+                                                                <p><span style="color: green">Зеленый</span> - заморозка</p>
+                                                                <p><span style="color: red">Красный</span> - перевод</p>
+                                                                <p><span style="color: yellow">Желтый</span> - подписка</p>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <footer class="modal-footer">
+                                                        <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
+                                                        <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
+                                                    </footer>
                                                 </div>
-                                                <footer class="modal-footer">
-                                                    <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
-                                                    <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
-                                                </footer>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
-                                    <div class="col-sm-6">
-                                        <button data-toggle="modal" class="btn btn-primary" @click="showTransferModal(subscription.id)">Загрузить чек</button>
-                                    </div>
-                                    <div :id="'modalTransfer-' + subscription.id" class="modal">
-                                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalLongTitle">Загрузить чек</h5>
-                                                    <button type="button" class="close" @click="hideTransferModal(subscription.id)">
-                                                    <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="form-group col-sm-6">
-                                                            <label for="check" class="col-form-label">Оплачен от</label>
-                                                            <datetime
-                                                                :name="'subscriptions.' + subIndex + '.newPayment.from'"
-                                                                type="date"
-                                                                v-model="subscription.newPayment.from"
-                                                                input-class="col-sm-10 my-class form-control"
-                                                                valueZone="Asia/Almaty"
-                                                                value-zone="Asia/Almaty"
-                                                                zone="Asia/Almaty"
-                                                                format="dd LLLL"
-                                                                :auto="true"
-                                                            ></datetime>
+                                    <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
+                                        <div class="col-sm-6">
+                                            <button data-toggle="modal" class="btn btn-primary" @click="showTransferModal(subscription.id)">Загрузить чек</button>
+                                        </div>
+                                        <div :id="'modalTransfer-' + subscription.id" class="modal">
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="exampleModalLongTitle">Загрузить чек</h5>
+                                                        <button type="button" class="close" @click="hideTransferModal(subscription.id)">
+                                                        <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="form-group col-sm-6">
+                                                                <label for="check" class="col-form-label">Оплачен от</label>
+                                                                <datetime
+                                                                    :name="'subscriptions.' + subIndex + '.newPayment.from'"
+                                                                    type="date"
+                                                                    v-model="subscription.newPayment.from"
+                                                                    input-class="col-sm-10 my-class form-control"
+                                                                    valueZone="Asia/Almaty"
+                                                                    value-zone="Asia/Almaty"
+                                                                    zone="Asia/Almaty"
+                                                                    format="dd LLLL"
+                                                                    :auto="true"
+                                                                ></datetime>
+                                                            </div>
+                                                            <div class="form-group col-sm-6">
+                                                                <label for="check" class="col-form-label">До</label>
+                                                                <datetime
+                                                                    :name="'subscriptions.' + subIndex + '.newPayment.from'"
+                                                                    type="date"
+                                                                    v-model="subscription.newPayment.to"
+                                                                    input-class="col-sm-10 my-class form-control"
+                                                                    valueZone="Asia/Almaty"
+                                                                    value-zone="Asia/Almaty"
+                                                                    zone="Asia/Almaty"
+                                                                    format="dd LLLL"
+                                                                    :auto="true"
+                                                                ></datetime>
+                                                            </div>
                                                         </div>
-                                                        <div class="form-group col-sm-6">
-                                                            <label for="check" class="col-form-label">До</label>
-                                                            <datetime
-                                                                :name="'subscriptions.' + subIndex + '.newPayment.from'"
-                                                                type="date"
-                                                                v-model="subscription.newPayment.to"
-                                                                input-class="col-sm-10 my-class form-control"
-                                                                valueZone="Asia/Almaty"
-                                                                value-zone="Asia/Almaty"
-                                                                zone="Asia/Almaty"
-                                                                format="dd LLLL"
-                                                                :auto="true"
-                                                            ></datetime>
+                                                        <div class="row">
+                                                            <div class="form-group col-sm-6">
+                                                                <label for="check" class="col-form-label">Загрузить чек</label>
+                                                                <upload-file :value-prop="subscription.newPayment.check" @file='setFileToSubscription($event, subIndex)'></upload-file>
+                                                            </div>
+                                                            <div class="form-group col-sm-6">
+                                                                <label for="quantity" class="col-form-label">Период</label>
+                                                                <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="col-sm-10 form-control">
+                                                                    <option v-for="(option, optionIndex) in quantities" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="row">
-                                                        <div class="form-group col-sm-6">
-                                                            <label for="check" class="col-form-label">Загрузить чек</label>
-                                                            <upload-file :value-prop="subscription.newPayment.check" @file='setFileToSubscription($event, subIndex)'></upload-file>
-                                                        </div>
-                                                        <div class="form-group col-sm-6">
-                                                            <label for="quantity" class="col-form-label">Период</label>
-                                                            <select v-model="subscription.newPayment.quantity" name="quantity" id="quantity" class="col-sm-10 form-control">
-                                                                <option v-for="(option, optionIndex) in quantities" :key="optionIndex" :value="optionIndex">{{ option }}</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                                    <footer class="modal-footer">
+                                                        <button @click="hideTransferModal(subscription.id, subscription.newPayment.to, subIndex)" type="button" class="btn btn-primary">Сохранить</button>
+                                                        <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
+                                                    </footer>
                                                 </div>
-                                                <footer class="modal-footer">
-                                                    <button @click="hideTransferModal(subscription.id, subscription.newPayment.to, subIndex)" type="button" class="btn btn-primary">Сохранить</button>
-                                                    <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
-                                                </footer>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'" style="margin-bottom: 15px">
-                                    <div class="col-sm-6">
-                                        <div class="recurrent_block">
-                                            <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
-                                            <input type="hidden" :id="'recurrent-link-' + subIndex" :value="subscription.recurrent.link">
+                                    <div class="row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'" style="margin-bottom: 15px">
+                                        <div class="col-sm-6">
+                                            <div class="recurrent_block">
+                                                <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
+                                                <input type="hidden" :id="'recurrent-link-' + subIndex" :value="subscription.recurrent.link">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="recurrent_button-block">
+                                                <button class="btn btn-info" @click="copyRecurrentLink(subIndex)">Копировать</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-sm-6">
-                                        <div class="recurrent_button-block">
-                                            <button class="btn btn-info" @click="copyRecurrentLink(subIndex)">Копировать</button>
+                                    <div v-show="type == 'edit'" class="row" style="margin-bottom: 15px;">
+                                        <div class="col-sm-12">
+                                            <a target="_blank" :href="'/userlogs?subscription_id=' + subscription.id">Логи абонемента</a>
                                         </div>
                                     </div>
-                                </div>
-                                <div v-show="type == 'edit'" class="row" style="margin-bottom: 15px;">
-                                    <div class="col-sm-12">
-                                        <a target="_blank" :href="'/userlogs?subscription_id=' + subscription.id">Логи абонемента</a>
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <ul class="list-group">
+                                                <li class="list-group-item" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
+                                                    <a :href="payment.url" target="_blank">ID: {{ payment.id }}</a>
+                                                    <span> | </span>
+                                                    {{ payment.title }}
+                                                    <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
+                                                    <span> | </span>
+                                                    <a :href="payment.user.url" target="_blank">{{ payment.user.name }}</a>
+                                                    <span class="list-group-remove" @click="deletePayment(payment, paymentIndex, subIndex)">X</span>
+                                                    <a :href="payment.edit" target="_blank" class="list-group-remove" style="
+                                                        margin-right: 5px;
+                                                        background-color: #abab00;
+                                                    ">E</a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-12">
-                                        <ul class="list-group">
-                                            <li class="list-group-item" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
-                                                <a :href="payment.url" target="_blank">ID: {{ payment.id }}</a>
-                                                <span> | </span>
-                                                {{ payment.title }}
-                                                <a v-if="payment.type == 'transfer' && payment.status == 'Completed'" target="_blank" :href="payment.check">(чек оплаты)</a>
-                                                <span> | </span>
-                                                <a :href="payment.user.url" target="_blank">{{ payment.user.name }}</a>
-                                                <span class="list-group-remove" @click="deletePayment(payment, paymentIndex, subIndex)">X</span>
-                                                <a :href="payment.edit" target="_blank" class="list-group-remove" style="
-                                                    margin-right: 5px;
-                                                    background-color: #abab00;
-                                                ">E</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                        </div>
+                                </b-tab>
+                                <template #tabs-end>
+                                <b-nav-item style="background: #6cb2eb; border-radius: 5px;" role="presentation" @click.prevent="addProduct()" title="Добавить услугу" href="#"><b style="color: #ffffff;">+</b></b-nav-item>
+                                </template>
+                            </b-tabs>
+                        </b-card>
                     </div>
-                    <div style="text-align: center">
+                    <!-- <div style="text-align: center">
                         <a @click="addProduct()" class="btn btn-primary">
                             Добавить услугу
                         </a>
-                    </div>
+                    </div> -->
                     <footer class="modal-footer">
                         <button @click="closeModal()" data-dismiss="modal" type="button" class="btn btn-secondary">Отмена</button>
                         <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button>
@@ -320,6 +333,7 @@ export default {
     ],
     data() {
         return {
+            tabIndex: 0,
             customerId: this.customerIdProp,
             type: this.typeProp,
             name: this.nameProp,
@@ -336,6 +350,7 @@ export default {
             },
             products: {},
             subscriptions: [],
+            users: [],
             paymentTypes: {},
             statuses: {},
             quantities: {},
@@ -378,6 +393,13 @@ export default {
         this.getOptions();
     },
     methods: {
+        getSubscriptionTitle(productId) {
+            if (productId) {
+                return this.products[productId].title;
+            } else {
+                return 'Новый абонемент';
+            }
+        },
         openTransferModal() {
             $('#modalTransfer').modal('toggle');
         },
@@ -529,6 +551,8 @@ export default {
                 this.paymentTypes = response.data.paymentTypes;
                 this.statuses = response.data.statuses;
                 this.quantities = response.data.quantities;
+                this.users = response.data.users;
+                this.user = response.data.user;
             });
         },
         setFileToSubscription(value, index) {
@@ -651,6 +675,7 @@ export default {
             this.subscriptions.push({
                 id: null,
                 product_id: null,
+                user_id: null,
                 price: null,
                 payment_type: null,
                 started_at: now.format(),
@@ -685,9 +710,16 @@ export default {
             }
             return [];
         },
-        getStatuses(paymentTypeKey) {
-            if (paymentTypeKey) {
-                return this.paymentTypes[paymentTypeKey]['statuses'];
+        getPaymentTypes(productId) {
+            if (productId) {
+                console.log(this.paymentTypes[productId]);
+                return this.paymentTypes[productId];
+            }
+            return [];
+        },
+        getStatuses(productId, paymentTypeKey) {
+            if (paymentTypeKey && this.paymentTypes[productId] && this.paymentTypes[productId][paymentTypeKey] && this.paymentTypes[productId][paymentTypeKey]!==undefined) {
+                return this.paymentTypes[productId][paymentTypeKey]['statuses'];
             }
             return [];
         }
@@ -698,6 +730,10 @@ export default {
 }
 </script>
 <style scoped>
+.b-tabs .card-header {
+    background-color: rgba(0,0,0,.03)!important;
+    border-bottom: 1px solid rgba(0,0,0,.125)!important;
+}
 .ended_at-span {
     padding: 5px 0px;
     padding-right: 10px;

@@ -15,7 +15,7 @@ class NotificationFilter extends BaseFilter
         if (in_array($filter, $data)) {
             $this->builder->where($filter, 'LIKE', "%{$value}%");
         } else {
-            $this->builder->where($filter, $value);
+            $this->builder->where('notifications.' .$filter, $value);
         }
 
         return $this->builder;

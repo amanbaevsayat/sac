@@ -40,8 +40,16 @@ class UserLogController extends Controller
     {
         access(['can-operator', 'can-head', 'can-host']);
         $users = User::get()->pluck('account', 'id');
+        $products = Product::get()->pluck('title', 'id');
+
 
         $data['main'] = [
+            [
+                'name' => 'product_id',
+                'title' => 'Услуги',
+                'type' => 'select-multiple',
+                'options' => $products,
+            ],
             [
                 'name' => 'type',
                 'title' => 'Тип лога',

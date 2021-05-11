@@ -19,9 +19,12 @@ class UserLog extends Model
     const DELETE_PAYMENT = 7;       // 7) Удаление платежа абонемента
     const DELETE_SUBSCRIPTION = 8;  // 8) Удаление абонемента
     const CUSTOMER_PHONE = 9;       // 9) Телефон абонемента
+    const START_DATE = 10;          // 10) Дата старта абонемента
+    const CHANGE_SUBSCRIPTION_USER = 11;    // 11) Оператор абонемента
 
     const TYPES = [
         self::END_DATE              => 'Дата окончания',
+        self::START_DATE            => 'Дата старта',
         self::SUBSCRIPTION_STATUS   => 'Статус абонемента',
         self::CP_UNSUBSCRIBE        => 'Запрос в cloudpayments об отказе подписки',
         self::CP_NEXT_PAYMENT_DATE  => 'Запрос в cloudpayments об изменении даты следующего платежа',
@@ -30,6 +33,7 @@ class UserLog extends Model
         self::DELETE_PAYMENT        => 'Удаление платежа',
         self::DELETE_SUBSCRIPTION   => 'Удаление абонемента',
         self::CUSTOMER_PHONE        => 'Телефон абонемента',
+        self::CHANGE_SUBSCRIPTION_USER  => 'Оператор абонемента',
     ];
 
     protected $fillable = [
@@ -68,25 +72,29 @@ class UserLog extends Model
     {
         switch ($this->type) {
             case self::END_DATE:
-                $message = '<b>Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b>Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
+                $message = '<b style="color: red">Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b style="color: green">Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
+                return $message;
+                break;
+            case self::START_DATE:
+                $message = '<b style="color: red">Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b style="color: green">Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
                 return $message;
                 break;
             case self::SUBSCRIPTION_STATUS:
-                $message = '<b>Старая запись: </b>' . (Subscription::STATUSES[$this->data['old']] ?? null) . '<br> <b>Новая запись: </b>' . (Subscription::STATUSES[$this->data['new']] ?? null);
+                $message = '<b style="color: red">Старая запись: </b>' . (Subscription::STATUSES[$this->data['old']] ?? null) . '<br> <b style="color: green">Новая запись: </b>' . (Subscription::STATUSES[$this->data['new']] ?? null);
                 return $message;
                 break;
             case self::CP_UNSUBSCRIBE:
                 break;
             case self::CP_NEXT_PAYMENT_DATE:
-                $message = '<b>Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b>Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
+                $message = '<b style="color: red">Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b style="color: green">Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
                 return $message;
                 break;
             case self::CP_AUTO_RENEWAL:
-                $message = '<b>Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b>Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
+                $message = '<b style="color: red">Старая запись: </b>' . ($this->data['old'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['old']))->getTimestamp()) : null) . '<br> <b style="color: green">Новая запись: </b>' . ($this->data['new'] ? strftime('%d %b %Y(%H:%M)', (new \DateTime($this->data['new']))->getTimestamp()) : null);
                 return $message;
                 break;
             case self::PAYMENT_TYPE:
-                $message = '<b>Старая запись: </b>' . (Subscription::PAYMENT_TYPE[$this->data['old']] ?? null) . '<br> <b>Новая запись: </b>' . (Subscription::PAYMENT_TYPE[$this->data['new']] ?? null);
+                $message = '<b style="color: red">Старая запись: </b>' . (Subscription::PAYMENT_TYPE[$this->data['old']] ?? null) . '<br> <b style="color: green">Новая запись: </b>' . (Subscription::PAYMENT_TYPE[$this->data['new']] ?? null);
                 return $message;
                 break;
             case self::DELETE_PAYMENT:
@@ -96,7 +104,11 @@ class UserLog extends Model
                 return null;
                 break;
             case self::CUSTOMER_PHONE:
-                $message = '<b>Старая запись: </b>' . $this->data['old'] . '<br> <b>Новая запись: </b>' . $this->data['new'];
+                $message = '<b style="color: red">Старая запись: </b>' . $this->data['old'] . '<br> <b style="color: green">Новая запись: </b>' . $this->data['new'];
+                return $message;
+                break;
+            case self::CHANGE_SUBSCRIPTION_USER:
+                $message = '<b style="color: red">Старая запись: </b>' . $this->data['old'] . '<br> <b style="color: green">Новая запись: </b>' . $this->data['new'];
                 return $message;
                 break;
             default:

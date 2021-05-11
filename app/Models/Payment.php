@@ -92,6 +92,7 @@ class Payment extends Model
     protected $fillable = [
         'id',
         'subscription_id',
+        'product_id',
         'card_id',
         'customer_id',
         'transaction_id',
@@ -102,11 +103,7 @@ class Payment extends Model
         'status',
         'paided_at',
         'data',
-        // 'slug',
-        // 'recurrent', // Для рекуррентных платежей
-        // 'start_date', // Для рекуррентных платежей
-        // 'interval', // Для рекуррентных платежей
-        // 'period', // Для рекуррентных платежей
+        'bonus_id',
     ];
 
     protected $dates = [
@@ -124,18 +121,48 @@ class Payment extends Model
     {
         parent::boot();
 
-        // auto-sets values on creation
-        static::creating(function ($query) {
+        static::creating(function ($payment) {
             $data = [
                 'subscription' => [
-                    'renewed' => $query->data['subscription']['renewed'] ?? false,
-                    'from' => $query->data['subscription']['from'] ?? null,
-                    'to' => $query->data['subscription']['to'] ?? null,
+                    'renewed' => $payment->data['subscription']['renewed'] ?? false,
+                    'from' => $payment->data['subscription']['from'] ?? null,
+                    'to' => $payment->data['subscription']['to'] ?? null,
                 ],
-                'cloudpayments' => $query->data['cloudpayments'] ?? [],
-                'check' => $query->data['check'] ?? null,
+                'cloudpayments' => $payment->data['cloudpayments'] ?? [],
+                'check' => $payment->data['check'] ?? null,
             ];
-            $query->data = $data;
+            $payment->data = $data;
+        });
+
+        // auto-sets values on creation
+        static::created(function ($payment) {
+            if (! $payment->subscription) {
+                \Log::error('Отсутствует абонемент. Payment ID: ' . $payment->id);
+            }
+            $payment->user_id = $payment->subscription->user_id;
+
+            if (isset($payment->type) && isset($payment->subscription_id) && isset($payment->status) && $payment->status == 'Completed') {
+                $similarPaymentExists = $payment->subscription->payments()
+                    ->where('type', $payment->type)
+                    ->where('status', 'Completed')
+                    ->get();
+                $paymentType = PaymentType::where('product_id', $payment->subscription->product_id)->where('payment_type', $payment->type)->first();
+                if (! $paymentType) {
+                    \Log::error('Отсутствует тип платежа. Payment ID: ' . $payment->id);
+                }
+                $type = count($similarPaymentExists) > 1 ? Bonus::REPEATED_PAYMENT : Bonus::FIRST_PAYMENT;
+                $bonus = Bonus::where('product_id', $payment->subscription->product_id)
+                    ->where('payment_type_id', $paymentType->id)
+                    ->where('type', $type)
+                    ->active()
+                    ->first();
+
+                if (! $bonus) {
+                    \Log::error('Отсутствует бонус. Payment ID: ' . $payment->id);
+                }
+                $payment->bonus_id = $bonus->id;
+            }
+            $payment->save();
         });
         static::deleting(function($payment) {
             UserLog::create([

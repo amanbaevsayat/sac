@@ -43,8 +43,15 @@ class PaymentController extends Controller
         $paymentTypes = Subscription::PAYMENT_TYPE;
         unset($paymentTypes['tries']);
         unset($paymentTypes['frozen']);
+        $products = Product::get()->pluck('title', 'id');
 
         $data['main'] = [
+            [
+                'name' => 'product_id',
+                'title' => 'Услуги',
+                'type' => 'select-multiple',
+                'options' => $products,
+            ],
             [
                 'name' => 'type',
                 'title' => 'Тип оплаты',

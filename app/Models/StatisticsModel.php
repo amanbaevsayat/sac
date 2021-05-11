@@ -39,8 +39,17 @@ class StatisticsModel extends Model
     // Страница количественные - 4-диаграмма: Есть один платеж, но отказались.
     const ELEVENTH_STATISTICS = 11;
 
-    // Страница количественные - 5-диаграмма: Активные абонементы.
+    // Страница количественные - 5-диаграмма: Активные абонементы -> Cloudpayments (подписка).
     const TWELFTH_STATISTICS = 12;
+
+    // Страница количественные - 5-диаграмма: Активные абонементы -> Прямой перевод.
+    const FIFTEENTH_STATISTICS = 15;
+
+    // Страница количественные - 1-диаграмма: Подключились в Whatsapp
+    const THIRTEENTH_STATISTICS = 13;
+
+    // Страница количественные - 6-диаграмма: События недели
+    const EVENTS_OF_WEEK = 14;
 
     const PERIOD_TYPE_WEEK = 'week';
     const PERIOD_TYPE_MONTH = 'month';

@@ -6,8 +6,12 @@ use App\Http\Requests\CreateProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Filters\ProductFilter;
+use App\Http\Resources\PaymentTypeResource;
 use App\Http\Resources\ProductCollection;
+use App\Models\Bonus;
+use App\Models\PaymentType;
 use App\Models\Price;
+use App\Models\Subscription;
 
 class ProductController extends Controller
 {
@@ -65,8 +69,10 @@ class ProductController extends Controller
     public function create()
     {
         access(['can-head', 'can-host']);
-
-        return view("{$this->root}.create");
+        $paymentTypes = Subscription::PAYMENT_TYPE;
+        return view("{$this->root}.create", [
+            'paymentTypes' => $paymentTypes,
+        ]);
     }
 
     /**
@@ -79,7 +85,9 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $product = $product->create($request->all());
-        $priceIds = [];
+        $paymentTypeIds = [];
+        $prices = $request->get('prices', []);
+        $paymentTypes = $request->get('paymentTypes', []);
         $prices = $request->get('prices', []);
 
         foreach ($prices as $item) {
@@ -91,7 +99,39 @@ class ProductController extends Controller
                 $priceIds[] = $price->id;
             }
         }
+
+        foreach ($paymentTypes as $item) {
+            $bonusIds = [];
+            if ($item) {
+                $paymentType = PaymentType::updateOrCreate([
+                    'payment_type' => $item['type'],
+                    'product_id' => $product->id,
+                ]);
+                $paymentTypeIds[] = $paymentType->id;
+
+                if (isset($item['bonuses'])) {
+                    foreach ($item['bonuses'] as $type => $amount) {
+                        $bonus = Bonus::updateOrCreate([
+                            'type' => $type,
+                            'amount' => $amount,
+                            'product_id' => $product->id,
+                            'payment_type_id' => $paymentType->id,
+                        ], [
+                            'is_active' => true,
+                        ]);
+
+                        $bonusIds[] = $bonus->id;
+                    }
+
+                    $paymentType->bonuses()->whereNotIn('id', $bonusIds)->update([
+                        'is_active' => false,
+                    ]);
+                }
+            }
+        }
+
         $product->prices()->whereNotIn('id', $priceIds)->delete();
+        $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно создан.');
     }
 
@@ -120,9 +160,13 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
+        $productPaymentTypes = $product->paymentTypes;
+        $paymentTypes = Subscription::PAYMENT_TYPE;
         return view("{$this->root}.edit", [
             'product' => $product,
             'productPrices' => $productPrices,
+            'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
+            'paymentTypes' => $paymentTypes,
         ]);
     }
 
@@ -137,7 +181,9 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $priceIds = [];
+        $paymentTypeIds = [];
         $prices = $request->get('prices', []);
+        $paymentTypes = $request->get('paymentTypes', []);
         $product->update($request->all());
 
         foreach ($prices as $item) {
@@ -149,7 +195,39 @@ class ProductController extends Controller
                 $priceIds[] = $price->id;
             }
         }
+
+        foreach ($paymentTypes as $item) {
+            $bonusIds = [];
+            if ($item) {
+                $paymentType = PaymentType::updateOrCreate([
+                    'payment_type' => $item['type'],
+                    'product_id' => $product->id,
+                ]);
+                $paymentTypeIds[] = $paymentType->id;
+
+                if (isset($item['bonuses'])) {
+                    foreach ($item['bonuses'] as $type => $amount) {
+                        $bonus = Bonus::updateOrCreate([
+                            'type' => $type,
+                            'amount' => $amount,
+                            'product_id' => $product->id,
+                            'payment_type_id' => $paymentType->id,
+                        ], [
+                            'is_active' => true,
+                        ]);
+
+                        $bonusIds[] = $bonus->id;
+                    }
+
+                    $paymentType->bonuses()->whereNotIn('id', $bonusIds)->update([
+                        'is_active' => false,
+                    ]);
+                }
+            }
+        }
+
         $product->prices()->whereNotIn('id', $priceIds)->delete();
+        $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
 
         $message = 'Данные продукта успешно изменены.';
         if ($request->ajax()) {

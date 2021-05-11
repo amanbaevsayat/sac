@@ -31,6 +31,19 @@ class UserLogFilter extends BaseFilter
         return $this->builder->where('data->old', 'refused')->whereNull('user_id');
     }
 
+    public function productId($value)
+    {
+        if (is_array($value)) {
+            return $this->builder->whereHas('subscription', function ($q) use ($value) {
+                $q->whereIn('product_id', $value);
+            });
+        } else {
+            return $this->builder->whereHas('subscription', function ($q) use ($value) {
+                $q->where('product_id', $value);
+            });
+        }
+    }
+
     public function customerNameOrPhone($value)
     {
         if ($value) {

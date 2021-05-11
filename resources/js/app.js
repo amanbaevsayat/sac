@@ -50,17 +50,46 @@ Vue.component('cloudpayments-checkout', require('./components/CloudpaymentsCheck
 Vue.component('customer-component', require('./components/CustomerComponent.vue').default);
 Vue.component('button-customer-component', require('./components/ButtonCustomerComponent.vue').default);
 Vue.component('product-price-component', require('./components/ProductPriceComponent.vue').default);
+Vue.component('product-payment-type-component', require('./components/ProductPaymentTypeComponent.vue').default);
+
 Vue.component('phone-component', require('./components/PhoneComponent.vue').default);
 Vue.component('date-component', require('./components/DateComponent.vue').default);
 Vue.component('statistics-component', require('./components/StatisticsComponent.vue').default);
+Vue.component('simple-timeline', require('./components/SimpleTimeline/SimpleTimeline.vue').default);
+
+// import SimpleTimeline from './components/SimpleTimeline/SimpleTimeline';
+// import SimpleTimelineItem from './components/SimpleTimeline/SimpleTimelineItem';
+// import SimpleTimelineControl from './components/SimpleTimeline/SimpleTimelineControl';
+
+// export { SimpleTimeline, SimpleTimelineItem, SimpleTimelineControl };
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+library.add(fas)
+
+Vue.component('font-awesome-icon', FontAwesomeIcon)
+
+Vue.config.productionTip = false
 
 import VueToast from 'vue-toast-notification';
+
+import Vue2Editor from "vue2-editor";
+
+Vue.use(Vue2Editor);
+
 import { Settings } from 'luxon'
 // import moment from 'moment';
 // Vue.use(moment);
 Settings.defaultLocale = 'ru'
 // import PortalVue from 'portal-vue'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import { BootstrapVue, BadgePlugin, ButtonPlugin, CardPlugin, LayoutPlugin } from 'bootstrap-vue'
+
+Vue.use(BadgePlugin);
+Vue.use(ButtonPlugin);
+Vue.use(CardPlugin);
+Vue.use(LayoutPlugin);
 // import VModal from 'vue-js-modal/dist/ssr.nocss'
 import 'vue-toast-notification/dist/theme-default.css';
 // Vue.use(VModal, {})
@@ -107,13 +136,13 @@ Highcharts.setOptions({
         ],
         weekdays: [
             'Воскресение', 'Понедельник', 'Вторник', 'Среда', 'Четверг',
-            'Пятница', 'Суббота', 
+            'Пятница', 'Суббота',
         ]
     },
     time: {
         timezone: 'Asia/Almaty',
         // // timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timezoneOffset: -1860,
+        timezoneOffset: -1800,
         // useUTC: false,
     },
     global: {

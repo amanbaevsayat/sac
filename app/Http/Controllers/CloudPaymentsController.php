@@ -23,6 +23,7 @@ class CloudPaymentsController extends Controller
             $lastPayment = $subscription->payments()->latest()->whereNotNull('user_id')->whereType('cloudpayments')->first();
             $payment = $subscription->payments()->create([
                 'customer_id' => $subscription->customer->id,
+                'product_id' => $subscription->product->id,
                 'user_id' => $lastPayment->user_id ?? null,
                 'type' => 'cloudpayments',
                 'status' => 'new',

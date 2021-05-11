@@ -33,6 +33,11 @@ class Product extends Model
         return $this->hasMany(Price::class, 'product_id');
     }
 
+    public function paymentTypes()
+    {
+        return $this->hasMany(PaymentType::class, 'product_id');
+    }
+
     public function scopeFilter($query, ProductFilter $filters)
     {
         $filters->apply($query);

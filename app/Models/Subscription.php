@@ -16,7 +16,7 @@ class Subscription extends Model
 
     const CLOUDPAYMENTS_STATUSES = [
         'Active' => 'paid',
-        'PastDue' => 'waiting',
+        'PastDue' => 'paid',
         'Cancelled' => 'refused',
         'Rejected' => 'rejected',
         'Expired' => 'refused',
@@ -52,6 +52,7 @@ class Subscription extends Model
         'payment_type',
         'data',
         'cp_subscription_id',
+        'user_id',
     ];
 
     protected $dates = [
@@ -81,27 +82,34 @@ class Subscription extends Model
             $oldEndedAt = Carbon::parse($subscription->getOriginal('ended_at') ?? null);
             $endedAt = Carbon::parse($subscription->ended_at);
             $isEqualTwoEndedAt = Carbon::parse($subscription->getOriginal('ended_at') ?? null)->format('Y-m-d') == Carbon::parse($subscription->ended_at ?? null)->format('Y-m-d');
+            $isEqualTwoStartedAt = Carbon::parse($subscription->getOriginal('started_at') ?? null)->format('Y-m-d') == Carbon::parse($subscription->started_at ?? null)->format('Y-m-d');
             if (! $isEqualTwoEndedAt) {
                 if ($subscription->status != 'refused' && $subscription->payment_type == 'cloudpayments' && isset($subscription->cp_subscription_id)) {
-                    $cloudPaymentsService = new CloudPaymentsService();
-                    $data = [
-                        'Id' => $subscription->cp_subscription_id,
-                        'StartDate' => Carbon::parse($endedAt)->format('Y-m-d\TH:i:s.u'),
-                    ];
+                    // Если дата окончания меньше now, 
+                    // то будет двойное списание, 
+                    // потому что дата окончания заднее число и cloudpayments попытается снять еще.
+                    if (Carbon::parse($endedAt)->gt(Carbon::now())) {
+                        $cloudPaymentsService = new CloudPaymentsService();
+                        $data = [
+                            'Id' => $subscription->cp_subscription_id,
+                            'StartDate' => Carbon::parse($endedAt)->format('Y-m-d\TH:i:s.u'),
+                        ];
 
-                    $response = $cloudPaymentsService->updateSubscription($data);
+                        // Запрос в cloudpayments об изменении даты следующего платежа
+                        $response = $cloudPaymentsService->updateSubscription($data);
 
-                    UserLog::create([
-                        'subscription_id' => $subscription->id,
-                        'user_id' => Auth::id(),
-                        'type' => UserLog::CP_NEXT_PAYMENT_DATE,
-                        'data' => [
-                            'old' => $oldEndedAt,
-                            'new' => Carbon::parse($endedAt),
-                            'request' => $data,
-                            'response' => $response,
-                        ],
-                    ]);
+                        UserLog::create([
+                            'subscription_id' => $subscription->id,
+                            'user_id' => Auth::id(),
+                            'type' => UserLog::CP_NEXT_PAYMENT_DATE,
+                            'data' => [
+                                'old' => $oldEndedAt,
+                                'new' => Carbon::parse($endedAt),
+                                'request' => $data,
+                                'response' => $response,
+                            ],
+                        ]);
+                    }
                 } else {
                     UserLog::create([
                         'subscription_id' => $subscription->id,
@@ -113,6 +121,18 @@ class Subscription extends Model
                         ],
                     ]);
                 }
+            }
+
+            if (! $isEqualTwoStartedAt) {
+                UserLog::create([
+                    'subscription_id' => $subscription->id,
+                    'user_id' => Auth::id(),
+                    'type' => UserLog::START_DATE,
+                    'data' => [
+                        'old' => Carbon::parse($subscription->getOriginal('started_at') ?? null)->format('Y-m-d'),
+                        'new' => Carbon::parse($subscription->started_at ?? null)->format('Y-m-d'),
+                    ],
+                ]);
             }
 
             if ($subscription->status == 'refused') {
@@ -127,6 +147,20 @@ class Subscription extends Model
                     'data' => [
                         'old' => $subscription->getOriginal('status'),
                         'new' => $subscription->status,
+                    ],
+                ]);
+            }
+
+            if ($subscription->getOriginal('user_id') != $subscription->user_id) {
+                $oldUser = User::find($subscription->getOriginal('user_id'));
+                $newUser = User::find($subscription->user_id);
+                UserLog::create([
+                    'subscription_id' => $subscription->id,
+                    'user_id' => Auth::id(),
+                    'type' => UserLog::CHANGE_SUBSCRIPTION_USER,
+                    'data' => [
+                        'old' => $oldUser->account ?? $subscription->getOriginal('user_id'),
+                        'new' => $newUser->account ?? $subscription->user_id,
                     ],
                 ]);
             }
@@ -258,6 +292,10 @@ class Subscription extends Model
                     'request' => $this->cp_subscription_id,
                     'response' => $response,
                 ],
+            ]);
+
+            $this->update([
+                'cp_subscription_id' => null,
             ]);
         }
     }

@@ -77,8 +77,14 @@ class UpdateStatistics extends Command
                 // Страница количественные - 4-диаграмма: Есть один платеж, но отказались.
                 $this->updateEleventhStatistics($product, $period);
 
-                // Страница количественные - 5-диаграмма: Активные абонементы.
+                // Страница количественные - 5-диаграмма: Активные абонементы. - Cloudpayments
                 $this->updateTwelfthStatistics($product, $period);
+
+                // Страница количественные - 1-диаграмма: Подключились в Whatsapp.
+                $this->updateThirteenthStatistics($product, $period);
+
+                // Страница количественные - 5-диаграмма: Активные абонементы. - Прямой перевод
+                $this->updateFifteenthStatistics($product, $period);
             }
         }
     }
@@ -157,6 +163,7 @@ class UpdateStatistics extends Command
         
         foreach ($subscriptions as $key => $value) {
             StatisticsModel::updateOrCreate([
+                'period_type' => $period,
                 'product_id' => $product->id,
                 'type' => StatisticsModel::FOURTH_STATISTICS,
                 'key' => $key,
@@ -185,6 +192,7 @@ class UpdateStatistics extends Command
         
         foreach ($subscriptions as $key => $value) {
             StatisticsModel::updateOrCreate([
+                'period_type' => $period,
                 'product_id' => $product->id,
                 'type' => StatisticsModel::SEVENTH_STATISTICS,
                 'key' => $key,
@@ -314,6 +322,7 @@ class UpdateStatistics extends Command
             $date = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
         }
         $subscriptionsCount = Subscription::whereProductId($product->id)
+            ->where('payment_type', 'cloudpayments')
             ->whereIn('status', ['paid', 'waiting'])
             ->whereIn('payment_type', ['transfer', 'cloudpayments'])
             ->whereHas('payments', function ($q) {
@@ -325,6 +334,57 @@ class UpdateStatistics extends Command
         StatisticsModel::updateOrCreate([
             'period_type' => $period,
             'type' => StatisticsModel::TWELFTH_STATISTICS,
+            'product_id' => $product->id,
+            'key' => $date,
+        ], [
+            'value' => $subscriptionsCount,
+        ]);
+    }
+
+    private function updateThirteenthStatistics(Product $product, string $period)
+    {
+        $subscriptions = Subscription::
+            whereProductId($product->id)
+            ->get()
+            ->groupBy(function($subscription) use ($period) {
+                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfMonth()->startOfDay()->valueOf();
+                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                    return (int) Carbon::parse($subscription->started_at)->endOfWeek()->startOfDay()->valueOf();
+                }
+            })->toArray();
+        foreach ($subscriptions as $key => $value) {
+            StatisticsModel::updateOrCreate([
+                'period_type' => $period,
+                'product_id' => $product->id,
+                'type' => StatisticsModel::THIRTEENTH_STATISTICS,
+                'key' => $key,
+            ], [
+                'value' => count($value ?? []),
+            ]);
+        }
+    }
+
+    private function updateFifteenthStatistics(Product $product, string $period)
+    {
+        if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+            $date = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
+        } else {
+            $date = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
+        }
+        $subscriptionsCount = Subscription::whereProductId($product->id)
+            ->where('payment_type', 'transfer')
+            ->whereIn('status', ['paid', 'waiting'])
+            ->whereIn('payment_type', ['transfer', 'cloudpayments'])
+            ->whereHas('payments', function ($q) {
+                $q->where('status', 'Completed');
+            })
+            ->count();
+
+        
+        StatisticsModel::updateOrCreate([
+            'period_type' => $period,
+            'type' => StatisticsModel::FIFTEENTH_STATISTICS,
             'product_id' => $product->id,
             'key' => $date,
         ], [

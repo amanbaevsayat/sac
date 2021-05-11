@@ -25,9 +25,9 @@ class PaymentCollection extends ResourceCollection
                     'title' => 'ID',
                     'key' => 'id',
                 ],
-                [
-                    'title' => 'Статус абонемента',
-                ],
+                // [
+                //     'title' => 'Статус абонемента',
+                // ],
                 [
                     'title' => 'Клиент',
                     'key' => 'customer_id',

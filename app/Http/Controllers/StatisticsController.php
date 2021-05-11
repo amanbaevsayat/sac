@@ -65,7 +65,9 @@ class StatisticsController extends Controller
 
         $newLeadsFirst = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIRST_STATISTICS)->get()->pluck('value', 'key');
         $newLeadsSecond = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::SECOND_STATISTICS)->get()->pluck('value', 'key');
+        $connectedToWhatsapp = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::THIRTEENTH_STATISTICS)->get()->pluck('value', 'key');
         $chats->push([
+            'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
@@ -77,19 +79,71 @@ class StatisticsController extends Controller
                 [
                     'editable' => false,
                     'statisticsType' => StatisticsModel::SECOND_STATISTICS,
-                    "name" => "Новые клиенты",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsSecond) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($newLeadsSecond[$category] ?? 0)];
+                    "name" => "Подключились в WhatsApp",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($connectedToWhatsapp) {
+                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($connectedToWhatsapp[$category] ?? 0)];
                     })->toArray()),
                     "color" => "#c2de80",
-                    'description' => 'Оплатили первый платеж в этот период.',
+                    'description' => 'Подключились к WhatsApp - Все у кого дата старта абонемента началась в этот период',
                 ],
                 [
                     'editable' => true,
                     'statisticsType' => StatisticsModel::FIRST_STATISTICS,
                     "name" => "Новые лиды (Instagram)",
                     "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsFirst) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($newLeadsFirst[$category] ?? 0)];
+                        return [
+                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 
+                            'x' => $category, 
+                            'y' => (int) ($newLeadsFirst[$category] ?? 0),
+                        ];
+                    })->toArray()),
+                    "color" => "#db9876",
+                    'description' => 'Данные загружаются вручную',
+                ],
+            ],
+            'plotOptions' => [
+                'area' => [
+                    'fillOpacity' => 0.5,
+                    'dataLabels' => [
+                        'enabled' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $chats->push([
+            'type' => 'highchart',
+            'chart' => [
+                'type' => 'area',
+            ],
+            "title" => ["text" => 'Конверсия подключении к WhatsApp'],
+            "xAxis" => [
+                'type' => 'datetime',
+            ],
+            'yAxis' => [
+                'labels' => [
+                    'format' => '{value}%'
+                ],
+                'title' => [
+                    'enabled' => false
+                ],
+            ],
+            "series" => [
+                [
+                    // 'editable' => true,
+                    'statisticsType' => StatisticsModel::FIRST_STATISTICS,
+                    "name" => "Новые лиды (Instagram)",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsFirst, $connectedToWhatsapp) {
+                        $newLead = (is_numeric($newLeadsFirst[$category] ?? 0) && ($newLeadsFirst[$category] ?? 0) != 0) ? $newLeadsFirst[$category] : 1;
+                        $connectToWhatsapp = (is_numeric($connectedToWhatsapp[$category] ?? 0) && ($connectedToWhatsapp[$category] ?? 0) != 0) ? $connectedToWhatsapp[$category] : 1;
+                        // dd($newLead, $connectToWhatsapp);
+                        $conversion = ($newLead > $connectToWhatsapp) ? round($connectToWhatsapp / $newLead * 100, 1) : 0;
+                        // dd($conversion);
+                        return [
+                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 
+                            'x' => $category, 
+                            'y' => $conversion,
+                        ];
                     })->toArray()),
                     "color" => "#db9876",
                     'description' => 'Данные загружаются вручную',
@@ -107,8 +161,56 @@ class StatisticsController extends Controller
 
         $outflowClients = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::THIRD_STATISTICS)->get()->pluck('value', 'key');
         $outflowTrials = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FOURTH_STATISTICS)->get()->pluck('value', 'key');
+        $inflowClientsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::NINTH_STATISTICS)->get()->pluck('value', 'key');
 
         $chats->push([
+            'type' => 'highchart',
+            'chart' => [
+                'type' => 'area',
+            ],
+            "title" => ["text" => 'Конверсия из пробных в клиенты'],
+            "xAxis" => [
+                'type' => 'datetime',
+            ],
+            'yAxis' => [
+                'labels' => [
+                    'format' => '{value}%'
+                ],
+                'title' => [
+                    'enabled' => false
+                ],
+            ],
+            "series" => [
+                [
+                    // 'editable' => true,
+                    'statisticsType' => StatisticsModel::FIRST_STATISTICS,
+                    "name" => "Конверсия из пробных в клиенты",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($inflowClientsAtStartedAt, $connectedToWhatsapp) {
+                        $conWhat = (is_numeric($connectedToWhatsapp[$category] ?? 0) && ($connectedToWhatsapp[$category] ?? 0) != 0) ? $connectedToWhatsapp[$category] : 1;
+                        $clients = (is_numeric($inflowClientsAtStartedAt[$category] ?? 0) && ($inflowClientsAtStartedAt[$category] ?? 0) != 0) ? $inflowClientsAtStartedAt[$category] : 1;
+                        $conversion = ($conWhat > $clients) ? round($clients / $conWhat * 100, 1) : 0;
+                        // dd($conversion);
+                        return [
+                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 
+                            'x' => $category, 
+                            'y' => $conversion,
+                        ];
+                    })->toArray()),
+                    "color" => "#db9876",
+                    'description' => '(По дате старта) Клиенты совершившие 1 платеж/ Подключились к WhatsApp * 100',
+                ],
+            ],
+            'plotOptions' => [
+                'area' => [
+                    'fillOpacity' => 0.5,
+                    'dataLabels' => [
+                        'enabled' => true,
+                    ],
+                ],
+            ],
+        ]);
+        $chats->push([
+            'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
@@ -156,10 +258,10 @@ class StatisticsController extends Controller
             ],
         ]);
 
-        $inflowClientsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::NINTH_STATISTICS)->get()->pluck('value', 'key');
         $outflowClientsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EIGHTH_STATISTICS)->get()->pluck('value', 'key');
         $outflowTrialsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::SEVENTH_STATISTICS)->get()->pluck('value', 'key');
         $chats->push([
+            'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
@@ -211,6 +313,7 @@ class StatisticsController extends Controller
         $onePaymentRefusedSubscriptions = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::ELEVENTH_STATISTICS)->get()->pluck('value', 'key');
 
         $chats->push([
+            'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
@@ -226,7 +329,7 @@ class StatisticsController extends Controller
                         return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($twoPaymentsSubscriptions[$category] ?? 0)];
                     })->toArray()),
                     "color" => "#c2de80",
-                    'description' => '',
+                    'description' => 'Количество клиентов, у которых два успешных платежа',
                 ],
                 [
                     'editable' => false,
@@ -235,7 +338,7 @@ class StatisticsController extends Controller
                         return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($onePaymentRefusedSubscriptions[$category] ?? 0)];
                     })->toArray()),
                     "color" => "#db9876",
-                    'description' => '',
+                    'description' => 'Количество клиентов, у которых один успешный платеж и статус абонемента - Отказался',
                 ],
             ],
             'plotOptions' => [
@@ -248,8 +351,10 @@ class StatisticsController extends Controller
             ],
         ]);
 
-        $activeSubscriptions = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::TWELFTH_STATISTICS)->get()->pluck('value', 'key');
+        $activeSubscriptionsCP = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::TWELFTH_STATISTICS)->get()->pluck('value', 'key');
+        $activeSubscriptionsDT = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIFTEENTH_STATISTICS)->get()->pluck('value', 'key');
         $chats->push([
+            'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
@@ -259,14 +364,26 @@ class StatisticsController extends Controller
             ],
             "series" => [
                 [
-                    'editable' => true,
-                    "name" => "Активные абонементы.",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptions) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptions[$category] ?? 0)];
+                    'editable' => false,
+                    "name" => "Cloudpayments (подписка)",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptionsCP) {
+                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptionsCP[$category] ?? 0)];
                     })->toArray()),
-                    "color" => "#c2de80",
+                    "color" => "#46a6cd6b",
                     'statisticsType' => StatisticsModel::TWELFTH_STATISTICS,
-                    'description' => 'Тип оплаты: (cloudpayments, перевод) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
+                    'description' => 'Тип оплаты: (cloudpayments) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
+                    'stacking' => 'normal'
+                ],
+                [
+                    'editable' => false,
+                    "name" => "Прямой перевод",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptionsDT) {
+                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptionsDT[$category] ?? 0)];
+                    })->toArray()),
+                    "color" => "#db9876",
+                    'statisticsType' => StatisticsModel::FIFTEENTH_STATISTICS,
+                    'description' => 'Тип оплаты: (прямой перевод) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
+                    'stacking' => 'normal'
                 ],
             ],
             'plotOptions' => [
@@ -277,6 +394,45 @@ class StatisticsController extends Controller
                     ],
                 ],
             ],
+        ]);
+
+        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
+
+        $eventData = [];
+        foreach ($categories as $key => $category) {
+            $eventData[] = [
+                'id' => $key,
+                'key' => $category,
+                'icon' => 'calendar',
+                'status' => 'success',
+                'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
+                'controls' => [
+                    [
+                        'method' => 'edit',
+                        'icon' => 'edit',
+                    ]
+                ],
+                'createdDate' => Carbon::parse($category / 1000)->isoFormat('YYYY-MM-DD'),
+                'body' => $eventsOfWeek[$category] ?? '',
+            ];
+        }
+
+        // dd($eventData);
+
+        $chats->push([
+            'type' => 'timeline',
+            "series" => [
+                [
+                    'editable' => false,
+                    "name" => "События недели",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($eventsOfWeek) {
+                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($eventsOfWeek[$category] ?? 0)];
+                    })->toArray()),
+                    'description' => '',
+                    'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
+                ],
+            ],
+            'items' => $eventData
         ]);
 
         return view('pages.statistics', compact('products', 'chats'));
@@ -311,6 +467,7 @@ class StatisticsController extends Controller
         $productId = $request->input('productId');
         $turnover = \DB::table('payments')
             ->select('payments.*' ,\DB::raw('quantity * amount as total'))
+            ->whereProductId($productId)
             ->whereStatus('Completed')
             ->whereNull('deleted_at')
             ->whereBetween('paided_at', [$from, $to])
@@ -325,6 +482,7 @@ class StatisticsController extends Controller
         
         $turnoverCloudpayments = \DB::table('payments')
             ->select('payments.*' ,\DB::raw('quantity * amount as total'))
+            ->whereProductId($productId)
             ->whereNull('deleted_at')
             ->whereType('cloudpayments')
             ->whereStatus('Completed')
@@ -340,6 +498,7 @@ class StatisticsController extends Controller
         
         $turnoverTransfers = \DB::table('payments')
             ->select('payments.*' ,\DB::raw('quantity * amount as total'))
+            ->whereProductId($productId)
             ->whereNull('deleted_at')
             ->whereType('transfer')
             ->whereStatus('Completed')
@@ -354,10 +513,11 @@ class StatisticsController extends Controller
             });
 
         $chats->push([
+            'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Оборот'],
+            "title" => ["text" => 'Рентабельность услуги'],
             "xAxis" => [
                 "type" => 'datetime',
             ],
@@ -371,24 +531,7 @@ class StatisticsController extends Controller
                     "color" => "#c2de80",
                     "description" => "Суммирование всех платежей (цена * количество)",
                 ],
-                [
-                    'editable' => false,
-                    "name" => "Оборот по переводам",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnoverTransfers) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnoverTransfers[$category]) ? $turnoverTransfers[$category]->sum('total') : 0];
-                    })->toArray()),
-                    "color" => "#e8bf29",
-                    "description" => "Прямой перевод | Суммирование всех платежей (цена * количество)",
-                ],
-                [
-                    'editable' => false,
-                    "name" => "Оборот по подпискам",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnoverCloudpayments) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnoverCloudpayments[$category]) ? $turnoverCloudpayments[$category]->sum('total') : 0];
-                    })->toArray()),
-                    "color" => "#2adaca",
-                    "description" => "Cloudpayments | Суммирование всех платежей (цена * количество)",
-                ],
+                
             ],
             'plotOptions' => [
                 'area' => [
@@ -397,6 +540,58 @@ class StatisticsController extends Controller
                         'enabled' => true,
                     ],
                 ],
+            ],
+        ]);
+
+        $chats->push([
+            'type' => 'highchart',
+            'chart' => [
+                'type' => 'area',
+            ],
+            "title" => ["text" => 'Доход по типу платежей'],
+            "xAxis" => [
+                "type" => 'datetime',
+            ],
+            "series" => [
+                [
+                    'editable' => false,
+                    "name" => "Доход по переводам",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnoverTransfers) {
+                        return ['stack' => 1, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnoverTransfers[$category]) ? $turnoverTransfers[$category]->sum('total') : 0];
+                    })->toArray()),
+                    "color" => "#e8bf29",
+                    "description" => "Доход по переводам - Прямой перевод | Суммирование всех платежей (цена * количество)",
+                    'groupPadding' => 0,
+                    'stacking' => 'normal'
+                ],
+                [
+                    'editable' => false,
+                    "name" => "Доход по подпискам",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnoverCloudpayments) {
+                        return ['stack' => 2, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnoverCloudpayments[$category]) ? $turnoverCloudpayments[$category]->sum('total') : 0];
+                    })->toArray()),
+                    "color" => "#2adaca",
+                    "description" => "Доход по подпискам - Cloudpayments | Суммирование всех платежей (цена * количество)",
+                    'groupPadding' => 0,
+                    'stacking' => 'normal'
+                ],
+            ],
+            'plotOptions' => [
+                'area' => [
+                    // 'stacking' => 'normal',
+                    'fillOpacity' => 0.5,
+                    'dataLabels' => [
+                        'enabled' => true,
+                    ],
+                ],
+                'column' => [
+                    // 'grouping' => true,
+                    'stacking' => 'normal',
+                    'fillOpacity' => 2.5,
+                    'dataLabels' => [
+                        'enabled' => true,
+                    ],
+                ]
             ],
         ]);
 
@@ -423,6 +618,32 @@ class StatisticsController extends Controller
                 'value' => $item['y'],
             ]);
         }
+
+        return response()->json([
+            'message' => 'Данные успешно сохранены.',
+        ], 200);
+    }
+
+    public function updateTimeline(Request $request)
+    {
+        access(['can-operator', 'can-head', 'can-host']);
+
+        $request->validate([
+            "item" => "required",
+            "productId" => "required",
+            "period" => "required",
+        ]);
+
+        $item = $request->input('item');
+
+        StatisticsModel::updateOrCreate([
+            'period_type' => $request->get('period'),
+            'product_id' => (int) $request->get('productId'),
+            'type' => (int) $item['statisticsType'],
+            'key' => $item['key'],
+        ], [
+            'value' => $item['data'],
+        ]);
 
         return response()->json([
             'message' => 'Данные успешно сохранены.',

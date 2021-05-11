@@ -90,7 +90,12 @@
                                     <div class="col-sm-3" v-for="(data, dataIndex) in item.data" :key="dataIndex">
                                         <div class="form-group">
                                             <label for="form_name">{{ convertDate(data.x, 'LL') }}</label>
+                                            <textarea v-if="item.type" 
+                                                @input="inputChangeEvent($event, chartIndex, seriesIndex, dataIndex)" 
+                                                v-model="charts[chartIndex].series[seriesIndex].data[dataIndex]['y']" 
+                                                id="" cols="30" rows="10"></textarea>
                                             <input 
+                                                v-else
                                                 @change="inputChangeEvent($event, chartIndex, seriesIndex, dataIndex)" 
                                                 v-model="charts[chartIndex].series[seriesIndex].data[dataIndex]['y']" 
                                                 type="number" 
@@ -107,7 +112,7 @@
                         </b-collapse>
                     </div>
                 </div>
-                <div class="card card-body">
+                <div class="card card-body" v-if="chart.type == 'highchart'">
                     <highcharts 
                         :options="charts[chartIndex]"
                         :updateArgs="[true, true, true]"
@@ -115,6 +120,33 @@
                     ></highcharts>
                     <div v-for="(item, seriesIndex) in chart.series" :key="seriesIndex" style="font-size: 11px">
                         <p v-show="item.description" style="margin-bottom: 0px"><span :style="'font-size: 24px; color:' + item.color">•</span> - {{ item.description }}</p>
+                    </div>
+                </div>
+                <div class="card card-body" v-else-if="chart.type == 'timeline'">
+                    <h2 style="margin-bottom: 15px; text-align: center">{{ chart.series[0].name }}</h2>
+                    <simple-timeline
+                        :items="chart.items"
+                        dateFormat="DD MMM, YY"
+                        @timeline-edit="timelineEdit(chart.items, chart.series[0].statisticsType, $event)"
+                        v-on="$listeners"
+                    ></simple-timeline>
+                    <div id="timeline-modal" class="modal">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLongTitle">{{ timeline.title }}</h5>
+                                    <button type="button" class="close" @click="closeTimelineModal()">
+                                    <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <vue-editor v-model="timeline.data" />
+                                </div>
+                                <footer class="modal-footer">
+                                    <button @click="saveTimelineModal()" type="button" class="btn btn-primary">Сохранить</button>
+                                </footer>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -125,6 +157,7 @@
 <script>
 import {Chart} from 'highcharts-vue'
 import moment from 'moment-timezone';
+import { VueEditor } from "vue2-editor";
 
     export default {
         props: [
@@ -135,14 +168,15 @@ import moment from 'moment-timezone';
             'routeProp'
         ],
         components: {
-            highcharts: Chart 
+            highcharts: Chart ,
+            VueEditor,
         },
         data() {
             return {
                 filterOpen: false,
                 route: this.routeProp,
                 charts: this.chartsProp,
-                charts: [],
+                // charts: [],
                 products: this.productsProp,
                 periods: this.periodsProp,
                 data: {
@@ -156,9 +190,24 @@ import moment from 'moment-timezone';
                     color: '#6cb2eb',
                     size: '100px',
                 },
+                timeline: {
+                    title: '',
+                    data: '',
+                    statisticsType: '',
+                    key: '',
+                }
             }
         },
-        mounted() {
+        beforeMount() {
+            this.charts.forEach(function(chart, chartIndex) {
+                if (chart.type == 'timeline') {
+                    chart.items.forEach((item, itemIndex) => {
+                        this.charts[chartIndex].items[itemIndex].createdDate = new Date(item.createdDate);
+                    });
+                }
+            }.bind(this));
+
+
             this.chartsProp.forEach(function(chart, index) {
                 this.charts[index] = chart;
                 this.charts[index].xAxis.labels = {
@@ -169,6 +218,71 @@ import moment from 'moment-timezone';
             }.bind(this));
         },
         methods: {
+            clearTimeline() {
+                this.timeline = {
+                    title: '',
+                    data: '',
+                    statisticsType: '',
+                    key: '',
+                };
+            },
+            closeTimelineModal() {
+                $('#timeline-modal').modal('hide');
+            },
+            saveTimelineModal() {
+                this.saveTimelineData(this.timeline);
+                this.closeTimelineModal();
+            },
+            showTimelineModal() {
+                $('#timeline-modal').modal('show');
+            },
+            timelineEdit(items, statisticsType, e) {
+                this.clearTimeline();
+
+                items.forEach(function(item, index) {
+                    if (item.id == e.eventId) {
+                        this.timeline.data = item.body;
+                        this.timeline.title = item.title;
+                        this.timeline.key = item.key;
+                    }
+                }.bind(this));
+                this.timeline.statisticsType = statisticsType;
+
+                this.showTimelineModal();
+            },
+            saveTimelineData(timeline) {
+                this.spinnerData.loading = true;
+                let data = {
+                    item: timeline,
+                    productId: this.data.productId,
+                    period: this.data.period,
+                };
+                axios.post(`/statistics/timeline`, data)
+                .then(response => {
+                    let message = response.data.message;
+                    if (response.data.message) {
+                        Vue.$toast.success(message);
+                    }
+                    this.spinnerData.loading = false;
+                })
+                .catch(err => {
+                    this.spinnerData.loading = false;
+                    throw err;
+                });
+            },
+            // convertToItems(items) {
+            //     let data = [];
+
+            //     items.forEach((item, itemIndex, selfItems) => {
+            //         data.push(item);
+
+            //         data[itemIndex].createdDate = new Date(item.createdDate);
+            //     });
+
+            //     console.log(data);
+
+            //     return data;
+            // },
             saveCustomData(item) {
                 this.spinnerData.loading = true;
                 let data = {

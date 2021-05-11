@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Exceptions\NoticeException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -17,11 +16,6 @@ use Illuminate\Support\Facades\Auth;
 
 class CloudPaymentsController extends Controller
 {
-    /**
-     * @var SubscriptionService
-     */
-    private $subscriptionService;
-
     /**
      * OrderController constructor.
      * @param SubscriptionService $subscriptionService
@@ -38,12 +32,19 @@ class CloudPaymentsController extends Controller
 
             if ($data['Status'] == 'Cancelled') {
                 $subscription = Subscription::where('cp_subscription_id', $data['Id'])
-                // ->whereHas('customer', function (Builder $query) use ($data) {
-                //     $query->where('phone', $data['AccountId']);
-                // })
                 ->first();
                 if (! isset($subscription)) {
-                    throw new NoticeException('Абонемент не найден. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
+                    $subscription = Subscription::whereId($data['AccountId'])
+                    ->first();
+                    if (! isset($subscription)) {
+                        $subscription = Subscription::whereHas('customer', function (Builder $query) use ($data) {
+                            $query->where('phone', $data['AccountId']);
+                        })
+                        ->first();
+                        if (! isset($subscription)) {
+                            throw new NoticeException('Абонемент не найден. Phone: ' . $data['AccountId'] . '. SubscriptionId: ' . $data['Id']);
+                        }
+                    }
                 }
                 if ($subscription->status != 'refused') {
                     $notification = Notification::create([
@@ -65,12 +66,6 @@ class CloudPaymentsController extends Controller
             return response()->json([
                 'code' => 0
             ]);
-        } catch (NoticeException $e) {
-            \Log::info($data);
-            \Log::error($e->getMessage());
-            return response()->json([
-                'code' => 500
-            ], 500);
         } catch (\Throwable $e) {
             \Log::info($data);
             \Log::error($e);
@@ -96,12 +91,6 @@ class CloudPaymentsController extends Controller
             return response()->json([
                 'code' => 0,
             ]);
-        } catch (NoticeException $e) {
-            \Log::info($data);
-            \Log::error($e->getMessage());
-            return response()->json([
-                'code' => 500
-            ], 500);
         } catch (\Throwable $e) {
             \Log::info($data);
             \Log::error($e);
@@ -172,6 +161,7 @@ class CloudPaymentsController extends Controller
             'transaction_id' => $data['TransactionId'],
         ], [
             'subscription_id' => $subscription->id,
+            'product_id' => $subscription->product->id,
             'customer_id' => $subscription->customer->id,
             'quantity' => 1,
             'type' => 'cloudpayments',

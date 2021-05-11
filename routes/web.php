@@ -21,6 +21,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get("/test", function () {
+    $subscriptionEndedAt = Subscription::first()->ended_at;
+
+    $now = Carbon::now();
+
+    dd(Carbon::parse($subscriptionEndedAt), $now, $now->gt(Carbon::parse($subscriptionEndedAt)));
+})->name("test");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
@@ -28,6 +35,7 @@ Auth::routes();
 Route::middleware(["auth"])->group(function () {
     Route::get("/dashboard", [HomeController::class, "dashboard"])->name("dashboard");
     Route::post("/statistics", [StatisticsController::class, "update"])->name("statistics.update");
+    Route::post("/statistics/timeline", [StatisticsController::class, "updateTimeline"])->name("statistics_timeline.update");
     Route::get("/statistics/quantitative", [StatisticsController::class, "quantitative"])->name("statistics.quantitative");
     Route::get("/statistics/financial", [StatisticsController::class, "financial"])->name("statistics.financial");
     Route::get("/search", 'SearchController@search')->name("search");
