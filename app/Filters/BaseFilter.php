@@ -52,7 +52,7 @@ abstract class BaseFilter
         if ($match[1] == 'asc') {
             $builder->orderBy($name);
         } elseif ($match[1] == 'desc') {
-            $builder->orderByDesc($name);
+            $builder->orderBy($name, 'desc');
         }
         return $builder;
     }
