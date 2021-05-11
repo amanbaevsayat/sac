@@ -1,0 +1,2 @@
+0000000000000000000000000000000000000000 69afcfe4e030ba9fbaa6f80ee0c34ea4bc65add6 Temirlan <balymbetov.t@rahmetapp.kz> 1603696956 +0600	WIP on staging: 47d2496 add main methods for cloudpayments service
+69afcfe4e030ba9fbaa6f80ee0c34ea4bc65add6 1640825d17e19ce7ff7d0cc58ca22c542032c37e Temirlan <balymbetov.t@rahmetapp.kz> 1606227390 +0600	WIP on staging: 810f464 Добавил страницы абонементов, платежи. Изменил структуры таблиц, добавил сиды

@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 3886acc341fad2f1c9b6b7e73c0b86874d33b0b4 Amanbayev Sayat <amanbaev.sayat@gmail.com> 1603899851 +0300	fetch --append --no-auto-gc --no-write-commit-graph origin: storing head
+3886acc341fad2f1c9b6b7e73c0b86874d33b0b4 8edab47e5de775e2919016e218fb5baff78d683e Amanbayev Sayat <amanbaev.sayat@gmail.com> 1607067637 +0300	fetch origin: fast-forward
+8edab47e5de775e2919016e218fb5baff78d683e 1f96931b091c26b393c9d2549e7caa9d16c5b336 Amanbayev Sayat <amanbaev.sayat@gmail.com> 1607424253 +0300	pull origin staging: fast-forward
+1f96931b091c26b393c9d2549e7caa9d16c5b336 0495504c71a83afa117ed24f6a175c56314276bf Amanbayev Sayat <amanbaev.sayat@gmail.com> 1607540362 +0300	pull origin staging: fast-forward
+0495504c71a83afa117ed24f6a175c56314276bf ac3c2e847de812ea163c75aaeef63fe2225037f6 beezhprines <instaagent42@gmail.com> 1620773215 +0300	pull origin staging: fast-forward

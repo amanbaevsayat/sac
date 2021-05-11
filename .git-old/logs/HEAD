@@ -1,0 +1,72 @@
+0000000000000000000000000000000000000000 7f0d3ab658e73150c92d03694f36c649c0ca7a1f Temirlan <balymbetov.t@rahmetapp.kz> 1603694831 +0600	clone: from https://github.com/amanbaevsayat/sac.git
+7f0d3ab658e73150c92d03694f36c649c0ca7a1f 47d2496f5f1111d15810a96650b9292119fed93e Temirlan <balymbetov.t@rahmetapp.kz> 1603696952 +0600	checkout: moving from master to staging
+47d2496f5f1111d15810a96650b9292119fed93e 47d2496f5f1111d15810a96650b9292119fed93e Temirlan <balymbetov.t@rahmetapp.kz> 1603696956 +0600	reset: moving to HEAD
+47d2496f5f1111d15810a96650b9292119fed93e 47d2496f5f1111d15810a96650b9292119fed93e Temirlan <balymbetov.t@rahmetapp.kz> 1603696958 +0600	checkout: moving from staging to staging
+47d2496f5f1111d15810a96650b9292119fed93e 47d2496f5f1111d15810a96650b9292119fed93e Temirlan <balymbetov.t@rahmetapp.kz> 1603697404 +0600	checkout: moving from staging to temir.customers-resource
+47d2496f5f1111d15810a96650b9292119fed93e 8b417563fb06345f4cb806034c3e14b767a34fc5 Temirlan <balymbetov.t@rahmetapp.kz> 1603719843 +0600	commit: Add resource for customers, add vue js
+8b417563fb06345f4cb806034c3e14b767a34fc5 d0fa3605a0626da686e7f2e6e7c15e5807a4642a Temirlan <balymbetov.t@rahmetapp.kz> 1603723866 +0600	commit: fix discussion
+d0fa3605a0626da686e7f2e6e7c15e5807a4642a 7f0d3ab658e73150c92d03694f36c649c0ca7a1f Temirlan <balymbetov.t@rahmetapp.kz> 1603896528 +0600	checkout: moving from temir.customers-resource to master
+7f0d3ab658e73150c92d03694f36c649c0ca7a1f 955ac418abb4d704e518e7384a85fc4a15630dfc Temirlan <balymbetov.t@rahmetapp.kz> 1603896534 +0600	pull origin master: Fast-forward
+955ac418abb4d704e518e7384a85fc4a15630dfc 955ac418abb4d704e518e7384a85fc4a15630dfc Temirlan <balymbetov.t@rahmetapp.kz> 1603896665 +0600	checkout: moving from master to feature/SAC-001
+955ac418abb4d704e518e7384a85fc4a15630dfc 2c4ee97183c34268006afc61c07893fbbfb060cf Temirlan <balymbetov.t@rahmetapp.kz> 1603896745 +0600	commit: test
+2c4ee97183c34268006afc61c07893fbbfb060cf 47d2496f5f1111d15810a96650b9292119fed93e Temirlan <balymbetov.t@rahmetapp.kz> 1603896809 +0600	checkout: moving from feature/SAC-001 to staging
+47d2496f5f1111d15810a96650b9292119fed93e 1cbcb886a725e0360391597ca6dbe7159c0237f3 Temirlan <balymbetov.t@rahmetapp.kz> 1603896839 +0600	pull origin staging: Fast-forward
+1cbcb886a725e0360391597ca6dbe7159c0237f3 61cee732989756b8aa6563ce42b7ad4133cb611e Temirlan <balymbetov.t@rahmetapp.kz> 1603896860 +0600	merge feature/SAC-001: Merge made by the 'recursive' strategy.
+61cee732989756b8aa6563ce42b7ad4133cb611e 2c4ee97183c34268006afc61c07893fbbfb060cf Temirlan <balymbetov.t@rahmetapp.kz> 1603997860 +0600	checkout: moving from staging to feature/SAC-001
+2c4ee97183c34268006afc61c07893fbbfb060cf 6c9a7fe06b2dee1f836ef0a11424107bf4f83181 Temirlan <balymbetov.t@rahmetapp.kz> 1603997881 +0600	pull origin staging: Fast-forward
+6c9a7fe06b2dee1f836ef0a11424107bf4f83181 3a90f2f31ff7237211fbbe6e2cef3efcc366eac6 Temirlan <balymbetov.t@rahmetapp.kz> 1603999410 +0600	commit: Добавил vue js, CRUD customers
+3a90f2f31ff7237211fbbe6e2cef3efcc366eac6 eef3680964e82d08032758a2fddacd390769583d Temirlan <balymbetov.t@rahmetapp.kz> 1604158058 +0600	commit: Страница клиентов
+eef3680964e82d08032758a2fddacd390769583d 99c14314d71464dfaebc1a096b8d2b3108d02740 Temirlan <balymbetov.t@rahmetapp.kz> 1604395719 +0600	commit: refactoring
+99c14314d71464dfaebc1a096b8d2b3108d02740 61cee732989756b8aa6563ce42b7ad4133cb611e Temirlan <balymbetov.t@rahmetapp.kz> 1604404344 +0600	checkout: moving from feature/SAC-001 to staging
+61cee732989756b8aa6563ce42b7ad4133cb611e 99c14314d71464dfaebc1a096b8d2b3108d02740 Temirlan <balymbetov.t@rahmetapp.kz> 1604404353 +0600	merge feature/SAC-001: Fast-forward
+99c14314d71464dfaebc1a096b8d2b3108d02740 99c14314d71464dfaebc1a096b8d2b3108d02740 devilbox <devilbox@php.(none)> 1604404519 +0000	checkout: moving from staging to staging
+99c14314d71464dfaebc1a096b8d2b3108d02740 99c14314d71464dfaebc1a096b8d2b3108d02740 devilbox <devilbox@php.(none)> 1604404630 +0000	checkout: moving from staging to staging
+99c14314d71464dfaebc1a096b8d2b3108d02740 99c14314d71464dfaebc1a096b8d2b3108d02740 devilbox <devilbox@php.(none)> 1604404683 +0000	checkout: moving from staging to staging
+99c14314d71464dfaebc1a096b8d2b3108d02740 99c14314d71464dfaebc1a096b8d2b3108d02740 devilbox <devilbox@php.(none)> 1604404698 +0000	checkout: moving from staging to staging
+99c14314d71464dfaebc1a096b8d2b3108d02740 99c14314d71464dfaebc1a096b8d2b3108d02740 Temirlan <balymbetov.t@rahmetapp.kz> 1604404999 +0600	checkout: moving from staging to feature/SAC-001
+99c14314d71464dfaebc1a096b8d2b3108d02740 0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 Temirlan <balymbetov.t@rahmetapp.kz> 1604405527 +0600	commit: Добавил сид для Remark
+0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 99c14314d71464dfaebc1a096b8d2b3108d02740 Temirlan <balymbetov.t@rahmetapp.kz> 1604405547 +0600	checkout: moving from feature/SAC-001 to staging
+99c14314d71464dfaebc1a096b8d2b3108d02740 0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 Temirlan <balymbetov.t@rahmetapp.kz> 1604405553 +0600	merge feature/SAC-001: Fast-forward
+0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 Temirlan <balymbetov.t@rahmetapp.kz> 1604405789 +0600	checkout: moving from staging to feature/SAC-001
+0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 cb47683dc5a447a1b6d15ba5f964174fc7a33578 Temirlan <balymbetov.t@rahmetapp.kz> 1604405794 +0600	commit: Добавил seed v2
+cb47683dc5a447a1b6d15ba5f964174fc7a33578 0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 Temirlan <balymbetov.t@rahmetapp.kz> 1604405811 +0600	checkout: moving from feature/SAC-001 to staging
+0b79ed8cabe80c6b3c0c3407ba26a022c4ba79a7 cb47683dc5a447a1b6d15ba5f964174fc7a33578 Temirlan <balymbetov.t@rahmetapp.kz> 1604405817 +0600	merge feature/SAC-001: Fast-forward
+cb47683dc5a447a1b6d15ba5f964174fc7a33578 cb47683dc5a447a1b6d15ba5f964174fc7a33578 Temirlan <balymbetov.t@rahmetapp.kz> 1604406068 +0600	checkout: moving from staging to feature/SAC-001
+cb47683dc5a447a1b6d15ba5f964174fc7a33578 c1a6ed21b43dfc7138aca202123b493fb76bf841 Temirlan <balymbetov.t@rahmetapp.kz> 1604406077 +0600	commit: Добавил поле для CustomerSeeder
+c1a6ed21b43dfc7138aca202123b493fb76bf841 cb47683dc5a447a1b6d15ba5f964174fc7a33578 Temirlan <balymbetov.t@rahmetapp.kz> 1604406096 +0600	checkout: moving from feature/SAC-001 to staging
+cb47683dc5a447a1b6d15ba5f964174fc7a33578 c1a6ed21b43dfc7138aca202123b493fb76bf841 Temirlan <balymbetov.t@rahmetapp.kz> 1604406099 +0600	merge feature/SAC-001: Fast-forward
+c1a6ed21b43dfc7138aca202123b493fb76bf841 c1a6ed21b43dfc7138aca202123b493fb76bf841 Temirlan <balymbetov.t@rahmetapp.kz> 1604517533 +0600	checkout: moving from staging to feature/SAC-001
+c1a6ed21b43dfc7138aca202123b493fb76bf841 102f0148f53ab49a0aebee088a2ec3f79c03043d Temirlan <balymbetov.t@rahmetapp.kz> 1604524990 +0600	commit: Добавил роли, продукты, refactoring
+102f0148f53ab49a0aebee088a2ec3f79c03043d c1a6ed21b43dfc7138aca202123b493fb76bf841 Temirlan <balymbetov.t@rahmetapp.kz> 1604525015 +0600	checkout: moving from feature/SAC-001 to staging
+c1a6ed21b43dfc7138aca202123b493fb76bf841 102f0148f53ab49a0aebee088a2ec3f79c03043d Temirlan <balymbetov.t@rahmetapp.kz> 1604525023 +0600	merge feature/SAC-001: Fast-forward
+102f0148f53ab49a0aebee088a2ec3f79c03043d 102f0148f53ab49a0aebee088a2ec3f79c03043d Temirlan <balymbetov.t@rahmetapp.kz> 1604599365 +0600	checkout: moving from staging to feature/SAC-003
+102f0148f53ab49a0aebee088a2ec3f79c03043d 810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 Temirlan <balymbetov.t@rahmetapp.kz> 1605009702 +0600	commit: Добавил страницы абонементов, платежи. Изменил структуры таблиц, добавил сиды
+810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 102f0148f53ab49a0aebee088a2ec3f79c03043d Temirlan <balymbetov.t@rahmetapp.kz> 1605009751 +0600	checkout: moving from feature/SAC-003 to staging
+102f0148f53ab49a0aebee088a2ec3f79c03043d 810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 Temirlan <balymbetov.t@rahmetapp.kz> 1605009764 +0600	merge feature/SAC-003: Fast-forward
+810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 Temirlan <balymbetov.t@rahmetapp.kz> 1606224485 +0600	checkout: moving from staging to temir.work-1
+810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 8349fb760b01fbac158480475b197f2f8a5f404f Temirlan <balymbetov.t@rahmetapp.kz> 1606224493 +0600	commit: Добавил страницу клиентов
+8349fb760b01fbac158480475b197f2f8a5f404f ed44c70b518ea56e44182e61816daceba6c02889 Temirlan <balymbetov.t@rahmetapp.kz> 1606227282 +0600	commit: fix cloudpayments
+ed44c70b518ea56e44182e61816daceba6c02889 f42e90d306b756ade495297a34165514604e5006 Temirlan <balymbetov.t@rahmetapp.kz> 1606227329 +0600	commit: add directory to gitignore
+f42e90d306b756ade495297a34165514604e5006 810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 Temirlan <balymbetov.t@rahmetapp.kz> 1606227353 +0600	checkout: moving from temir.work-1 to staging
+810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 Temirlan <balymbetov.t@rahmetapp.kz> 1606227390 +0600	reset: moving to HEAD
+810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 f42e90d306b756ade495297a34165514604e5006 Temirlan <balymbetov.t@rahmetapp.kz> 1606227395 +0600	checkout: moving from staging to temir.work-1
+f42e90d306b756ade495297a34165514604e5006 810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 Temirlan <balymbetov.t@rahmetapp.kz> 1606227457 +0600	checkout: moving from temir.work-1 to staging
+810f4647fb4aa62d5a1d9c7d059d8c7fc821cac6 f42e90d306b756ade495297a34165514604e5006 Temirlan <balymbetov.t@rahmetapp.kz> 1606227463 +0600	merge temir.work-1: Fast-forward
+f42e90d306b756ade495297a34165514604e5006 f42e90d306b756ade495297a34165514604e5006 Temirlan <balymbetov.t@rahmetapp.kz> 1606230807 +0600	checkout: moving from staging to temir.work-1
+f42e90d306b756ade495297a34165514604e5006 c78da3ff534dc121e4bb5670384e7feb400d6036 Temirlan <balymbetov.t@rahmetapp.kz> 1606230819 +0600	commit: fix payment page
+c78da3ff534dc121e4bb5670384e7feb400d6036 f42e90d306b756ade495297a34165514604e5006 Temirlan <balymbetov.t@rahmetapp.kz> 1606230838 +0600	checkout: moving from temir.work-1 to staging
+f42e90d306b756ade495297a34165514604e5006 c78da3ff534dc121e4bb5670384e7feb400d6036 Temirlan <balymbetov.t@rahmetapp.kz> 1606230843 +0600	merge temir.work-1: Fast-forward
+c78da3ff534dc121e4bb5670384e7feb400d6036 c78da3ff534dc121e4bb5670384e7feb400d6036 Temirlan <balymbetov.t@rahmetapp.kz> 1606505327 +0600	checkout: moving from staging to temir.import-old-data
+c78da3ff534dc121e4bb5670384e7feb400d6036 7e8332100ec92eff925233524f25f32be404886e Temirlan <balymbetov.t@rahmetapp.kz> 1606505332 +0600	commit: Импорт данных со старого сайта
+7e8332100ec92eff925233524f25f32be404886e c78da3ff534dc121e4bb5670384e7feb400d6036 Temirlan <balymbetov.t@rahmetapp.kz> 1606505372 +0600	checkout: moving from temir.import-old-data to staging
+c78da3ff534dc121e4bb5670384e7feb400d6036 7e8332100ec92eff925233524f25f32be404886e Temirlan <balymbetov.t@rahmetapp.kz> 1606505388 +0600	merge temir.import-old-data: Fast-forward
+7e8332100ec92eff925233524f25f32be404886e a38d0cedc069ab980b24f34101489d2a53fe3635 Temirlan <balymbetov.t@rahmetapp.kz> 1606505950 +0600	commit: fix
+a38d0cedc069ab980b24f34101489d2a53fe3635 a38d0cedc069ab980b24f34101489d2a53fe3635 Temirlan <balymbetov.t@rahmetapp.kz> 1606505963 +0600	checkout: moving from staging to staging
+a38d0cedc069ab980b24f34101489d2a53fe3635 1f2573058c8c03e686d7bcc039a89b48b42921af Temirlan <balymbetov.t@rahmetapp.kz> 1606601330 +0600	commit: fix
+1f2573058c8c03e686d7bcc039a89b48b42921af edf52c1e3cd2323ea8b1f9bc6458586156b91ad8 Temirlan <balymbetov.t@rahmetapp.kz> 1606999484 +0600	commit: add homepage
+edf52c1e3cd2323ea8b1f9bc6458586156b91ad8 8edab47e5de775e2919016e218fb5baff78d683e Temirlan <balymbetov.t@rahmetapp.kz> 1606999965 +0600	commit: fix
+8edab47e5de775e2919016e218fb5baff78d683e 1f96931b091c26b393c9d2549e7caa9d16c5b336 Temirlan <balymbetov.t@rahmetapp.kz> 1607424184 +0600	commit: refactoring
+1f96931b091c26b393c9d2549e7caa9d16c5b336 1f96931b091c26b393c9d2549e7caa9d16c5b336 beezhprines <instaagent42@gmail.com> 1620773046 +0300	checkout: moving from staging to temir.out
+1f96931b091c26b393c9d2549e7caa9d16c5b336 1f96931b091c26b393c9d2549e7caa9d16c5b336 beezhprines <instaagent42@gmail.com> 1620773272 +0300	checkout: moving from temir.out to staging
+1f96931b091c26b393c9d2549e7caa9d16c5b336 1f96931b091c26b393c9d2549e7caa9d16c5b336 beezhprines <instaagent42@gmail.com> 1620773359 +0300	reset: moving to HEAD
+1f96931b091c26b393c9d2549e7caa9d16c5b336 1f96931b091c26b393c9d2549e7caa9d16c5b336 beezhprines <instaagent42@gmail.com> 1620773361 +0300	reset: moving to HEAD
