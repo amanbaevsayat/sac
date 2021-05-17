@@ -68,7 +68,7 @@ class CloudPaymentsController extends Controller
             ]);
         } catch (\Throwable $e) {
             \Log::info($data);
-            \Log::error($e);
+            \Log::error($e->getMessage());
             return response()->json([
                 'code' => 500
             ], 500);

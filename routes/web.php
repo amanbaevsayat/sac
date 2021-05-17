@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UsersBonusesController;
 use App\Http\Controllers\StatisticsController;
 use App\Models\Bonus;
 use App\Models\Customer;
@@ -37,6 +38,8 @@ Route::middleware(["auth"])->group(function () {
     Route::get("/statistics/quantitative", [StatisticsController::class, "quantitative"])->name("statistics.quantitative");
     Route::get("/statistics/financial", [StatisticsController::class, "financial"])->name("statistics.financial");
     Route::get("/search", 'SearchController@search')->name("search");
+
+    Route::get("/users-bonuses", [UsersBonusesController::class, "show"])->name("users_bonuses.show");
 
     Route::post('customers/update-with-data', 'CustomerController@createWithData');
     Route::get('customers/list', 'CustomerController@getList');

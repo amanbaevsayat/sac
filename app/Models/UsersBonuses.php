@@ -9,6 +9,21 @@ class UsersBonuses extends Model
 {
     use HasFactory, ModelBase;
 
+    const PERIOD_TYPE_WEEK = 'week';
+    const PERIOD_TYPE_MONTH = 'month';
+
+    const PERIODS = [
+        self::PERIOD_TYPE_WEEK => 'По недельно',
+        self::PERIOD_TYPE_MONTH => 'По месячно',
+    ];
+
+    const HEADERS = [
+        'transfer-firstPayment' => 'Новые платежи по прямому переводу',
+        'transfer-repeatedPayment' => 'Повторные платежи по прямому переводу',
+        'cloudpayments-firstPayment' => 'Новые платежи по подписке',
+        'cloudpayments-repeatedPayment' => 'Повторные платежи по подписке',
+    ];
+
     const DATE_TYPES = [
         'week',
         'month',
