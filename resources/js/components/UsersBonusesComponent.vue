@@ -86,10 +86,10 @@
                     ></highcharts>
                     <div v-for="(usersBonus, paymentType) in usersBonuses.current" :key="paymentType">
                         <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
-                            <h2>bonusIndex{{ bonusesHeaders[paymentType] }}</h2>
+                            <h2>{{ bonusesHeaders[paymentType] }}</h2>
 
                             <p>Текущая неделя - {{ bonus.amount }} платежей * {{ bonus.bonuses_amount }}₸ = {{ bonus.total_bonus }}₸</p>
-                            <p v-if="usersBonuses.last.length > 0">Прошлая неделя - {{ getLastWeekAmount(paymentType) }} платежей * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</p>
+                            <p v-if="isNotEmpty(paymentType)">Прошлая неделя - {{ getLastWeekAmount(paymentType) }} платежей * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</p>
                         </div>
                     </div>
                 </div>
@@ -140,6 +140,9 @@ export default {
         }
     },
     methods: {
+        isNotEmpty(paymentType) {
+            return !!this.usersBonuses.last[paymentType];
+        },
         convertDate(date, format) {
             return moment(date).tz('Asia/Almaty').lang("ru").format(format);
         },
