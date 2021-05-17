@@ -37,6 +37,22 @@ class UsersBonusesController extends Controller
         return $data;
     }
 
+    private function getCurrentAndLastPeriod($periodType)
+    {
+        if ($periodType == 'week') {
+            $current = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
+            $last = (int) Carbon::now()->subWeek()->endOfWeek()->startOfDay()->valueOf();
+        } else if ($periodType == 'month') {
+            $current = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
+            $last = (int) Carbon::now()->subMonth()->endOfMonth()->startOfDay()->valueOf();
+        }
+
+        return [
+            'current' => $current ?? null,
+            'last' => $last ?? null,
+        ];
+    }
+
     public function show(Request $request)
     {
         access(['can-head', 'can-host', 'con-operator']);
@@ -75,9 +91,17 @@ class UsersBonusesController extends Controller
             )
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
-            ->get()->groupBy(function ($item, $key) {
-                return $item->payment_type . '-' . $item->type;
+            ->get()->groupBy('unix_date')->transform(function($item, $k) {
+                return $item->groupBy(function ($item, $key) {
+                    return $item->payment_type . '-' . $item->type;
+                });
             })->toArray();
+
+        $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($period);
+        $usersBonuses = [
+            'current' => $usersBonuses[$getCurrentAndLastPeriod['current']],
+            'last' => $usersBonuses[$getCurrentAndLastPeriod['last']] ?? []
+        ];
 
         $usersBonusesGroup = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')

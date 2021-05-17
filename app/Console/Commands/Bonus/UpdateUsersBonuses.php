@@ -42,8 +42,8 @@ class UpdateUsersBonuses extends Command
     {
         \Log::info('Обновление бонусов');
         $products = Product::all();
-        $endOfWeekStartOfDay = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
-        $endOfMonthStartOfDay = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
+        $endOfWeekStartOfDay = (int) Carbon::now()->subWeek()->endOfWeek()->startOfDay()->valueOf();
+        $endOfMonthStartOfDay = (int) Carbon::now()->subMonth()->endOfMonth()->startOfDay()->valueOf();
 
         foreach ($products as $product) {
             // Все бонусы продукта
@@ -59,14 +59,14 @@ class UpdateUsersBonuses extends Command
                         if ($dateType == 'week') {
                             $unixDate = $endOfWeekStartOfDay;
                             $bonusAmount = $groupByBonuses[$productBonus->id]->whereBetween('paided_at', [
-                                Carbon::now()->startOfWeek()->startOfDay(),
-                                Carbon::now()->endOfWeek()->endOfDay(),
+                                Carbon::now()->subWeek()->startOfWeek()->startOfDay(),
+                                Carbon::now()->subWeek()->endOfWeek()->endOfDay(),
                             ])->count();
                         } else {
                             $unixDate = $endOfMonthStartOfDay;
                             $bonusAmount = $groupByBonuses[$productBonus->id]->whereBetween('paided_at', [
-                                Carbon::now()->startOfMonth()->startOfDay(),
-                                Carbon::now()->endOfMonth()->endOfDay(),
+                                Carbon::now()->subWeek()->startOfMonth()->startOfDay(),
+                                Carbon::now()->subWeek()->endOfMonth()->endOfDay(),
                             ])->count();
                         }
     
