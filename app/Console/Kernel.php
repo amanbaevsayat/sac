@@ -7,8 +7,6 @@ use App\Console\Commands\Cloudpayments\UpdateNotifications;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Console\Commands\Cloudpayments\UpdatePaymentStatus;
-use App\Console\Commands\Statistics\UpdateStatistics;
-use App\Console\Commands\Cloudpayments\UpdateSubscription;
 
 class Kernel extends ConsoleKernel
 {
@@ -40,6 +38,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('cloudpayments:update:subscription')->hourly();
         $schedule->command('update:users_bonuses')->hourly();
         $schedule->command('update:statistics')->everySixHours();
+        $schedule->command('cloudpayments:update:payment_status')->everyFiveMinutes();
     }
 
     /**

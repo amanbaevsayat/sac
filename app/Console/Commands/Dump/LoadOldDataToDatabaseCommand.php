@@ -48,7 +48,7 @@ class LoadOldDataToDatabaseCommand extends Command
         Artisan::call('migrate:fresh');
         Artisan::call('db:seed');
 
-        $path = public_path('dshpyrk3_sa-22-12-2020-02-20.json');
+        $path = public_path('dshpyrk3_sa-28-11-2020-01-16.json');
         $json = json_decode(file_get_contents($path));
         foreach ($json as $table) {
             if ($table->type == 'table') {
@@ -70,7 +70,6 @@ class LoadOldDataToDatabaseCommand extends Command
     private function updateCustomers(array $data = [])
     {
         $phones = [];
-        $dublicatePhones = [];
         foreach ($data as $item) {
             if (!in_array($item->phone, $phones)) {
                 $customer = Customer::create([
@@ -84,34 +83,23 @@ class LoadOldDataToDatabaseCommand extends Command
 
                 if (!$item->subscription_id) {
                     $product = Product::inRandomOrder()->first();
-                    if (($customer->data['old']['subscription_type_id'] == 2) && $item->remark_id != 6) {
-                        $paymentType = 'cloudpayments';
-                    } else if ($item->remark_id == 6) {
-                        $paymentType = 'tries';
-                    } else {
-                        $paymentType = 'transfer';
-                    }
+
                     Subscription::create([
                         'started_at' => $customer->data['old']['start_date'],
                         'paused_at' => null,
-                        'tries_at' => $item->remark_id == 6 ? $customer->data['old']['end_date'] : null,
-                        'ended_at' => $item->remark_id == 6 ? $customer->data['old']['start_date'] : $customer->data['old']['end_date'],
+                        'ended_at' => $customer->data['old']['end_date'],
                         'product_id' => $product->id,
                         'customer_id' => $customer->id,
                         'price' => 3000,
                         'description' => '',
                         'status' => $this->getStatus($item->remark_id),
-                        'payment_type' => $paymentType,
+                        'payment_type' => ($customer->data['old']['subscription_type_id'] == 2) ? 'cloudpayments' : 'transfer', // TODO Пересмотреть
                     ]);
                 }
 
                 $phones[] = $item->phone;
-            } else {
-                $dublicatePhones[] = $item->phone;
             }
         }
-
-        \Log::info($dublicatePhones);
     }
 
     private function getStatus(int $id)
@@ -135,13 +123,12 @@ class LoadOldDataToDatabaseCommand extends Command
                 Subscription::create([
                     'started_at' => $customer->data['old']['start_date'],
                     'paused_at' => null,
-                    'tries_at' => $customer->data['old']['remark_id'] == 6 ? $customer->data['old']['end_date'] : null,
-                    'ended_at' => $customer->data['old']['remark_id'] == 6 ? $customer->data['old']['start_date'] : $customer->data['old']['end_date'],
+                    'ended_at' => $customer->data['old']['end_date'],
                     'product_id' => $product->id,
                     'customer_id' => $customer->id,
                     'price' => $item->Amount,
                     'description' => $item->Description,
-                    'status' => $this->getStatus($customer->data['old']['remark_id']),
+                    'status' => $item->Status,
                     'payment_type' => ($customer->data['old']['subscription_type_id'] == 2) ? 'cloudpayments' : 'transfer',
                     'data' => [
                         'cloudpayments' => $item,
@@ -165,8 +152,13 @@ class LoadOldDataToDatabaseCommand extends Command
                     'customer_id' => $subscription->customer->id,
                     'quantity' => 1,
                     'type' => $subscription->payment_type,
+                    'slug' => Str::uuid(),
                     'status' => $item->Status,
                     'amount' => $item->Amount,
+                    'recurrent' => 1,
+                    'start_date' => $subscription['data']['cloudpayments']['StartDateIso'] ?? null,
+                    'interval' => $subscription['data']['cloudpayments']['Interval'] ?? null,
+                    'period' => $subscription['data']['cloudpayments']['Period'] ?? null,
                     'paided_at' => $item->updated_at,
                     'data' => [
                         'cloudpayments' => $item,
