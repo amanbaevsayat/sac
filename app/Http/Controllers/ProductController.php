@@ -12,6 +12,7 @@ use App\Models\Bonus;
 use App\Models\PaymentType;
 use App\Models\Price;
 use App\Models\Subscription;
+use App\Models\User;
 
 class ProductController extends Controller
 {
@@ -70,8 +71,11 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $paymentTypes = Subscription::PAYMENT_TYPE;
+        $users = User::all()->pluck('account', 'id')->toArray();
+
         return view("{$this->root}.create", [
             'paymentTypes' => $paymentTypes,
+            'users' => $users,
         ]);
     }
 
@@ -87,6 +91,7 @@ class ProductController extends Controller
         $product = $product->create($request->all());
         $paymentTypeIds = [];
         $prices = $request->get('prices', []);
+        $productUsers = $request->get('productUsers', []);
         $paymentTypes = $request->get('paymentTypes', []);
         $prices = $request->get('prices', []);
 
@@ -132,6 +137,8 @@ class ProductController extends Controller
 
         $product->prices()->whereNotIn('id', $priceIds)->delete();
         $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
+        $product->users()->sync($productUsers);
+
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно создан.');
     }
 
@@ -160,6 +167,8 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
+        $productUsers = $product->users()->pluck('id')->toArray();
+        $users = User::all()->pluck('account', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
         $paymentTypes = Subscription::PAYMENT_TYPE;
         return view("{$this->root}.edit", [
@@ -167,6 +176,8 @@ class ProductController extends Controller
             'productPrices' => $productPrices,
             'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
             'paymentTypes' => $paymentTypes,
+            'productUsers' => $productUsers,
+            'users' => $users,
         ]);
     }
 
@@ -183,6 +194,7 @@ class ProductController extends Controller
         $priceIds = [];
         $paymentTypeIds = [];
         $prices = $request->get('prices', []);
+        $productUsers = $request->get('productUsers', []);
         $paymentTypes = $request->get('paymentTypes', []);
         $product->update($request->all());
 
@@ -228,6 +240,8 @@ class ProductController extends Controller
 
         $product->prices()->whereNotIn('id', $priceIds)->delete();
         $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
+        $product->users()->detach();
+        $product->users()->sync($productUsers);
 
         $message = 'Данные продукта успешно изменены.';
         if ($request->ajax()) {
