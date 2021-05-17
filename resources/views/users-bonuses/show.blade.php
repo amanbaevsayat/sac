@@ -18,5 +18,7 @@ $data = [
     :chart-prop="{{ json_encode($chart) }}"
     :users-bonuses-prop="{{ json_encode($usersBonuses) }}"
     :bonuses-headers-prop="{{ json_encode(\App\Models\UsersBonuses::HEADERS) }}"
+    :current-period-total-prop="{{ $currentPeriodTotal }}"
+    :product-users-prop="{{ json_encode($productUsers) }}"
 ></users-bonuses-component>
 @stop

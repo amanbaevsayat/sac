@@ -334,6 +334,19 @@ return [
                 'can-host',
             ],
         ],
+
+        // users-bonuses
+        [
+            'key'  => 'users-bonuses',
+            'text' => 'Бонусы',
+            'url'  => '/users-bonuses',
+            'icon' => 'fa fa-bold',
+            "can"  => [
+                'can-operator',
+                'can-head',
+                'can-host',
+            ],
+        ],
     ],
 
     /*

@@ -84,20 +84,58 @@
                         :updateArgs="[true, true, true]"
                         :ref="'chart'"
                     ></highcharts>
-                    <div v-for="(usersBonus, paymentType) in usersBonuses.current" :key="paymentType">
-                        <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
-                            <h2>{{ bonusesHeaders[paymentType] }}</h2>
-
-                            <p>Текущая неделя - {{ bonus.amount }} платежей * {{ bonus.bonuses_amount }}₸ = {{ bonus.total_bonus }}₸</p>
-                            <p v-if="isNotEmpty(paymentType)">Прошлая неделя - {{ getLastWeekAmount(paymentType) }} платежей * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</p>
+                    <div style="margin-left: 20px">
+                        <div v-for="(usersBonus, paymentType) in usersBonuses.current" :key="paymentType">
+                            <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
+                                <h2>{{ bonusesHeaders[paymentType] }}</h2>
+                                <hr>
+                                <div style="margin-bottom: 30px;">
+                                    <div class="row" style="margin-bottom: 15px; font-size: 15px;">
+                                        <div class="col-sm-2">
+                                            <span>Текущая неделя</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <b-progress :max="100" height="1.2rem">
+                                                <b-progress-bar :value="100">
+                                                    <span style="font-size: 14px;">{{ bonus.amount }} платежей</span>
+                                                </b-progress-bar>
+                                            </b-progress>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <span> * {{ bonus.bonuses_amount }}₸ = {{ bonus.total_bonus }}₸</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
+                                        <div class="col-sm-2">
+                                            <span>Прошлая неделя</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <b-progress :max="100" height="1.2rem">
+                                                <b-progress-bar variant="warning" :value="getLastWeekAmount(paymentType) / bonus.amount * 100">
+                                                    <span style="font-size: 14px;">{{ getLastWeekAmount(paymentType) }} платежей</span>
+                                                </b-progress-bar>
+                                            </b-progress>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <span> * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <hr>
+                            <h2>Сумма бонусов за неделю: {{ currentPeriodTotalProp }}₸</h2>
                         </div>
                     </div>
                 </div>
 
             </div>
             <div class="col-sm-4">
-                <div class="card">
-                    awd
+                <div class="card" style="padding: 20px 15px;">
+                    <h2>Распределение бонусов</h2>
+                    <hr>
+                    <p style="font-size: 15px" v-for="(userName, userIndex) in productUsers" :key="userIndex">{{ userName }} ({{ 100/productUsers.length }}%) <span style="float: right;">{{ currentPeriodTotalProp/productUsers.length }}₸</span></p>
                 </div>
             </div>
         </div>
@@ -118,12 +156,15 @@ export default {
         'chartProp',
         'usersBonusesProp',
         'bonusesHeadersProp',
+        'currentPeriodTotalProp',
+        'productUsersProp',
     ],
     components: {
         highcharts: Chart,
     },
     data() {
         return {
+            productUsers: this.productUsersProp,
             bonusesHeaders: this.bonusesHeadersProp,
             usersBonuses: this.usersBonusesProp,
             route: this.routeProp,
@@ -138,6 +179,13 @@ export default {
                 period: this.dataProp.period,
             },
         }
+    },
+    beforeMount() {
+        this.chart.xAxis.labels = {
+            formatter: function(value) {
+                return moment(value.value).tz('Asia/Almaty').lang("ru").format('LL');
+            }
+        };
     },
     methods: {
         isNotEmpty(paymentType) {

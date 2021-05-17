@@ -12,6 +12,12 @@
         <form action="{{ route('users.store') }}" method="POST">
             @csrf
             <div class="form-group row">
+                <label for="name" class="col-sm-2 col-form-label">Имя</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="name" value="{{ old('name') }}" name="name">
+                </div>
+            </div>
+            <div class="form-group row">
                 <label for="account" class="col-sm-2 col-form-label">Аккаунт</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="account" value="{{ old('account') }}" name="account">

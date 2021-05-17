@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\StatisticsModel;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Models\UsersBonuses;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -99,7 +100,7 @@ class UsersBonusesController extends Controller
 
         $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($period);
         $usersBonuses = [
-            'current' => $usersBonuses[$getCurrentAndLastPeriod['current']],
+            'current' => $usersBonuses[$getCurrentAndLastPeriod['current']] ?? [],
             'last' => $usersBonuses[$getCurrentAndLastPeriod['last']] ?? []
         ];
 
@@ -115,6 +116,7 @@ class UsersBonusesController extends Controller
             ->get();
 
         $usersBonusesForChart = $usersBonusesGroup->pluck('total_bonus', 'unix_date')->toArray();
+        $currentPeriodTotal = $usersBonusesForChart[$getCurrentAndLastPeriod['current']] ?? 0;
 
         $chart = [
             'type' => 'highchart',
@@ -145,6 +147,9 @@ class UsersBonusesController extends Controller
             ],
         ];
 
-        return view('users-bonuses.show', compact('products', 'chart', 'usersBonuses'));
+        $productUsersForCurrentWeek = UsersBonuses::whereProductId($productId)->where('unix_date', $getCurrentAndLastPeriod['current'])->first();
+        $productUsers = User::whereIn('id', $productUsersForCurrentWeek->user_ids)->get()->pluck('name')->toArray();
+
+        return view('users-bonuses.show', compact('products', 'chart', 'usersBonuses', 'currentPeriodTotal', 'productUsers'));
     }
 }

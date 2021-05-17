@@ -20,6 +20,10 @@ class UserCollection extends ResourceCollection
                     'key' => 'id',
                 ],
                 [
+                    'title' => 'Имя',
+                    'key' => 'name',
+                ],
+                [
                     'title' => 'Аккаунт',
                     'key' => 'account',
                 ],

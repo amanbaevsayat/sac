@@ -13,6 +13,12 @@
         {{ csrf_field() }}
         {{ method_field('PATCH') }}
             <div class="form-group row">
+                <label for="name" class="col-sm-2 col-form-label">Имя</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="name" value="{{ $user->name }}" name="name">
+                </div>
+            </div>
+            <div class="form-group row">
                 <label for="account" class="col-sm-2 col-form-label">Аккаунт</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="account" value="{{ $user->account }}" name="account">
