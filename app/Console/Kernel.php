@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\Bonus\UpdateUsersBonuses;
 use App\Console\Commands\Cloudpayments\UpdateNotifications;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -21,6 +22,7 @@ class Kernel extends ConsoleKernel
         UpdateSubscription::class,
         UpdateNotifications::class,
         UpdateStatistics::class,
+        UpdateUsersBonuses::class,
     ];
 
     /**
@@ -36,6 +38,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('update:notifications')->everyTenMinutes();
         // $schedule->command('cloudpayments:update:payment_status')->everyTwoMinutes();
         $schedule->command('cloudpayments:update:subscription')->hourly();
+        $schedule->command('update:users_bonuses')->hourly();
         $schedule->command('update:statistics')->everySixHours();
     }
 

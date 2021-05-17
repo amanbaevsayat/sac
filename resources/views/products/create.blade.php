@@ -44,6 +44,13 @@
             </div>
 
             <div class="form-group row">
+                <label for="prices" class="col-sm-2 col-form-label">Операторы услуги</label>
+                <div class="col-sm-10">
+                    <product-users-component :product-users-prop="{{ json_encode(old('productUsers') ?? []) }}" :users-prop="{{ json_encode($users) }}"></product-users-component>
+                </div>
+            </div>
+
+            <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Имя мастера</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="title" value="{{ old('data.name') }}" name="data[name]">

@@ -28,6 +28,16 @@ class Product extends Model
         return $this->belongsToMany(Subscription::class)->withTimestamps();
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
+
+    public function usersBonuses()
+    {
+        return $this->hasMany(UsersBonuses::class, 'product_id');
+    }
+
     public function prices()
     {
         return $this->hasMany(Price::class, 'product_id');
@@ -41,5 +51,15 @@ class Product extends Model
     public function scopeFilter($query, ProductFilter $filters)
     {
         $filters->apply($query);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'product_id');
+    }
+
+    public function bonuses()
+    {
+        return $this->hasMany(Bonus::class, 'product_id');
     }
 }

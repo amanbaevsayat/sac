@@ -71,4 +71,9 @@ class User extends Authenticatable
     {
         $filters->apply($query);
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
 }

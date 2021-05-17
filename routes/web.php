@@ -3,8 +3,10 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StatisticsController;
+use App\Models\Bonus;
 use App\Models\Customer;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\StatisticsModel;
 use App\Models\Subscription;
 use Carbon\Carbon;
@@ -22,11 +24,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get("/test", function () {
-    $subscriptionEndedAt = Subscription::first()->ended_at;
-
-    $now = Carbon::now();
-
-    dd(Carbon::parse($subscriptionEndedAt), $now, $now->gt(Carbon::parse($subscriptionEndedAt)));
+    
 })->name("test");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
