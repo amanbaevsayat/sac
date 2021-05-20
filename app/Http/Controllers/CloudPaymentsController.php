@@ -12,7 +12,7 @@ class CloudPaymentsController extends Controller
 {
     public function showWidget(int $subscriptionId, Request $request)
     {
-        $subscription = Subscription::whereId($subscriptionId)->where('status', '!=', 'paid')->firstOr(function () {
+        $subscription = Subscription::whereId($subscriptionId)->whereNull('cp_subscription_id')->where('status', '!=', 'paid')->firstOr(function () {
             abort(404);
         });
 
