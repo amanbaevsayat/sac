@@ -53,6 +53,7 @@ class Subscription extends Model
         'data',
         'cp_subscription_id',
         'user_id',
+        'manual_write_off_at',
     ];
 
     protected $dates = [
@@ -62,6 +63,7 @@ class Subscription extends Model
         'ended_at',
         'created_at',
         'updated_at',
+        'manual_write_off_at',
     ];
 
     protected $casts = [

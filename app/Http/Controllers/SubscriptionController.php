@@ -237,6 +237,15 @@ class SubscriptionController extends Controller
             throw new \Exception('Ошибка! Обратитесь к менеджеру или администратору.', 500);
         }
 
+        if ($subscription->manual_write_off_at) {
+            $manualWriteOffPlusMinutes = Carbon::parse($subscription->manual_write_off_at)->addMinutes(3);
+            $now = Carbon::now();
+            if ($manualWriteOffPlusMinutes > $now) {
+                $diffSeconds = $manualWriteOffPlusMinutes->diffInSeconds($now);
+                throw new \Exception('Попробуйте через ' . $diffSeconds . ' секунд.', 500);
+            }
+        }
+
         $cloudpaymentService = new CloudPaymentsService();
         try {
             UserLog::create([
@@ -244,6 +253,9 @@ class SubscriptionController extends Controller
                 'user_id' => Auth::id(),
                 'type' => UserLog::MANUAL_WRITE_OFF,
                 'data' => [],
+            ]);
+            $subscription->update([
+                'manual_write_off_at' => Carbon::now(),
             ]);
             $cloudpaymentService->updateSubscription([
                 'Id' => $subscription->cp_subscription_id,
