@@ -239,6 +239,12 @@ class SubscriptionController extends Controller
 
         $cloudpaymentService = new CloudPaymentsService();
         try {
+            UserLog::create([
+                'subscription_id' => $subscription->id,
+                'user_id' => Auth::id(),
+                'type' => UserLog::MANUAL_WRITE_OFF,
+                'data' => [],
+            ]);
             $cloudpaymentService->updateSubscription([
                 'Id' => $subscription->cp_subscription_id,
                 'StartDate' => Carbon::yesterday()->format('Y-m-d\TH:i:s.u'),

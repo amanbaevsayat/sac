@@ -20,7 +20,8 @@ class UserLog extends Model
     const DELETE_SUBSCRIPTION = 8;  // 8) Удаление абонемента
     const CUSTOMER_PHONE = 9;       // 9) Телефон абонемента
     const START_DATE = 10;          // 10) Дата старта абонемента
-    const CHANGE_SUBSCRIPTION_USER = 11;    // 11) Оператор абонемента
+    const CHANGE_SUBSCRIPTION_USER  = 11; // 11) Оператор абонемента
+    const MANUAL_WRITE_OFF          = 12; // 12) Кнопка ручное списание
 
     const TYPES = [
         self::END_DATE              => 'Дата окончания',
@@ -34,6 +35,7 @@ class UserLog extends Model
         self::DELETE_SUBSCRIPTION   => 'Удаление абонемента',
         self::CUSTOMER_PHONE        => 'Телефон абонемента',
         self::CHANGE_SUBSCRIPTION_USER  => 'Оператор абонемента',
+        self::MANUAL_WRITE_OFF      => 'Ручное списание',
     ];
 
     protected $fillable = [
@@ -110,6 +112,8 @@ class UserLog extends Model
             case self::CHANGE_SUBSCRIPTION_USER:
                 $message = '<b style="color: red">Старая запись: </b>' . $this->data['old'] . '<br> <b style="color: green">Новая запись: </b>' . $this->data['new'];
                 return $message;
+                break;
+            case self::MANUAL_WRITE_OFF:
                 break;
             default:
                 # code...
