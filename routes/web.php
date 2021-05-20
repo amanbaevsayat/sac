@@ -58,6 +58,7 @@ Route::middleware(["auth"])->group(function () {
 
     Route::get('subscriptions/list', 'SubscriptionController@getList');
     Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
+    Route::post('subscriptions/manualWriteOffPayment', 'SubscriptionController@manualWriteOffPayment');
 
     Route::get('userlogs/list', 'UserLogController@getList');
     Route::get('userlogs/filter', 'UserLogController@getFilters');

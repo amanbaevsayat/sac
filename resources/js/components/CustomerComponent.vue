@@ -139,12 +139,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row" style="margin-bottom: 15px">
+                                    <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'cloudpayments' && type == 'edit' && subscription.cp_subscription_id != null">
                                         <div class="form-group col-sm-6">
-                                            <label for="user_id" class="col-form-label">Оператор абонемента</label>
-                                            <select v-model="subscription.user_id" :name="'subscriptions.' + subIndex + '.user_id'" id="user_id" class="col-sm-10 form-control">
-                                                <option v-for="(option, optionIndex) in users" :key="optionIndex" :value="optionIndex">{{ option }}</option>
-                                            </select>
+                                            <button type="button" class="btn btn-dark" :id="'subscription-' + subscription.id" @click="manualWriteOffPayment(subscription.id)">Ручное списание</button>
                                         </div>
                                     </div>
                                     <div class="row" style="margin-bottom: 15px">
@@ -393,6 +390,23 @@ export default {
         this.getOptions();
     },
     methods: {
+        manualWriteOffPayment(subscriptionId) {
+            document.getElementById('subscription-' + subscriptionId).disabled = true;
+            this.spinnerData.loading = true;
+
+            axios.post('/subscriptions/manualWriteOffPayment', {
+                subscriptionId: subscriptionId
+            }).then(response => {
+                this.spinnerData.loading = false;
+                document.getElementById('subscription-' + subscriptionId).disabled = false;
+                Vue.$toast.success(response.data.message);
+            })
+            .catch(err => {
+                this.spinnerData.loading = false;
+                document.getElementById('subscription-' + subscriptionId).disabled = false;
+                Vue.$toast.error(err.response.data.message);
+            });
+        },
         getSubscriptionTitle(productId) {
             if (productId) {
                 return this.products[productId].title;

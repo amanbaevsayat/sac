@@ -11,6 +11,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\UserLog;
 use App\Services\CloudPaymentsService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
@@ -224,5 +225,30 @@ class SubscriptionController extends Controller
         } else {
             return redirect()->route("{$this->root}.index")->with('success', $message);
         }
+    }
+
+    public function manualWriteOffPayment(Request $request)
+    {
+        $subscriptionId = $request->get('subscriptionId');
+        $subscription = Subscription::whereId($subscriptionId)->whereNotNull('cp_subscription_id')->first();
+        $now = Carbon::now();
+        $endedAt = Carbon::parse($subscription->ended_at);
+        if ($endedAt > $now) {
+            throw new \Exception('Ошибка! Обратитесь к менеджеру или администратору.', 500);
+        }
+
+        $cloudpaymentService = new CloudPaymentsService();
+        try {
+            $cloudpaymentService->updateSubscription([
+                'Id' => $subscription->cp_subscription_id,
+                'StartDate' => Carbon::yesterday()->format('Y-m-d\TH:i:s.u'),
+            ]);
+        } catch (\Throwable $e) {
+            throw new \Exception('Ошибка при запросе на ручное списание денег. Попробуйте позднее', 500);
+        }
+
+        return response()->json([
+            'message' => 'Запрос на списание отправлен.'
+        ], 200);
     }
 }

@@ -218,6 +218,7 @@ class ProductController extends Controller
                 $paymentTypeIds[] = $paymentType->id;
 
                 if (isset($item['bonuses'])) {
+                    dd($item['bonuses']);
                     foreach ($item['bonuses'] as $type => $amount) {
                         $bonus = Bonus::updateOrCreate([
                             'type' => $type,
@@ -226,6 +227,10 @@ class ProductController extends Controller
                             'payment_type_id' => $paymentType->id,
                         ], [
                             'is_active' => true,
+                            'type' => $type,
+                            'amount' => $amount,
+                            'product_id' => $product->id,
+                            'payment_type_id' => $paymentType->id,
                         ]);
 
                         $bonusIds[] = $bonus->id;

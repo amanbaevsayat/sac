@@ -13,8 +13,6 @@ use App\Models\Subscription;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
-use App\Models\UserLog;
-use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -118,7 +116,6 @@ class CustomerController extends Controller
                 'ended_at' => $endedAt,
                 'tries_at' => $triesAt,
                 'status' => $item['status'],
-                'user_id' => $item['user_id'] ?? null,
             ]);
 
             if (! isset($data['customer']['id'])) {

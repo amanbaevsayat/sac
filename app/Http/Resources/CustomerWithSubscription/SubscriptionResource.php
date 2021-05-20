@@ -33,6 +33,7 @@ class SubscriptionResource extends JsonResource
             'next_transaction_date' => null,
             'status'        => $this->status,
             'description'   => $this->description,
+            'cp_subscription_id' => $this->cp_subscription_id ?? null,
             'payments'      => PaymentResource::collection($this->payments->where('status', '!=', 'new')->sortByDesc('paided_at')),
             'recurrent'     => [
                 'link'      => route('cloudpayments.show_widget', [$this->id]),
