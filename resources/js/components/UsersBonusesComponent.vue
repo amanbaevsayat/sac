@@ -65,6 +65,14 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="started_at" class="col-form-label">Выберите оператора</label>
+                                    <select v-model="data.userId" name="userId" class="form-control">
+                                        <option v-for="(option, optionIndex) in users" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col">
@@ -88,37 +96,39 @@
                         <h1 style="text-align: center">{{ getTitle() }}</h1>
                         <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
                             <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
-                                <h2>{{ bonusesHeaders[paymentType] }}</h2>
-                                <hr>
-                                <div style="margin-bottom: 30px;">
-                                    <div class="row" style="margin-bottom: 15px; font-size: 15px;">
-                                        <div class="col-sm-2">
-                                            <span>Текущая неделя</span>
+                                <div v-if="bonus.user_id == data.userId">
+                                    <h2>{{ bonusesHeaders[paymentType] }}</h2>
+                                    <hr>
+                                    <div style="margin-bottom: 30px;">
+                                        <div class="row" style="margin-bottom: 15px; font-size: 15px;">
+                                            <div class="col-sm-2">
+                                                <span>Текущая неделя</span>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <b-progress :max="100" height="1.2rem">
+                                                    <b-progress-bar :value="100">
+                                                        <span style="font-size: 14px;">{{ getCurrentWeekAmount(paymentType) }} платежей</span>
+                                                    </b-progress-bar>
+                                                </b-progress>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <span> * {{ getCurrentWeekBonusesAmount(paymentType) }}₸ = {{ getCurrentWeekTotalBonus(paymentType) }}₸</span>
+                                            </div>
                                         </div>
-                                        <div class="col-sm-6">
-                                            <b-progress :max="100" height="1.2rem">
-                                                <b-progress-bar :value="100">
-                                                    <span style="font-size: 14px;">{{ getCurrentWeekAmount(paymentType) }} платежей</span>
-                                                </b-progress-bar>
-                                            </b-progress>
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <span> * {{ getCurrentWeekBonusesAmount(paymentType) }}₸ = {{ getCurrentWeekTotalBonus(paymentType) }}₸</span>
-                                        </div>
-                                    </div>
-                                    <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
-                                        <div class="col-sm-2">
-                                            <span>Прошлая неделя</span>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <b-progress :max="100" height="1.2rem">
-                                                <b-progress-bar variant="warning" :value="getLastWeekAmount(paymentType) / bonus.amount * 100">
-                                                    <span style="font-size: 14px;">{{ getLastWeekAmount(paymentType) }} платежей</span>
-                                                </b-progress-bar>
-                                            </b-progress>
-                                        </div>
-                                        <div class="col-sm-4">
-                                            <span> * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</span>
+                                        <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
+                                            <div class="col-sm-2">
+                                                <span>Прошлая неделя</span>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <b-progress :max="100" height="1.2rem">
+                                                    <b-progress-bar variant="warning" :value="getLastWeekAmount(paymentType) / bonus.amount * 100">
+                                                        <span style="font-size: 14px;">{{ getLastWeekAmount(paymentType) }} платежей</span>
+                                                    </b-progress-bar>
+                                                </b-progress>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <span> * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -159,12 +169,14 @@ export default {
         'bonusesHeadersProp',
         'totalSumProp',
         'usersProp',
+        'userIdProp',
     ],
     components: {
         highcharts: Chart,
     },
     data() {
         return {
+            userId: this.userIdProp,
             users: this.usersProp,
             bonusesHeaders: this.bonusesHeadersProp,
             usersBonuses: this.usersBonusesProp,
@@ -180,6 +192,7 @@ export default {
                 period: this.dataProp.period,
                 currentPoint: this.dataProp.currentPoint,
                 lastPoint: this.dataProp.lastPoint,
+                userId: this.userId,
             },
         }
     },

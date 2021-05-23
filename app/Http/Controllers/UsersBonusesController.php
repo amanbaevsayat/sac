@@ -67,6 +67,7 @@ class UsersBonusesController extends Controller
                 "productId" => $request->input('productId') ?? Product::first()->id ?? null,
                 "from" => $request->input('from') ?? Carbon::now()->subMonths(3)->format('Y-m-d'),
                 "to" => $request->input('to') ?? Carbon::now()->format('Y-m-d'),
+                "userId" => $request->input('userId') ?? Auth::id(),
             ];
             return redirect()->route('users_bonuses.show', $data);
         }
@@ -84,7 +85,8 @@ class UsersBonusesController extends Controller
         $to = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
         $categories = $this->getPeriods($request->get('period'), $from, $to);
         $productId = $request->input('productId');
-        $userId = Auth::id();
+        $userId = $request->get('userId');
+
         $usersBonuses = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
             ->select(
@@ -149,7 +151,6 @@ class UsersBonusesController extends Controller
         ];
 
         $users = User::all()->pluck('name', 'id')->toArray();
-        $userId = Auth::id();
 
         return view('users-bonuses.show', compact('products', 'chart', 'usersBonuses', 'usersBonusesForChart', 'users', 'userId'));
     }
