@@ -45,42 +45,59 @@ class UpdateUsersBonuses extends Command
         $endOfWeekStartOfDay = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
         $endOfMonthStartOfDay = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
 
-        foreach ($products as $product) {
-            // Все бонусы продукта
-            $productBonuses = $product->bonuses;
-
-            // Операторы услуги
-            $productUsers = $product->users->pluck('id')->toArray();
-            $successPayments = $product->payments->where('status', 'Completed');
-            $groupByBonuses = $successPayments->groupBy('bonus_id');
-            foreach ($productBonuses as $productBonus) {
-                if (isset($groupByBonuses[$productBonus->id])) {
-                    foreach (UsersBonuses::DATE_TYPES as $dateType) {
-                        if ($dateType == 'week') {
-                            $unixDate = $endOfWeekStartOfDay;
-                            $bonusAmount = $groupByBonuses[$productBonus->id]->whereBetween('paided_at', [
-                                Carbon::now()->startOfWeek()->startOfDay(),
-                                Carbon::now()->endOfWeek()->endOfDay(),
-                            ])->count();
-                        } else {
-                            $unixDate = $endOfMonthStartOfDay;
-                            $bonusAmount = $groupByBonuses[$productBonus->id]->whereBetween('paided_at', [
-                                Carbon::now()->startOfMonth()->startOfDay(),
-                                Carbon::now()->endOfMonth()->endOfDay(),
-                            ])->count();
-                        }
+        try {
+            foreach ($products as $product) {
+                // Все бонусы продукта
+                // Пример. Первый платеж по подписке
+                $productBonuses = $product->bonuses;
     
-                        $product->usersBonuses()->updateOrCreate([
-                            'bonus_id' => $productBonus->id,
-                            'date_type' => $dateType,
-                            'unix_date' => $unixDate,
-                        ], [
-                            'user_ids' => $productUsers,
-                            'amount' => $bonusAmount, // TODO
-                        ]);
+                // Операторы услуги
+                $productUsers = $product->users;
+
+                // Все успешные платежи услуги
+                $successPayments = $product->payments->where('status', 'Completed');
+
+                foreach ($productBonuses as $productBonus) {
+                    foreach (UsersBonuses::DATE_TYPES as $dateType) {
+                        foreach ($productUsers as $user) {
+                            // Проверка на то, высчитывать бонусы со дня вступления в команду
+                            // Если в середине недели устроился, то считать по ней
+                            $userEmploymentAt = Carbon::parse($user->pivot->employment_at);
+                            if ($dateType == 'week') {
+                                $unixDate = $endOfWeekStartOfDay;
+                                $startedAt = $userEmploymentAt > Carbon::now()->startOfWeek()->startOfDay() ? $userEmploymentAt : Carbon::now()->startOfWeek()->startOfDay();
+                                $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
+                                    $startedAt,
+                                    Carbon::now()->endOfWeek()->endOfDay(),
+                                ])->groupBy('bonus_id');
+                                $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]->count() : 0;
+                            } else {
+                                $unixDate = $endOfMonthStartOfDay;
+                                $startedAt = $userEmploymentAt > Carbon::now()->startOfMonth()->startOfDay() ? $userEmploymentAt : Carbon::now()->startOfMonth()->startOfDay();
+                                $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
+                                    $startedAt,
+                                    Carbon::now()->endOfMonth()->endOfDay(),
+                                ])->groupBy('bonus_id');
+                                $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]->count() : 0;
+                            }
+
+                            if (isset($groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id])) {
+                                $product->usersBonuses()->updateOrCreate([
+                                    'bonus_id' => $productBonus->id,
+                                    'date_type' => $dateType,
+                                    'unix_date' => $unixDate,
+                                    'user_id' => $user->id,
+                                    'stake' => $user->pivot->stake,
+                                ], [
+                                    'amount' => $bonusAmount ?? 0,
+                                ]);
+                            }
+                        }
                     }
                 }
             }
+        } catch (\Throwable $e) {
+            \Log::error($e);
         }
     }
 }

@@ -8,11 +8,13 @@ use Illuminate\Http\Request;
 use App\Filters\ProductFilter;
 use App\Http\Resources\PaymentTypeResource;
 use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductUsersResource;
 use App\Models\Bonus;
 use App\Models\PaymentType;
 use App\Models\Price;
 use App\Models\Subscription;
 use App\Models\User;
+use Carbon\Carbon;
 
 class ProductController extends Controller
 {
@@ -88,56 +90,7 @@ class ProductController extends Controller
     public function store(CreateProductRequest $request, Product $product)
     {
         access(['can-head', 'can-host']);
-        $product = $product->create($request->all());
-        $paymentTypeIds = [];
-        $prices = $request->get('prices', []);
-        $productUsers = $request->get('productUsers', []);
-        $paymentTypes = $request->get('paymentTypes', []);
-        $prices = $request->get('prices', []);
-
-        foreach ($prices as $item) {
-            if ($item) {
-                $price = Price::updateOrCreate([
-                    'price' => $item,
-                    'product_id' => $product->id,
-                ]);
-                $priceIds[] = $price->id;
-            }
-        }
-
-        foreach ($paymentTypes as $item) {
-            $bonusIds = [];
-            if ($item) {
-                $paymentType = PaymentType::updateOrCreate([
-                    'payment_type' => $item['type'],
-                    'product_id' => $product->id,
-                ]);
-                $paymentTypeIds[] = $paymentType->id;
-
-                if (isset($item['bonuses'])) {
-                    foreach ($item['bonuses'] as $type => $amount) {
-                        $bonus = Bonus::updateOrCreate([
-                            'type' => $type,
-                            'amount' => $amount,
-                            'product_id' => $product->id,
-                            'payment_type_id' => $paymentType->id,
-                        ], [
-                            'is_active' => true,
-                        ]);
-
-                        $bonusIds[] = $bonus->id;
-                    }
-
-                    $paymentType->bonuses()->whereNotIn('id', $bonusIds)->update([
-                        'is_active' => false,
-                    ]);
-                }
-            }
-        }
-
-        $product->prices()->whereNotIn('id', $priceIds)->delete();
-        $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
-        $product->users()->sync($productUsers);
+        $this->updateOrCreate($request->all(), $product, 'create');
 
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно создан.');
     }
@@ -167,16 +120,17 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
-        $productUsers = $product->users()->pluck('id')->toArray();
+        $productUsers = $product->users;
         $users = User::all()->pluck('account', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
         $paymentTypes = Subscription::PAYMENT_TYPE;
+
         return view("{$this->root}.edit", [
             'product' => $product,
             'productPrices' => $productPrices,
             'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
             'paymentTypes' => $paymentTypes,
-            'productUsers' => $productUsers,
+            'productUsers' => ProductUsersResource::collection($productUsers),
             'users' => $users,
         ]);
     }
@@ -191,12 +145,31 @@ class ProductController extends Controller
     public function update(CreateProductRequest $request, Product $product)
     {
         access(['can-head', 'can-host']);
+        $this->updateOrCreate($request->all(), $product, 'update');
+
+        $message = 'Данные продукта успешно изменены.';
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => $message,
+            ]);
+        } else {
+            return redirect()->to(route("{$this->root}.show", [$product->id]))->with('success', $message);
+        }
+    }
+
+    private function updateOrCreate(array $request, ?Product $product, $type) 
+    {
         $priceIds = [];
         $paymentTypeIds = [];
-        $prices = $request->get('prices', []);
-        $productUsers = $request->get('productUsers', []);
-        $paymentTypes = $request->get('paymentTypes', []);
-        $product->update($request->all());
+        $prices = $request['prices'] ?? [];
+        $productUsers = $request['productUsers'] ?? [];
+        $paymentTypes = $request['paymentTypes'] ?? [];
+
+        if ($type == 'update') {
+            $product->update($request);
+        } else if ($type == 'create') {
+            $product = $product->create($request);
+        }
 
         foreach ($prices as $item) {
             if ($item) {
@@ -218,7 +191,6 @@ class ProductController extends Controller
                 $paymentTypeIds[] = $paymentType->id;
 
                 if (isset($item['bonuses'])) {
-                    dd($item['bonuses']);
                     foreach ($item['bonuses'] as $type => $amount) {
                         $bonus = Bonus::updateOrCreate([
                             'type' => $type,
@@ -246,15 +218,14 @@ class ProductController extends Controller
         $product->prices()->whereNotIn('id', $priceIds)->delete();
         $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
         $product->users()->detach();
-        $product->users()->sync($productUsers);
 
-        $message = 'Данные продукта успешно изменены.';
-        if ($request->ajax()) {
-            return response()->json([
-                'message' => $message,
+        foreach ($productUsers as $productUser) {
+            $product->users()->attach([
+                $productUser['id'] => [
+                    'stake' => $productUser['stake'],
+                    'employment_at' => Carbon::parse($productUser['employment_at']),
+                ],
             ]);
-        } else {
-            return redirect()->to(route("{$this->root}.show", [$product->id]))->with('success', $message);
         }
     }
 

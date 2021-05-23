@@ -30,7 +30,9 @@ class UsersBonuses extends Model
     ];
 
     protected $fillable = [
-        'user_ids', // json (array)
+        'user_id',
+        'stake',
+        // 'user_ids', // Deprecated
         'product_id',
         'bonus_id',
         'date_type',
@@ -46,4 +48,9 @@ class UsersBonuses extends Model
     protected $casts = [
         'user_ids' => 'array',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

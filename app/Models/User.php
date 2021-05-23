@@ -77,4 +77,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Product::class);
     }
+
+    public function userBonuses()
+    {
+        return $this->hasMany(UsersBonuses::class, 'user_id');
+    }
 }

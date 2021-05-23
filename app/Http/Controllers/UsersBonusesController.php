@@ -11,6 +11,7 @@ use App\Models\UsersBonuses;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class UsersBonusesController extends Controller
 {
@@ -57,8 +58,11 @@ class UsersBonusesController extends Controller
     public function show(Request $request)
     {
         access(['can-head', 'can-host', 'con-operator']);
-        if (!$request->has('from') && !$request->has('to')) {
+        $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($request->input('period', 'week'));
+        if (!$request->has('from') || !$request->has('to') || ! $request->has('currentPoint')) {
             $data = [
+                "currentPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['current'],
+                "lastPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['last'],
                 "period" => $request->input('period') ?? 'week',
                 "productId" => $request->input('productId') ?? Product::first()->id ?? null,
                 "from" => $request->input('from') ?? Carbon::now()->subMonths(3)->format('Y-m-d'),
@@ -68,7 +72,6 @@ class UsersBonusesController extends Controller
         }
 
         $products = Product::get()->pluck('title', 'id');
-
         $request->validate([
             "from" => "required|date_format:Y-m-d",
             "to" => "required|date_format:Y-m-d",
@@ -81,6 +84,7 @@ class UsersBonusesController extends Controller
         $to = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
         $categories = $this->getPeriods($request->get('period'), $from, $to);
         $productId = $request->input('productId');
+        $userId = Auth::id();
         $usersBonuses = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
             ->select(
@@ -90,6 +94,7 @@ class UsersBonusesController extends Controller
                 'payment_types.payment_type',
                 \DB::raw('(users_bonuses.amount * bonuses.amount) as total_bonus')
             )
+            // ->where('users_bonuses.user_id', $userId)
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
             ->get()->groupBy('unix_date')->transform(function($item, $k) {
@@ -98,32 +103,28 @@ class UsersBonusesController extends Controller
                 });
             })->toArray();
 
-        $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($period);
-        $usersBonuses = [
-            'current' => $usersBonuses[$getCurrentAndLastPeriod['current']] ?? [],
-            'last' => $usersBonuses[$getCurrentAndLastPeriod['last']] ?? []
-        ];
-
+            
         $usersBonusesGroup = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
             ->select(
                 \DB::raw("SUM(users_bonuses.amount * bonuses.amount) as total_bonus"),
                 'users_bonuses.unix_date'
-            )
+                )
+            ->where('users_bonuses.user_id', $userId)
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
             ->groupBy('users_bonuses.unix_date')
             ->get();
 
-        $usersBonusesForChart = $usersBonusesGroup->pluck('total_bonus', 'unix_date')->toArray();
-        $currentPeriodTotal = $usersBonusesForChart[$getCurrentAndLastPeriod['current']] ?? 0;
+        // dd($usersBonuses, $usersBonusesGroup);
 
+        $usersBonusesForChart = $usersBonusesGroup->pluck('total_bonus', 'unix_date')->toArray();
         $chart = [
             'type' => 'highchart',
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Сумма бонусов за неделю'],
+            "title" => ["text" => 'Сумма бонусов за '. ($period == 'week' ? 'неделю' : 'месяц')],
             'xAxis' => [
                 'type' => 'datetime',
             ],
@@ -147,9 +148,9 @@ class UsersBonusesController extends Controller
             ],
         ];
 
-        $productUsersForCurrentWeek = UsersBonuses::whereProductId($productId)->where('unix_date', $getCurrentAndLastPeriod['current'])->first();
-        $productUsers = User::whereIn('id', $productUsersForCurrentWeek->user_ids)->get()->pluck('name')->toArray();
+        $users = User::all()->pluck('name', 'id')->toArray();
+        $userId = Auth::id();
 
-        return view('users-bonuses.show', compact('products', 'chart', 'usersBonuses', 'currentPeriodTotal', 'productUsers'));
+        return view('users-bonuses.show', compact('products', 'chart', 'usersBonuses', 'usersBonusesForChart', 'users', 'userId'));
     }
 }

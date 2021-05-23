@@ -21,8 +21,8 @@ class PaymentTypeResource extends JsonResource
         return [
             'type' => $this->payment_type,
             'bonuses' => [
-                'firstPayment' => $this->bonuses->where('type', Bonus::FIRST_PAYMENT)->first()->amount ?? 0,
-                'repeatedPayment' => $this->bonuses->where('type', Bonus::REPEATED_PAYMENT)->first()->amount ?? 0,
+                'firstPayment' => $this->bonuses->where('is_active', true)->where('type', Bonus::FIRST_PAYMENT)->first()->amount ?? 0,
+                'repeatedPayment' => $this->bonuses->where('is_active', true)->where('type', Bonus::REPEATED_PAYMENT)->first()->amount ?? 0,
             ],
         ];
     }

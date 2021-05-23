@@ -84,8 +84,9 @@
                         :updateArgs="[true, true, true]"
                         :ref="'chart'"
                     ></highcharts>
-                    <div style="margin-left: 20px">
-                        <div v-for="(usersBonus, paymentType) in usersBonuses.current" :key="paymentType">
+                    <div style="margin-left: 20px" v-if="dataProp.period == 'week'">
+                        <h1 style="text-align: center">{{ getTitle() }}</h1>
+                        <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
                             <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
                                 <h2>{{ bonusesHeaders[paymentType] }}</h2>
                                 <hr>
@@ -97,12 +98,12 @@
                                         <div class="col-sm-6">
                                             <b-progress :max="100" height="1.2rem">
                                                 <b-progress-bar :value="100">
-                                                    <span style="font-size: 14px;">{{ bonus.amount }} платежей</span>
+                                                    <span style="font-size: 14px;">{{ getCurrentWeekAmount(paymentType) }} платежей</span>
                                                 </b-progress-bar>
                                             </b-progress>
                                         </div>
                                         <div class="col-sm-4">
-                                            <span> * {{ bonus.bonuses_amount }}₸ = {{ bonus.total_bonus }}₸</span>
+                                            <span> * {{ getCurrentWeekBonusesAmount(paymentType) }}₸ = {{ getCurrentWeekTotalBonus(paymentType) }}₸</span>
                                         </div>
                                     </div>
                                     <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
@@ -125,7 +126,7 @@
                         </div>
                         <div>
                             <hr>
-                            <h2>Сумма бонусов за неделю: {{ currentPeriodTotalProp }}₸</h2>
+                            <h2>Сумма бонусов за неделю: {{ getTotalSum() }}₸</h2>
                         </div>
                     </div>
                 </div>
@@ -135,7 +136,7 @@
                 <div class="card" style="padding: 20px 15px;">
                     <h2>Распределение бонусов</h2>
                     <hr>
-                    <p style="font-size: 15px" v-for="(userName, userIndex) in productUsers" :key="userIndex">{{ userName }} ({{ 100/productUsers.length }}%) <span style="float: right;">{{ currentPeriodTotalProp/productUsers.length }}₸</span></p>
+                    <p style="font-size: 15px" v-for="(stake, stakeIndex) in getStakesOfUser()" :key="stakeIndex">{{ stake.name }} ({{ stake.percent }}%) <span style="float: right;">{{ stake.share }}₸</span></p>
                 </div>
             </div>
         </div>
@@ -144,7 +145,7 @@
 </template>
 
 <script>
-import moment from 'moment-timezone';
+import moment from 'moment';
 import {Chart} from 'highcharts-vue'
 
 export default {
@@ -156,15 +157,15 @@ export default {
         'chartProp',
         'usersBonusesProp',
         'bonusesHeadersProp',
-        'currentPeriodTotalProp',
-        'productUsersProp',
+        'totalSumProp',
+        'usersProp',
     ],
     components: {
         highcharts: Chart,
     },
     data() {
         return {
-            productUsers: this.productUsersProp,
+            users: this.usersProp,
             bonusesHeaders: this.bonusesHeadersProp,
             usersBonuses: this.usersBonusesProp,
             route: this.routeProp,
@@ -177,31 +178,121 @@ export default {
                 to: moment(this.dataProp.to).tz('Asia/Almaty').format(),
                 productId: this.dataProp.productId,
                 period: this.dataProp.period,
+                currentPoint: this.dataProp.currentPoint,
+                lastPoint: this.dataProp.lastPoint,
             },
         }
     },
     beforeMount() {
         this.chart.xAxis.labels = {
             formatter: function(value) {
-                return moment(value.value).tz('Asia/Almaty').lang("ru").format('LL');
+                return moment(value.value).tz('Asia/Almaty').locale("ru").format('LL');
+            }
+        };
+
+        this.chart.plotOptions.series = {
+            cursor: 'pointer',
+            point: {
+                events: {
+                    click: (e) => {
+                        this.pointClick(e);
+                    }
+                }
             }
         };
     },
     methods: {
+        getStakesOfUser() {
+            if (this.usersBonuses[this.data.currentPoint]) {
+                let users = [];
+                let response = [];
+                Object.keys(this.usersBonuses[this.data.currentPoint]).forEach(function(bonusType) {
+                    let bonuses = this.usersBonuses[this.data.currentPoint][bonusType]
+                    bonuses.forEach((bonus) => {
+                        if (! users[bonus.user_id]) {
+                            users[bonus.user_id] = [];
+                        }
+                        if (! users[bonus.user_id][bonus.stake]) {
+                            users[bonus.user_id][bonus.stake] = 0;
+                        }
+                        users[bonus.user_id][bonus.stake] = users[bonus.user_id][bonus.stake] + bonus.total_bonus;
+                    });
+                }.bind(this));
+                users.forEach((bonuses, userId) => {
+                    bonuses.forEach((total, stake) => {
+                        response.push({
+                            name: this.users[userId],
+                            stake: stake,
+                            share: total * stake / 100,
+                            percent: stake,
+                        });
+                    });
+                });
+
+                return response;
+            } else {
+                return [];
+            }
+        },
+        getTitle() {
+            let end = moment.unix(this.data.currentPoint / 1000).locale("ru").format('LL');
+            let start = moment.unix(this.data.currentPoint / 1000).weekday(-7).locale("ru").format('D');
+            return  start +' - ' + end;
+        },
+        getTotalSum() {
+            return this.totalSumProp[this.data.currentPoint];
+        },
+        pointClick(e) {
+            this.data.currentPoint = e.point.category;
+            this.data.lastPoint = e.point.category - 604800000;
+        },
         isNotEmpty(paymentType) {
-            return !!this.usersBonuses.last[paymentType];
+            return !!this.usersBonuses[this.data.currentPoint][paymentType];
         },
         convertDate(date, format) {
             return moment(date).tz('Asia/Almaty').lang("ru").format(format);
         },
         getLastWeekAmount(paymentType) {
-            return this.usersBonuses['last'][paymentType][0].amount;
+            if (this.usersBonuses[this.data.lastPoint]) {
+                return this.usersBonuses[this.data.lastPoint][paymentType][0].amount;
+            } else {
+                return 0;
+            }
         },
         getLastWeekBonusesAmount(paymentType) {
-            return this.usersBonuses['last'][paymentType][0].bonuses_amount;
+            if (this.usersBonuses[this.data.lastPoint]) {
+                return this.usersBonuses[this.data.lastPoint][paymentType][0].bonuses_amount;
+            } else {
+                return 0;
+            }
         },
         getLastWeekTotalBonus(paymentType) {
-            return this.usersBonuses['last'][paymentType][0].total_bonus;
+            if (this.usersBonuses[this.data.lastPoint]) {
+                return this.usersBonuses[this.data.lastPoint][paymentType][0].total_bonus;
+            } else {
+                return 0;
+            }
+        },
+        getCurrentWeekAmount(paymentType) {
+            if (this.usersBonuses[this.data.currentPoint]) {
+                return this.usersBonuses[this.data.currentPoint][paymentType][0].amount;
+            } else {
+                return 0;
+            }
+        },
+        getCurrentWeekBonusesAmount(paymentType) {
+            if (this.usersBonuses[this.data.currentPoint]) {
+                return this.usersBonuses[this.data.currentPoint][paymentType][0].bonuses_amount;
+            } else {
+                return 0;
+            }
+        },
+        getCurrentWeekTotalBonus(paymentType) {
+            if (this.usersBonuses[this.data.currentPoint]) {
+                return this.usersBonuses[this.data.currentPoint][paymentType][0].total_bonus;
+            } else {
+                return 0;
+            }
         },
     }
 }
