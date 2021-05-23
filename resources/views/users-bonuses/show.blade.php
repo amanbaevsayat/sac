@@ -9,6 +9,7 @@ $data = [
     'period' => request()->get('period') ?? null,
     'currentPoint' => request()->get('currentPoint') ?? null,
     'lastPoint' => request()->get('lastPoint') ?? null,
+    'userId' => request()->get('userId') ?? null,
 ];
 
 @endphp

@@ -68,7 +68,7 @@
                             <div class="col">
                                 <div class="form-group">
                                     <label for="started_at" class="col-form-label">Выберите оператора</label>
-                                    <select v-model="data.userId" name="userId" class="form-control">
+                                    <select v-model="dataProp.userId" name="userId" class="form-control">
                                         <option v-for="(option, optionIndex) in users" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                     </select>
                                 </div>
@@ -96,7 +96,7 @@
                         <h1 style="text-align: center">{{ getTitle() }}</h1>
                         <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
                             <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
-                                <div v-if="bonus.user_id == data.userId">
+                                <div v-if="bonus.user_id == dataProp.userId">
                                     <h2>{{ bonusesHeaders[paymentType] }}</h2>
                                     <hr>
                                     <div style="margin-bottom: 30px;">
@@ -107,12 +107,12 @@
                                             <div class="col-sm-6">
                                                 <b-progress :max="100" height="1.2rem">
                                                     <b-progress-bar :value="100">
-                                                        <span style="font-size: 14px;">{{ getCurrentWeekAmount(paymentType) }} платежей</span>
+                                                        <span style="font-size: 14px;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} платежей</span>
                                                     </b-progress-bar>
                                                 </b-progress>
                                             </div>
                                             <div class="col-sm-4">
-                                                <span> * {{ getCurrentWeekBonusesAmount(paymentType) }}₸ = {{ getCurrentWeekTotalBonus(paymentType) }}₸</span>
+                                                <span> * {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
                                             </div>
                                         </div>
                                         <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
@@ -176,6 +176,7 @@ export default {
     },
     data() {
         return {
+            total: 0,
             userId: this.userIdProp,
             users: this.usersProp,
             bonusesHeaders: this.bonusesHeadersProp,
@@ -233,6 +234,9 @@ export default {
                 }.bind(this));
                 users.forEach((bonuses, userId) => {
                     bonuses.forEach((total, stake) => {
+                        if (this.dataProp.userId == userId) {
+                            this.total = total;
+                        }
                         response.push({
                             name: this.users[userId],
                             stake: stake,
@@ -241,6 +245,7 @@ export default {
                         });
                     });
                 });
+
 
                 return response;
             } else {
@@ -253,9 +258,10 @@ export default {
             return  start +' - ' + end;
         },
         getTotalSum() {
-            return this.totalSumProp[this.data.currentPoint];
+            return this.total;
         },
         pointClick(e) {
+            this.total = 0;
             this.data.currentPoint = e.point.category;
             this.data.lastPoint = e.point.category - 604800000;
         },
@@ -286,23 +292,23 @@ export default {
                 return 0;
             }
         },
-        getCurrentWeekAmount(paymentType) {
+        getCurrentWeekAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][0].amount;
+                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].amount;
             } else {
                 return 0;
             }
         },
-        getCurrentWeekBonusesAmount(paymentType) {
+        getCurrentWeekBonusesAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][0].bonuses_amount;
+                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].bonuses_amount;
             } else {
                 return 0;
             }
         },
-        getCurrentWeekTotalBonus(paymentType) {
+        getCurrentWeekTotalBonus(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][0].total_bonus;
+                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].total_bonus;
             } else {
                 return 0;
             }

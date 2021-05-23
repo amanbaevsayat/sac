@@ -58,9 +58,10 @@
                                     <div class="row">
                                         <div class="form-group col-sm-6">
                                             <label for="product_id" class="col-form-label">Услуга</label>
-                                            <select v-model="subscription.product_id" :name="'subscriptions.' + subIndex + '.product_id'" id="product_id" class="col-sm-10 form-control">
+                                            <select v-if="! subscription.id" v-model="subscription.product_id" :name="'subscriptions.' + subIndex + '.product_id'" id="product_id" class="col-sm-10 form-control">
                                                 <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
                                             </select>
+                                            <input v-else :value="getSubscriptionTitle(subscription.product_id)" id="product_id" class="col-sm-10 form-control" type="text" disabled>
                                         </div>
                                         <div class="form-group col-sm-6">
                                             <label for="price" class="col-form-label">Цена</label>
