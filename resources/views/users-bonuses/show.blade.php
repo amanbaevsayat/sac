@@ -24,5 +24,6 @@ $data = [
     :total-sum-prop="{{ json_encode($usersBonusesForChart) }}"
     :users-prop="{{ json_encode($users) }}"
     :user-id-prop="{{ $userId }}"
+    :records-prop="{{ json_encode($recordsBonuses) }}"
 ></users-bonuses-component>
 @stop

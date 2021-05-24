@@ -92,42 +92,46 @@
                         :updateArgs="[true, true, true]"
                         :ref="'chart'"
                     ></highcharts>
-                    <div style="margin-left: 20px" v-if="dataProp.period == 'week'">
+                </div>
+                <div class="card">
+                    <div style="margin-left: 20px; margin-top: 20px; margin-bottom: 30px; margin-right: 0px;" v-if="dataProp.period == 'week'">
                         <h1 style="text-align: center">{{ getTitle() }}</h1>
                         <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
                             <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
                                 <div v-if="bonus.user_id == dataProp.userId">
-                                    <h2>{{ bonusesHeaders[paymentType] }}</h2>
+                                    <h3>{{ bonusesHeaders[paymentType] }}</h3>
                                     <hr>
                                     <div style="margin-bottom: 30px;">
                                         <div class="row" style="margin-bottom: 15px; font-size: 15px;">
                                             <div class="col-sm-2">
-                                                <span>Текущая неделя</span>
+                                                <span style="color: #0000009c">Текущая неделя</span>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <b-progress :max="100" height="1.2rem">
-                                                    <b-progress-bar :value="100">
-                                                        <span style="font-size: 14px;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} платежей</span>
+                                            <div class="col-sm-8">
+                                                <b-progress :max="100" height="1.6rem">
+                                                    <b-progress-bar animated :value="getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100" variant="success">
+                                                        <span style="font-size: 14px;font-weight: bold">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</span>
+                                                    </b-progress-bar>
+                                                    <b-progress-bar :value="100 - (getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100)" variant="secondary">
+                                                        <span style="font-size: 14px;font-weight: bold">{{ records[paymentType] }} шт.</span>
                                                     </b-progress-bar>
                                                 </b-progress>
                                             </div>
-                                            <div class="col-sm-4">
+                                            <div class="col-sm-2">
                                                 <span> * {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
                                             </div>
                                         </div>
                                         <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
                                             <div class="col-sm-2">
-                                                <span>Прошлая неделя</span>
+                                                <span style="color: #0000009c">Прошлая неделя</span>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <b-progress :max="100" height="1.2rem">
-                                                    <b-progress-bar variant="warning" :value="getLastWeekAmount(paymentType) / bonus.amount * 100">
-                                                        <span style="font-size: 14px;">{{ getLastWeekAmount(paymentType) }} платежей</span>
+                                            <div class="col-sm-8">
+                                                <b-progress :max="100" height="1.6rem">
+                                                    <b-progress-bar variant="warning" :value="100">
+                                                        <span style="font-size: 14px;font-weight: bold;">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span>
                                                     </b-progress-bar>
                                                 </b-progress>
                                             </div>
-                                            <div class="col-sm-4">
-                                                <span> * {{ getLastWeekBonusesAmount(paymentType) }}₸ = {{ getLastWeekTotalBonus(paymentType) }}₸</span>
+                                            <div class="col-sm-2">
                                             </div>
                                         </div>
                                     </div>
@@ -136,7 +140,7 @@
                         </div>
                         <div>
                             <hr>
-                            <h2>Сумма бонусов за неделю: {{ getTotalSum() }}₸</h2>
+                            <h3>Сумма бонусов за неделю: <span style="float: right;margin-right: 75px">{{ getTotalSum() }}₸</span></h3>
                         </div>
                     </div>
                 </div>
@@ -170,12 +174,14 @@ export default {
         'totalSumProp',
         'usersProp',
         'userIdProp',
+        'recordsProp',
     ],
     components: {
         highcharts: Chart,
     },
     data() {
         return {
+            records: this.recordsProp,
             total: 0,
             userId: this.userIdProp,
             users: this.usersProp,
@@ -261,6 +267,7 @@ export default {
             return this.total;
         },
         pointClick(e) {
+            console.log(e.point.category);
             this.total = 0;
             this.data.currentPoint = e.point.category;
             this.data.lastPoint = e.point.category - 604800000;
@@ -271,23 +278,35 @@ export default {
         convertDate(date, format) {
             return moment(date).tz('Asia/Almaty').lang("ru").format(format);
         },
-        getLastWeekAmount(paymentType) {
+        getLastWeekAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.lastPoint]) {
-                return this.usersBonuses[this.data.lastPoint][paymentType][0].amount;
+                if (this.usersBonuses[this.data.lastPoint][paymentType]) {
+                    return this.usersBonuses[this.data.lastPoint][paymentType][0].amount;
+                } else { 
+                    return 0;
+                }
             } else {
                 return 0;
             }
         },
-        getLastWeekBonusesAmount(paymentType) {
+        getLastWeekBonusesAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.lastPoint]) {
-                return this.usersBonuses[this.data.lastPoint][paymentType][0].bonuses_amount;
+                if (this.usersBonuses[this.data.lastPoint][paymentType]) {
+                    return this.usersBonuses[this.data.lastPoint][paymentType][0].bonuses_amount;
+                } else {
+                    return 0;
+                }
             } else {
                 return 0;
             }
         },
-        getLastWeekTotalBonus(paymentType) {
+        getLastWeekTotalBonus(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.lastPoint]) {
-                return this.usersBonuses[this.data.lastPoint][paymentType][0].total_bonus;
+                if (this.usersBonuses[this.data.lastPoint][paymentType]) {
+                    return this.usersBonuses[this.data.lastPoint][paymentType][0].total_bonus;
+                } else {
+                    return 0;
+                }
             } else {
                 return 0;
             }

@@ -99,12 +99,12 @@ class UsersBonusesController extends Controller
             // ->where('users_bonuses.user_id', $userId)
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
+            // ->orderBy('total_bonus')
             ->get()->groupBy('unix_date')->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
                     return $item->payment_type . '-' . $item->type;
                 });
             })->toArray();
-
             
         $usersBonusesGroup = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
@@ -118,7 +118,18 @@ class UsersBonusesController extends Controller
             ->groupBy('users_bonuses.unix_date')
             ->get();
 
-        // dd($usersBonuses, $usersBonusesGroup);
+        $recordsBonuses = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
+        ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
+        ->select(
+            \DB::raw('MAX(users_bonuses.amount) AS max_amount'),
+            \DB::raw("CONCAT(payment_types.payment_type,'-',bonuses.type) as bonusType")
+        )
+        ->where('users_bonuses.product_id', $productId)
+        ->where('users_bonuses.date_type', $period)
+        ->groupBy(['bonusType'])
+        ->get()
+        ->pluck('max_amount', 'bonusType')
+        ->toArray();
 
         $usersBonusesForChart = $usersBonusesGroup->pluck('total_bonus', 'unix_date')->toArray();
         $chart = [
@@ -152,6 +163,14 @@ class UsersBonusesController extends Controller
 
         $users = User::all()->pluck('name', 'id')->toArray();
 
-        return view('users-bonuses.show', compact('products', 'chart', 'usersBonuses', 'usersBonusesForChart', 'users', 'userId'));
+        return view('users-bonuses.show', compact(
+            'products',
+            'chart',
+            'usersBonuses',
+            'usersBonusesForChart',
+            'users',
+            'userId',
+            'recordsBonuses'
+        ));
     }
 }
