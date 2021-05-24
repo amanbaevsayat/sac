@@ -45,6 +45,25 @@ class UpdateUsersBonuses extends Command
         $endOfWeekStartOfDay = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
         $endOfMonthStartOfDay = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
 
+        $data = [
+            'week' => [
+                // 'key' => (int) Carbon::now()->subWeeks(12)->endOfWeek()->startOfDay()->valueOf(),
+                // 'start' => Carbon::now()->subWeeks(12)->startOfWeek()->startOfDay(),
+                // 'end' => Carbon::now()->subWeeks(12)->endOfWeek()->endOfDay(),
+                'key' => (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf(),
+                'start' => Carbon::now()->startOfWeek()->startOfDay(),
+                'end' => Carbon::now()->endOfWeek()->endOfDay(),
+            ],
+            'month' => [
+                // 'key' => (int) Carbon::now()->subMonths(2)->endOfMonth()->startOfDay()->valueOf(),
+                // 'start' => Carbon::now()->subMonths(2)->startOfMonth()->startOfDay(),
+                // 'end' => Carbon::now()->subMonths(2)->endOfMonth()->endOfDay(),
+                'key' => (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf(),
+                'start' => Carbon::now()->startOfMonth()->startOfDay(),
+                'end' => Carbon::now()->endOfMonth()->endOfDay(),
+            ]
+        ];
+
         try {
             foreach ($products as $product) {
                 // Все бонусы продукта
@@ -64,19 +83,25 @@ class UpdateUsersBonuses extends Command
                             // Если в середине недели устроился, то считать по ней
                             $userEmploymentAt = Carbon::parse($user->pivot->employment_at);
                             if ($dateType == 'week') {
-                                $unixDate = $endOfWeekStartOfDay;
+                                // $unixDate = $endOfWeekStartOfDay;
+                                $unixDate = $data[$dateType]['key'];
                                 $startedAt = $userEmploymentAt > Carbon::now()->startOfWeek()->startOfDay() ? $userEmploymentAt : Carbon::now()->startOfWeek()->startOfDay();
                                 $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
-                                    $startedAt,
-                                    Carbon::now()->endOfWeek()->endOfDay(),
+                                    // $startedAt,
+                                    // Carbon::now()->endOfWeek()->endOfDay(),
+                                    $data[$dateType]['start'],
+                                    $data[$dateType]['end'], 
                                 ])->groupBy('bonus_id');
                                 $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]->count() : 0;
                             } else {
-                                $unixDate = $endOfMonthStartOfDay;
+                                // $unixDate = $endOfMonthStartOfDay;
+                                $unixDate = $data[$dateType]['key'];
                                 $startedAt = $userEmploymentAt > Carbon::now()->startOfMonth()->startOfDay() ? $userEmploymentAt : Carbon::now()->startOfMonth()->startOfDay();
                                 $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
-                                    $startedAt,
-                                    Carbon::now()->endOfMonth()->endOfDay(),
+                                    // $startedAt,
+                                    // Carbon::now()->endOfMonth()->endOfDay(),
+                                    $data[$dateType]['start'],
+                                    $data[$dateType]['end'],
                                 ])->groupBy('bonus_id');
                                 $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]->count() : 0;
                             }

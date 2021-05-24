@@ -99,13 +99,14 @@ class UsersBonusesController extends Controller
             // ->where('users_bonuses.user_id', $userId)
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
-            // ->orderBy('total_bonus')
+            ->orderBy('payment_types.payment_type')
             ->get()->groupBy('unix_date')->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
                     return $item->payment_type . '-' . $item->type;
                 });
-            })->toArray();
-            
+            })
+            ->toArray();
+
         $usersBonusesGroup = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
             ->select(
@@ -119,17 +120,17 @@ class UsersBonusesController extends Controller
             ->get();
 
         $recordsBonuses = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
-        ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
-        ->select(
-            \DB::raw('MAX(users_bonuses.amount) AS max_amount'),
-            \DB::raw("CONCAT(payment_types.payment_type,'-',bonuses.type) as bonusType")
-        )
-        ->where('users_bonuses.product_id', $productId)
-        ->where('users_bonuses.date_type', $period)
-        ->groupBy(['bonusType'])
-        ->get()
-        ->pluck('max_amount', 'bonusType')
-        ->toArray();
+            ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
+            ->select(
+                \DB::raw('MAX(users_bonuses.amount) AS max_amount'),
+                \DB::raw("CONCAT(payment_types.payment_type,'-',bonuses.type) as bonusType")
+            )
+            ->where('users_bonuses.product_id', $productId)
+            ->where('users_bonuses.date_type', $period)
+            ->groupBy(['bonusType'])
+            ->get()
+            ->pluck('max_amount', 'bonusType')
+            ->toArray();
 
         $usersBonusesForChart = $usersBonusesGroup->pluck('total_bonus', 'unix_date')->toArray();
         $chart = [
