@@ -25,5 +25,6 @@ $data = [
     :users-prop="{{ json_encode($users) }}"
     :user-id-prop="{{ $userId }}"
     :records-prop="{{ json_encode($recordsBonuses) }}"
+    auth-user-role-prop="{{ $authUserRole }}"
 ></users-bonuses-component>
 @stop

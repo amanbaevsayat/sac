@@ -57,7 +57,7 @@ class UsersBonusesController extends Controller
 
     public function show(Request $request)
     {
-        access(['can-head', 'can-host', 'con-operator']);
+        access(['can-head', 'can-host', 'can-operator']);
         $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($request->input('period', 'week'));
         if (!$request->has('from') || !$request->has('to') || ! $request->has('currentPoint')) {
             $data = [
@@ -71,7 +71,13 @@ class UsersBonusesController extends Controller
             ];
             return redirect()->route('users_bonuses.show', $data);
         }
-
+        $userId = Auth::id();
+        $user = User::whereId($userId)->first();
+        $authUserRole = $user->getRole();
+        if (! isset($user)) {
+            abort(404);
+        }
+        $this->checkRole($user, $request->all());
         $products = Product::get()->pluck('title', 'id');
         $request->validate([
             "from" => "required|date_format:Y-m-d",
@@ -162,8 +168,9 @@ class UsersBonusesController extends Controller
             ],
         ];
 
-        $users = User::all()->pluck('name', 'id')->toArray();
-
+        $users = User::whereHas('role', function ($query) {
+            $query->where('code', 'operator');
+        })->get()->pluck('name', 'id')->toArray();
         return view('users-bonuses.show', compact(
             'products',
             'chart',
@@ -171,7 +178,17 @@ class UsersBonusesController extends Controller
             'usersBonusesForChart',
             'users',
             'userId',
-            'recordsBonuses'
+            'recordsBonuses',
+            'authUserRole'
         ));
+    }
+
+    private function checkRole(User $user, array $request)
+    {
+        if ($user->isOperator()) {
+            if ($user->id != $request['userId']) {
+                abort(404);
+            }
+        }
     }
 }

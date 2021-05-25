@@ -342,7 +342,7 @@ return [
             'url'  => '/users-bonuses',
             'icon' => 'fa fa-bold',
             "can"  => [
-                // 'can-operator',
+                'can-operator',
                 'can-head',
                 'can-host',
             ],

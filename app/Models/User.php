@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function getRole()
+    {
+        return $this->role->code;
+    }
+
     public function isOperator()
     {
         return $this->role->code == "operator";

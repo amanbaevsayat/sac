@@ -65,7 +65,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col" v-if="authUserRoleProp != 'operator'">
                                 <div class="form-group">
                                     <label for="started_at" class="col-form-label">Выберите оператора</label>
                                     <select v-model="dataProp.userId" name="userId" class="form-control">
@@ -175,6 +175,7 @@ export default {
         'usersProp',
         'userIdProp',
         'recordsProp',
+        'authUserRoleProp',
     ],
     components: {
         highcharts: Chart,
@@ -260,7 +261,7 @@ export default {
         },
         getTitle() {
             let end = moment.unix(this.data.currentPoint / 1000).locale("ru").format('LL');
-            let start = moment.unix(this.data.currentPoint / 1000).weekday(-7).locale("ru").format('D');
+            let start = moment.unix(this.data.currentPoint / 1000).weekday(-6).locale("ru").format('D');
             return  start +' - ' + end;
         },
         getTotalSum() {
