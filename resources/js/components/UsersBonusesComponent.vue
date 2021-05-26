@@ -103,35 +103,21 @@
                                     <hr>
                                     <div style="margin-bottom: 30px;">
                                         <div class="row" style="margin-bottom: 15px; font-size: 15px;">
-                                            <div class="col-sm-2">
-                                                <span style="color: #0000009c">Текущая неделя</span>
-                                            </div>
-                                            <div class="col-sm-8">
-                                                <b-progress :max="100" height="1.6rem">
-                                                    <b-progress-bar animated :value="getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100" variant="success">
-                                                        <span style="font-size: 14px;font-weight: bold">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</span>
-                                                    </b-progress-bar>
-                                                    <b-progress-bar :value="100 - (getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100)" variant="secondary" style="background-color: #d0d0d0 !important" class="record-polzunok">
-                                                        <span style="font-size: 14px;font-weight: bold">{{ records[paymentType] }} шт.</span>
-                                                    </b-progress-bar>
-                                                </b-progress>
+                                            <div class="col-sm-10">
+                                                <div class="progress" style="height: 1.6rem;">
+                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
+                                                        <span style="font-size: 14px; font-weight: bold;">{{ records[paymentType] }} шт.</span>
+                                                    </div>
+                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
+                                                        <span style="font-size: 14px; font-weight: bold;">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span>
+                                                    </div>
+                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
+                                                        <span style="font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-sm-2">
                                                 <span style="font-weight: bold"> x {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
-                                            </div>
-                                        </div>
-                                        <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
-                                            <div class="col-sm-2">
-                                                <span style="color: #0000009c">Прошлая неделя</span>
-                                            </div>
-                                            <div class="col-sm-8">
-                                                <b-progress :max="100" height="1.6rem">
-                                                    <b-progress-bar variant="warning" :value="100" class="last-polzunok" style="background-color: #fbd362 !important">
-                                                        <span style="font-size: 14px;font-weight: bold;">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span>
-                                                    </b-progress-bar>
-                                                </b-progress>
-                                            </div>
-                                            <div class="col-sm-2">
                                             </div>
                                         </div>
                                     </div>
@@ -154,7 +140,6 @@
                 </div>
             </div>
         </div>
-        
     </div>
 </template>
 
@@ -223,6 +208,26 @@ export default {
         };
     },
     methods: {
+        getCurrentValue(bonusIndex, paymentType) {
+            return this.getCurrentWeekAmount(bonusIndex, paymentType) / this.getMaxValue(bonusIndex, paymentType) * 100;
+        },
+        getLastValue(bonusIndex, paymentType) {
+            if (this.getCurrentWeekAmount(bonusIndex, paymentType) < this.getLastWeekAmount(bonusIndex, paymentType)) {
+                return (this.getLastWeekAmount(bonusIndex, paymentType) / this.getMaxValue(bonusIndex, paymentType) * 100) - this.getCurrentValue(bonusIndex, paymentType);
+            } else {
+                return 0;
+            }
+        },
+        getRecordValue(bonusIndex, paymentType) {
+            
+        },
+        getMaxValue(bonusIndex, paymentType) {
+            return Math.max.apply(null, [
+                this.getCurrentWeekAmount(bonusIndex, paymentType),
+                this.records[paymentType],
+                this.getLastWeekAmount(bonusIndex, paymentType)
+            ]);
+        },
         getUsers() {
             let userProduct = null;
             this.products.forEach((product) => {
@@ -324,7 +329,11 @@ export default {
         },
         getCurrentWeekAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].amount;
+                if (this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex]) {
+                    return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].amount;
+                } else {
+                    return 0;
+                }
             } else {
                 return 0;
             }
@@ -357,8 +366,19 @@ export default {
 }
 .last-polzunok {
     background-color: rgb(251, 211, 98) !important;
+    text-align: right;
+    padding-right: 7px;
 }
 .record-polzunok {
     background-color: #d0d0d0 !important;
+    text-align: right;
+    padding-right: 7px;
+}
+.progress-bar {
+    position: absolute;
+    height: 100%;
+}
+.progress {
+    position: relative;
 }
 </style>
