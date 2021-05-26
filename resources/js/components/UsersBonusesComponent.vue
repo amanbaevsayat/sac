@@ -101,18 +101,18 @@
                                 <div v-if="bonus.user_id == dataProp.userId">
                                     <h4>{{ bonusesHeaders[paymentType] }}</h4>
                                     <hr>
-                                    <div style="margin-bottom: 30px;">
+                                    <div style="margin: 35px 0">
                                         <div class="row" style="margin-bottom: 15px; font-size: 15px;">
                                             <div class="col-sm-10">
                                                 <div class="progress" style="height: 1.6rem;">
                                                     <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <span style="font-size: 14px; font-weight: bold;">{{ records[paymentType] }} шт.</span>
+                                                        <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }} шт.</span></div>
                                                     </div>
                                                     <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <span style="font-size: 14px; font-weight: bold;">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span>
+                                                        <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span></div>
                                                     </div>
                                                     <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <span style="font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</span>
+                                                        <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт. <i class="running-icon"></i></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -367,18 +367,61 @@ export default {
 .last-polzunok {
     background-color: rgb(251, 211, 98) !important;
     text-align: right;
-    padding-right: 7px;
 }
 .record-polzunok {
     background-color: #d0d0d0 !important;
     text-align: right;
-    padding-right: 7px;
 }
 .progress-bar {
     position: absolute;
     height: 100%;
+    overflow: unset;
 }
 .progress {
     position: relative;
+    overflow: unset;
+}
+.progress-value {
+    position: relative;
+    font-size: 14px;
+    font-weight: bold;
+    display: block;
+    float: right;
+    text-align: right;
+    width: 100%;
+    height: 100%;
+}
+.record-value::after {
+    content: "";
+    background: #d0d0d0;
+    position: absolute;
+    top: 0;
+    width: 2px;
+    right: 0px;
+    z-index: 10000;
+    height: 55px;
+}
+.record-span {
+    position: absolute;
+    right: 7px;
+    top: 50px;
+    color: #7b7b7b;
+}
+
+.last-value::after {
+    content: "";
+    background: rgb(251, 211, 98);
+    position: absolute;
+    top: -30px;
+    width: 2px;
+    right: 0px;
+    z-index: 10000;
+    height: 55px;
+}
+.last-span {
+    position: absolute;
+    right: 7px;
+    top: -23px;
+    color: rgb(247 183 3);;
 }
 </style>
