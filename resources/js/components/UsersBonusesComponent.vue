@@ -192,7 +192,7 @@ export default {
     beforeMount() {
         this.chart.xAxis.labels = {
             formatter: function(value) {
-                return moment(value.value).tz('Asia/Almaty').locale("ru").format('LL');
+                return moment(value.value).tz('Asia/Almaty').locale("ru").format('D MMM');
             }
         };
 
