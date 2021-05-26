@@ -56,11 +56,37 @@ class UsersBonusesController extends Controller
         ];
     }
 
+    private function getUserOfProduct($productId, $userId)
+    {
+        $product = Product::whereId($productId)->first();
+        $authUser = User::whereId(Auth::id())->firstOrFail();
+        $userExistsForProduct = Product::whereId($productId)->whereHas('users', function ($query) use ($userId) {
+            $query->where('id', $userId);
+        })->exists();
+        if ($authUser->isOperator()) {
+            return Auth::id();
+        }
+
+        if ($userExistsForProduct) {
+            return $userId;
+        } else {
+            return $product->users->first()->id;
+        }
+    }
+
     public function show(Request $request)
     {
         access(['can-head', 'can-host', 'can-operator']);
         $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($request->input('period', 'week'));
-        if (!$request->has('from') || !$request->has('to') || ! $request->has('currentPoint')) {
+        if (
+            ! $request->has('currentPoint') ||
+            ! $request->has('lastPoint') ||
+            ! $request->has('period') ||
+            ! $request->has('productId') ||
+            ! $request->has('from') || 
+            ! $request->has('to') || 
+            ! $request->has('userId')
+        ) {
             $data = [
                 "currentPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['current'],
                 "lastPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['last'],
@@ -68,8 +94,11 @@ class UsersBonusesController extends Controller
                 "productId" => $request->input('productId') ?? Product::first()->id ?? null,
                 "from" => $request->input('from') ?? Carbon::now()->subMonths(3)->format('Y-m-d'),
                 "to" => $request->input('to') ?? Carbon::now()->format('Y-m-d'),
-                "userId" => $request->input('userId') ?? Auth::id(),
+                // "userId" => $request->input('userId') ?? Auth::id(),
             ];
+
+            $data['userId'] = $this->getUserOfProduct($data['productId'], $request->input('userId'));
+
             return redirect()->route('users_bonuses.show', $data);
         }
         $userId = Auth::id();
@@ -128,7 +157,7 @@ class UsersBonusesController extends Controller
                 \DB::raw("SUM(users_bonuses.amount * bonuses.amount) as total_bonus"),
                 'users_bonuses.unix_date'
                 )
-            // ->where('users_bonuses.user_id', $userId)
+            ->where('users_bonuses.user_id', $userId)
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
             ->groupBy('users_bonuses.unix_date')
