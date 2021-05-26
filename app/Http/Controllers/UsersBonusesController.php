@@ -128,7 +128,7 @@ class UsersBonusesController extends Controller
                 \DB::raw("SUM(users_bonuses.amount * bonuses.amount) as total_bonus"),
                 'users_bonuses.unix_date'
                 )
-            ->where('users_bonuses.user_id', $userId)
+            // ->where('users_bonuses.user_id', $userId)
             ->where('users_bonuses.product_id', $productId)
             ->where('users_bonuses.date_type', $period)
             ->groupBy('users_bonuses.unix_date')

@@ -101,7 +101,7 @@
                                 <div v-if="bonus.user_id == dataProp.userId">
                                     <h4>{{ bonusesHeaders[paymentType] }}</h4>
                                     <hr>
-                                    <div style="margin: 35px 0">
+                                    <div style="margin: 40px 0">
                                         <div class="row" style="margin-bottom: 15px; font-size: 15px;">
                                             <div class="col-sm-10">
                                                 <div class="progress" style="height: 1.6rem;">
