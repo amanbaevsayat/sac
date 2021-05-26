@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductWithUsersResource;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\StatisticsModel;
@@ -78,7 +79,15 @@ class UsersBonusesController extends Controller
             abort(404);
         }
         $this->checkRole($user, $request->all());
-        $products = Product::get()->pluck('title', 'id');
+
+        if ($user->isOperator()) {
+            $products = Product::whereHas('users', function ($query) use ($userId) {
+                $query->where('id', $userId);
+            })->get();
+        } else {
+            $products = Product::get();
+        }
+        $productsWithUsers = ProductWithUsersResource::collection($products);
         $request->validate([
             "from" => "required|date_format:Y-m-d",
             "to" => "required|date_format:Y-m-d",
@@ -144,7 +153,7 @@ class UsersBonusesController extends Controller
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Сумма бонусов за '. ($period == 'week' ? 'неделю' : 'месяц')],
+            "title" => ["text" => 'Сумма бонусов команды за '. ($period == 'week' ? 'неделю' : 'месяц')],
             'xAxis' => [
                 'type' => 'datetime',
             ],
@@ -172,7 +181,7 @@ class UsersBonusesController extends Controller
             $query->where('code', 'operator');
         })->get()->pluck('name', 'id')->toArray();
         return view('users-bonuses.show', compact(
-            'products',
+            'productsWithUsers',
             'chart',
             'usersBonuses',
             'usersBonusesForChart',

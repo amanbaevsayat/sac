@@ -21,7 +21,7 @@
                                 <div class="form-group">
                                     <label for="started_at" class="col-form-label">Выберите продукт</label>
                                     <select v-model="data.productId" name="productId" class="form-control">
-                                        <option v-for="(option, optionIndex) in products" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                        <option v-for="(product, optionIndex) in products" :key="optionIndex" :value="product.id">{{ product.title }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -69,7 +69,7 @@
                                 <div class="form-group">
                                     <label for="started_at" class="col-form-label">Выберите оператора</label>
                                     <select v-model="dataProp.userId" name="userId" class="form-control">
-                                        <option v-for="(option, optionIndex) in users" :key="optionIndex" :value="optionIndex">{{ option }}</option>
+                                        <option v-for="(user, optionIndex) in getUsers()" :key="optionIndex" :value="user.id">{{ user.name }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -99,7 +99,7 @@
                         <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
                             <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
                                 <div v-if="bonus.user_id == dataProp.userId">
-                                    <h3>{{ bonusesHeaders[paymentType] }}</h3>
+                                    <h4>{{ bonusesHeaders[paymentType] }}</h4>
                                     <hr>
                                     <div style="margin-bottom: 30px;">
                                         <div class="row" style="margin-bottom: 15px; font-size: 15px;">
@@ -111,13 +111,13 @@
                                                     <b-progress-bar animated :value="getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100" variant="success">
                                                         <span style="font-size: 14px;font-weight: bold">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</span>
                                                     </b-progress-bar>
-                                                    <b-progress-bar :value="100 - (getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100)" variant="secondary">
+                                                    <b-progress-bar :value="100 - (getCurrentWeekAmount(bonusIndex, paymentType) / records[paymentType] * 100)" variant="secondary" style="background-color: #d0d0d0 !important" class="record-polzunok">
                                                         <span style="font-size: 14px;font-weight: bold">{{ records[paymentType] }} шт.</span>
                                                     </b-progress-bar>
                                                 </b-progress>
                                             </div>
                                             <div class="col-sm-2">
-                                                <span> * {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
+                                                <span style="font-weight: bold"> x {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
                                             </div>
                                         </div>
                                         <div v-if="isNotEmpty(paymentType)" class="row" style="margin-bottom: 15px; font-size: 15px;">
@@ -126,7 +126,7 @@
                                             </div>
                                             <div class="col-sm-8">
                                                 <b-progress :max="100" height="1.6rem">
-                                                    <b-progress-bar variant="warning" :value="100">
+                                                    <b-progress-bar variant="warning" :value="100" class="last-polzunok" style="background-color: #fbd362 !important">
                                                         <span style="font-size: 14px;font-weight: bold;">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span>
                                                     </b-progress-bar>
                                                 </b-progress>
@@ -140,7 +140,7 @@
                         </div>
                         <div>
                             <hr>
-                            <h3>Сумма бонусов за неделю: <span style="float: right;margin-right: 75px">{{ getTotalSum() }}₸</span></h3>
+                            <h3>Сумма бонусов команды за неделю: <span style="float: right;margin-right: 75px">{{ getTotalSum() }}₸</span></h3>
                         </div>
                     </div>
                 </div>
@@ -223,6 +223,16 @@ export default {
         };
     },
     methods: {
+        getUsers() {
+            let userProduct = null;
+            this.products.forEach((product) => {
+                if (product.id == this.data.productId) {
+                    userProduct = product;
+                }
+            });
+            console.log(userProduct);
+            return userProduct.users;
+        },
         getStakesOfUser() {
             if (this.usersBonuses[this.data.currentPoint]) {
                 let users = [];
@@ -344,5 +354,11 @@ export default {
     text-align: center;
     position: absolute;
     background: #00000017;
+}
+.last-polzunok {
+    background-color: rgb(251, 211, 98) !important;
+}
+.record-polzunok {
+    background-color: #d0d0d0 !important;
 }
 </style>
