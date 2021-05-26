@@ -396,7 +396,7 @@ export default {
     background: #d0d0d0;
     position: absolute;
     top: 0;
-    width: 2px;
+    width: 3px;
     right: 0px;
     z-index: 10000;
     height: 55px;
@@ -410,10 +410,10 @@ export default {
 
 .last-value::after {
     content: "";
-    background: rgb(251, 211, 98);
+    background: #fbd362;
     position: absolute;
-    top: -30px;
-    width: 2px;
+    width: 3px;
+    bottom: 0;
     right: 0px;
     z-index: 10000;
     height: 55px;
@@ -422,6 +422,6 @@ export default {
     position: absolute;
     right: 7px;
     top: -23px;
-    color: rgb(247 183 3);;
+    color: rgb(247 183 3);
 }
 </style>
