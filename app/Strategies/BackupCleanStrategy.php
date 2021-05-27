@@ -47,7 +47,7 @@ class BackupCleanStrategy extends CleanupStrategy
         );
 
         $weekly = new Period(
-            $daily->endDate(),
+            Carbon::now()->endDate(),
             $daily->endDate()
                 ->subWeeks($config['keep_weekly_backups_for_weeks'])
         );
