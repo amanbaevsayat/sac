@@ -188,7 +188,7 @@ class Payment extends Model
 
     public function subscription()
     {
-        return $this->belongsTo(Subscription::class, 'subscription_id');
+        return $this->belongsTo(Subscription::class, 'subscription_id')->withTrashed();
     }
 
     public function card()

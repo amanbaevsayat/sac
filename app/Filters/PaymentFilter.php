@@ -70,7 +70,7 @@ class PaymentFilter extends BaseFilter
     {
         if (is_numeric(strtotime($value))) {
             $day = Carbon::parse($value)->setTimezone('Asia/Almaty')->startOfDay();
-            $this->builder->whereDate('paided_at', '>=', $day);
+            $this->builder->where('paided_at', '>=', $day);
         }
     }
 
@@ -78,7 +78,7 @@ class PaymentFilter extends BaseFilter
     {
         if (is_numeric(strtotime($value))) {
             $day = Carbon::parse($value)->setTimezone('Asia/Almaty')->endOfDay();
-            $this->builder->whereDate('paided_at', '<=', $day);
+            $this->builder->where('paided_at', '<=', $day);
         }
     }
 

@@ -24,8 +24,8 @@ class PaymentResource extends JsonResource
                 'type' => 'link',
                 'value' => route('payments.show', [$this->id]),
             ],
-            // 'sub_status' => [
-            //     'value' => Subscription::STATUSES[$this->subscription->status]
+            // 'subscription_id' => [
+            //     'value' => $this->subscription->id,
             // ],
             'customer' => [
                 'id' => $this->customer->id ?? null,

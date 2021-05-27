@@ -47,21 +47,21 @@ class UpdateUsersBonuses extends Command
 
         $data = [
             'week' => [
-                // 'key' => (int) Carbon::now()->subWeeks(12)->endOfWeek()->startOfDay()->valueOf(),
-                // 'start' => Carbon::now()->subWeeks(12)->startOfWeek()->startOfDay(),
-                // 'end' => Carbon::now()->subWeeks(12)->endOfWeek()->endOfDay(),
+                // 'key' => (int) Carbon::now()->subWeeks(20)->endOfWeek()->startOfDay()->valueOf(),
+                // 'start' => Carbon::now()->setTimezone('Asia/Almaty')->subWeeks(20)->startOfWeek()->startOfDay(),
+                // 'end' => Carbon::now()->setTimezone('Asia/Almaty')->subWeeks(20)->endOfWeek()->endOfDay(),
                 'key' => (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf(),
-                'start' => Carbon::now()->startOfWeek()->startOfDay(),
-                'end' => Carbon::now()->endOfWeek()->endOfDay(),
+                'start' => Carbon::now()->setTimezone('Asia/Almaty')->startOfWeek()->startOfDay(),
+                'end' => Carbon::now()->setTimezone('Asia/Almaty')->endOfWeek()->endOfDay(),
             ],
             'month' => [
-                // 'key' => (int) Carbon::now()->subMonths(2)->endOfMonth()->startOfDay()->valueOf(),
-                // 'start' => Carbon::now()->subMonths(2)->startOfMonth()->startOfDay(),
-                // 'end' => Carbon::now()->subMonths(2)->endOfMonth()->endOfDay(),
+                // 'key' => (int) Carbon::now()->subMonths(1)->endOfMonth()->startOfDay()->valueOf(),
+                // 'start' => Carbon::now()->setTimezone('Asia/Almaty')->subMonths(1)->startOfMonth()->startOfDay(),
+                // 'end' => Carbon::now()->setTimezone('Asia/Almaty')->subMonths(1)->endOfMonth()->endOfDay(),
                 'key' => (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf(),
-                'start' => Carbon::now()->startOfMonth()->startOfDay(),
-                'end' => Carbon::now()->endOfMonth()->endOfDay(),
-            ]
+                'start' => Carbon::now()->setTimezone('Asia/Almaty')->startOfMonth()->startOfDay(),
+                'end' => Carbon::now()->setTimezone('Asia/Almaty')->endOfMonth()->endOfDay(),
+            ],
         ];
 
         try {
@@ -97,7 +97,7 @@ class UpdateUsersBonuses extends Command
                                 // $unixDate = $endOfMonthStartOfDay;
                                 $unixDate = $data[$dateType]['key'];
                                 $startedAt = $userEmploymentAt > Carbon::now()->startOfMonth()->startOfDay() ? $userEmploymentAt : Carbon::now()->startOfMonth()->startOfDay();
-                                $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
+                                $groupSuccessPaymentsByBonusesBetweenMonth = $successPayments->whereBetween('paided_at', [
                                     // $startedAt,
                                     // Carbon::now()->endOfMonth()->endOfDay(),
                                     $data[$dateType]['start'],
