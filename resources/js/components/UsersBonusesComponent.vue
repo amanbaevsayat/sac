@@ -106,13 +106,13 @@
                                             <div class="col-sm-10">
                                                 <div class="progress" style="height: 1.6rem;">
                                                     <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }} шт.</span></div>
+                                                        <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }}</span></div>
                                                     </div>
                                                     <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(bonusIndex, paymentType) }} шт.</span></div>
+                                                        <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(bonusIndex, paymentType) }}</span></div>
                                                     </div>
                                                     <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт. <i class="running-icon"></i></div>
+                                                        <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -137,6 +137,26 @@
                     <h2>Распределение бонусов</h2>
                     <hr>
                     <p style="font-size: 15px" v-for="(stake, stakeIndex) in getStakesOfUser()" :key="stakeIndex">{{ stake.name }} ({{ stake.percent }}%) <span style="float: right;">{{ stake.share }}₸</span></p>
+                </div>
+                <div class="card" style="position: fixed; padding: 20px 15px; margin-bottom: 0px; padding-bottom: 10px;">
+                    <p>
+                        <svg style="color: #38c172" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
+                        </svg>
+                        <span style="font-size: 16px;">  - продано абонементов на этой неделе</span>
+                    </p>
+                    <p>
+                        <svg style="color: rgb(251 211 98)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
+                        </svg>
+                        <span style="font-size: 16px;">  - продано абонементов на прошлой неделе</span>
+                    </p>
+                    <p>
+                        <svg style="color: rgb(208 208 208)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
+                        </svg>
+                        <span style="font-size: 16px;">  - рекорд среди всех недель</span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -398,7 +418,6 @@ export default {
     top: 0;
     width: 3px;
     right: 0px;
-    z-index: 10000;
     height: 55px;
 }
 .record-span {
@@ -415,7 +434,6 @@ export default {
     width: 3px;
     bottom: 0;
     right: 0px;
-    z-index: 10000;
     height: 55px;
 }
 .last-span {
