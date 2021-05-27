@@ -32,11 +32,7 @@ class BackupCleanStrategy extends CleanupStrategy
         $backupsPerPeriod['monthly'] = $this->groupByDateFormat($backupsPerPeriod['monthly'], 'Ym');
         $backupsPerPeriod['yearly'] = $this->groupByDateFormat($backupsPerPeriod['yearly'], 'Y');
 
-        $this->removeBackupsForAllPeriodsExceptOne($backupsPerPeriod);
-
         $this->removeBackupsOlderThan($dateRanges['weekly']->endDate(), $backups);
-
-        $this->removeOldBackupsUntilUsingLessThanMaximumStorage($backups);
     }
 
     protected function calculateDateRanges(): Collection
