@@ -32,7 +32,10 @@ class BackupCleanStrategy extends CleanupStrategy
         $backupsPerPeriod['monthly'] = $this->groupByDateFormat($backupsPerPeriod['monthly'], 'Ym');
         $backupsPerPeriod['yearly'] = $this->groupByDateFormat($backupsPerPeriod['yearly'], 'Y');
 
+        // $this->removeBackupsForAllPeriodsExceptOne($backupsPerPeriod);
         $this->removeBackupsOlderThan($dateRanges['weekly']->endDate(), $backups);
+
+        // $this->removeOldBackupsUntilUsingLessThanMaximumStorage($backups);
     }
 
     protected function calculateDateRanges(): Collection
@@ -47,7 +50,7 @@ class BackupCleanStrategy extends CleanupStrategy
         );
 
         $weekly = new Period(
-            Carbon::now(),
+            $daily->endDate(),
             $daily->endDate()
                 ->subWeeks($config['keep_weekly_backups_for_weeks'])
         );
