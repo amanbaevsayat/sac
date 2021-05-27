@@ -227,6 +227,12 @@ class UsersBonusesController extends Controller
             if ($user->id != $request['userId']) {
                 abort(404);
             }
+            $productsExists = Product::whereHas('users', function ($query) use ($request) {
+                $query->where('id', $request['userId']);
+            })->exists();
+            if (! $productsExists) {
+                abort(404);
+            }
         }
     }
 }
