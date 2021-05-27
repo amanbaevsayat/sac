@@ -33,8 +33,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('backup:run')->daily();
-        $schedule->command('backup:clean')->daily();
+        $schedule->command('backup:clean')->dailyAt('02:50');
+        $schedule->command('backup:run')->dailyAt('03:00');;
         $schedule->command('update:notifications')->everyTenMinutes();
         $schedule->command('cloudpayments:update:subscription')->hourly();
         $schedule->command('update:users_bonuses')->hourly();
