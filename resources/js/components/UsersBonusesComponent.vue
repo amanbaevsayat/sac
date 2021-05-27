@@ -130,7 +130,28 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="card" style="padding: 10px;">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <svg style="color: #38c172" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+                                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
+                            </svg>
+                            <span style="font-size: 14px;">  - продано абонементов на этой неделе</span>
+                        </div>
+                        <div class="col-sm-5">
+                            <svg style="color: rgb(251 211 98)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+                                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
+                            </svg>
+                            <span style="font-size: 14px;">  - продано абонементов на прошлой неделе</span>
+                        </div>
+                        <div class="col-sm-3">
+                            <svg style="color: rgb(208 208 208)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
+                                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
+                            </svg>
+                            <span style="font-size: 14px;">  - рекорд среди всех недель</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-sm-4">
                 <div class="card" style="padding: 20px 15px;">
@@ -138,7 +159,7 @@
                     <hr>
                     <p style="font-size: 15px" v-for="(stake, stakeIndex) in getStakesOfUser()" :key="stakeIndex">{{ stake.name }} ({{ stake.percent }}%) <span style="float: right;">{{ stake.share }}₸</span></p>
                 </div>
-                <div class="card" style="position: fixed; padding: 20px 15px; margin-bottom: 0px; padding-bottom: 10px;">
+                <!-- <div class="card" style="position: fixed; padding: 20px 15px; margin-bottom: 0px; padding-bottom: 10px;">
                     <p>
                         <svg style="color: #38c172" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
                             <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
@@ -157,7 +178,7 @@
                         </svg>
                         <span style="font-size: 16px;">  - рекорд среди всех недель</span>
                     </p>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
