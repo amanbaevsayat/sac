@@ -1,5 +1,7 @@
 <?php
 
+use App\Strategies\BackupCleanStrategy;
+
 return [
 
     'backup' => [
@@ -227,7 +229,7 @@ return [
          * No matter how you configure it the default strategy will never
          * delete the newest backup.
          */
-        'strategy' => \Spatie\Backup\Tasks\Cleanup\Strategies\DefaultStrategy::class,
+        'strategy' => BackupCleanStrategy::class,
 
         'default_strategy' => [
 
