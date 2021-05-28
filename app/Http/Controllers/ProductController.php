@@ -9,9 +9,9 @@ use App\Filters\ProductFilter;
 use App\Http\Resources\PaymentTypeResource;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductUsersResource;
-use App\Models\Bonus;
 use App\Models\PaymentType;
 use App\Models\Price;
+use App\Models\ProductBonus;
 use App\Models\Subscription;
 use App\Models\User;
 use Carbon\Carbon;
@@ -192,23 +192,23 @@ class ProductController extends Controller
 
                 if (isset($item['bonuses'])) {
                     foreach ($item['bonuses'] as $type => $amount) {
-                        $bonus = Bonus::updateOrCreate([
-                            'type' => $type,
-                            'amount' => $amount,
+                        $bonus = ProductBonus::updateOrCreate([
                             'product_id' => $product->id,
                             'payment_type_id' => $paymentType->id,
+                            'type' => $type,
+                            'amount' => $amount,
                         ], [
-                            'is_active' => true,
-                            'type' => $type,
-                            'amount' => $amount,
                             'product_id' => $product->id,
                             'payment_type_id' => $paymentType->id,
+                            'type' => $type,
+                            'is_active' => true,
+                            'amount' => $amount,
                         ]);
 
                         $bonusIds[] = $bonus->id;
                     }
 
-                    $paymentType->bonuses()->whereNotIn('id', $bonusIds)->update([
+                    $paymentType->productBonuses()->whereNotIn('id', $bonusIds)->update([
                         'is_active' => false,
                     ]);
                 }

@@ -16,10 +16,10 @@ class CreateBonusesTable extends Migration
         Schema::create('bonuses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('payment_type_id');
-            $table->string('type');
-            $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('amount')->default(0);
+            $table->unsignedBigInteger('product_bonus_id');
+            $table->string('date_type')->default('week');
+            $table->string('unix_date')->nullable();
+            $table->unsignedBigInteger('amount')->default(0); // Количество платежей
             $table->timestamps();
         });
     }

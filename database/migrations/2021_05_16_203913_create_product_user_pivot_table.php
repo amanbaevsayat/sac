@@ -16,6 +16,8 @@ class CreateProductUserPivotTable extends Migration
         Schema::create('product_user', function (Blueprint $table) {
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('user_id');
+            $table->unsignedSmallInteger('stake')->default(0);
+            $table->datetime('employment_at')->nullable();
         });
     }
 

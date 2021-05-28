@@ -103,7 +103,7 @@ class Payment extends Model
         'status',
         'paided_at',
         'data',
-        'bonus_id',
+        'product_bonus_id',
     ];
 
     protected $dates = [
@@ -150,8 +150,8 @@ class Payment extends Model
                 if (! $paymentType) {
                     \Log::error('Отсутствует тип платежа. Payment ID: ' . $payment->id);
                 }
-                $type = count($similarPaymentExists) > 1 ? Bonus::REPEATED_PAYMENT : Bonus::FIRST_PAYMENT;
-                $bonus = Bonus::where('product_id', $payment->subscription->product_id)
+                $type = count($similarPaymentExists) > 1 ? ProductBonus::REPEATED_PAYMENT : Bonus::FIRST_PAYMENT;
+                $bonus = ProductBonus::where('product_id', $payment->subscription->product_id)
                     ->where('payment_type_id', $paymentType->id)
                     ->where('type', $type)
                     ->active()
@@ -159,8 +159,9 @@ class Payment extends Model
 
                 if (! $bonus) {
                     \Log::error('Отсутствует бонус. Payment ID: ' . $payment->id);
+                } else {
+                    $payment->bonus_id = $bonus->id;
                 }
-                $payment->bonus_id = $bonus->id;
             }
             $payment->save();
         });

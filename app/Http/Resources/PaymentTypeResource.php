@@ -2,10 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Bonus;
-use App\Models\Subscription;
-use App\Models\Payment;
-use Carbon\Carbon;
+use App\Models\ProductBonus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,8 +18,8 @@ class PaymentTypeResource extends JsonResource
         return [
             'type' => $this->payment_type,
             'bonuses' => [
-                'firstPayment' => $this->bonuses->where('is_active', true)->where('type', Bonus::FIRST_PAYMENT)->first()->amount ?? 0,
-                'repeatedPayment' => $this->bonuses->where('is_active', true)->where('type', Bonus::REPEATED_PAYMENT)->first()->amount ?? 0,
+                'firstPayment' => $this->productBonuses->where('is_active', true)->where('type', ProductBonus::FIRST_PAYMENT)->first()->amount ?? 0,
+                'repeatedPayment' => $this->productBonuses->where('is_active', true)->where('type', ProductBonus::REPEATED_PAYMENT)->first()->amount ?? 0,
             ],
         ];
     }

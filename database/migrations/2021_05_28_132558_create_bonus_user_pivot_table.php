@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddStakeToProductUserTable extends Migration
+class CreateBonusUserPivotTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,11 @@ class AddStakeToProductUserTable extends Migration
      */
     public function up()
     {
-        Schema::table('product_user', function (Blueprint $table) {
+        Schema::create('bonus_user', function (Blueprint $table) {
+            $table->unsignedBigInteger('bonus_id');
+            $table->unsignedBigInteger('user_id');
             $table->unsignedSmallInteger('stake')->default(0);
-            $table->datetime('employment_at')->nullable();
+            $table->unsignedBigInteger('bonus_amount');
         });
     }
 
@@ -26,9 +28,6 @@ class AddStakeToProductUserTable extends Migration
      */
     public function down()
     {
-        Schema::table('product_user', function (Blueprint $table) {
-            $table->dropColumn('stake');
-            $table->dropColumn('employment_at');
-        });
+        Schema::dropIfExists('bonus_user');
     }
 }

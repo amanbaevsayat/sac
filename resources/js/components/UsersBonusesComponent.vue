@@ -157,7 +157,7 @@
                 <div class="card" style="padding: 20px 15px;">
                     <h2>Распределение бонусов</h2>
                     <hr>
-                    <p style="font-size: 15px" v-for="(stake, stakeIndex) in getStakesOfUser()" :key="stakeIndex">{{ stake.name }} ({{ stake.percent }}%) <span style="float: right;">{{ stake.share }}₸</span></p>
+                    <p style="font-size: 15px" v-for="(stake, stakeIndex) in getStakesOfUser()" :key="stakeIndex">{{ stake.name }} ({{ stake.stake }}%) <span style="float: right;">{{ stake.total_bonus }}₸</span></p>
                 </div>
                 <!-- <div class="card" style="position: fixed; padding: 20px 15px; margin-bottom: 0px; padding-bottom: 10px;">
                     <p>
@@ -202,12 +202,14 @@ export default {
         'userIdProp',
         'recordsProp',
         'authUserRoleProp',
+        'usersBonusesGroupUnixDateProp'
     ],
     components: {
         highcharts: Chart,
     },
     data() {
         return {
+            usersBonusesGroupUnixDate: this.usersBonusesGroupUnixDateProp,
             records: this.recordsProp,
             total: 0,
             userId: this.userIdProp,
@@ -280,40 +282,10 @@ export default {
             return userProduct.users;
         },
         getStakesOfUser() {
-            if (this.usersBonuses[this.data.currentPoint]) {
-                let users = [];
-                let response = [];
-                Object.keys(this.usersBonuses[this.data.currentPoint]).forEach(function(bonusType) {
-                    let bonuses = this.usersBonuses[this.data.currentPoint][bonusType]
-                    bonuses.forEach((bonus) => {
-                        if (! users[bonus.user_id]) {
-                            users[bonus.user_id] = [];
-                        }
-                        if (! users[bonus.user_id][bonus.stake]) {
-                            users[bonus.user_id][bonus.stake] = 0;
-                        }
-                        users[bonus.user_id][bonus.stake] = users[bonus.user_id][bonus.stake] + bonus.total_bonus;
-                    });
-                }.bind(this));
-                users.forEach((bonuses, userId) => {
-                    bonuses.forEach((total, stake) => {
-                        if (this.dataProp.userId == userId) {
-                            this.total = total;
-                        }
-                        response.push({
-                            name: this.users[userId],
-                            stake: stake,
-                            share: total * stake / 100,
-                            percent: stake,
-                        });
-                    });
-                });
-
-
-                return response;
-            } else {
-                return [];
+            if (this.usersBonusesGroupUnixDate[this.data.currentPoint]) {
+                return this.usersBonusesGroupUnixDate[this.data.currentPoint];
             }
+            return [];
         },
         getTitle() {
             let end = moment.unix(this.data.currentPoint / 1000).locale("ru").format('LL');

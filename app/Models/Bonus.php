@@ -9,15 +9,32 @@ class Bonus extends Model
 {
     use HasFactory, ModelBase;
 
-    const FIRST_PAYMENT = 'firstPayment';
-    const REPEATED_PAYMENT = 'repeatedPayment';
+    const PERIOD_TYPE_WEEK = 'week';
+    const PERIOD_TYPE_MONTH = 'month';
+
+    const PERIODS = [
+        self::PERIOD_TYPE_WEEK => 'По недельно',
+        self::PERIOD_TYPE_MONTH => 'По месячно',
+    ];
+
+    const HEADERS = [
+        'transfer-firstPayment' => 'Новые платежи по прямому переводу',
+        'transfer-repeatedPayment' => 'Повторные платежи по прямому переводу',
+        'cloudpayments-firstPayment' => 'Новые платежи по подписке',
+        'cloudpayments-repeatedPayment' => 'Повторные платежи по подписке',
+    ];
+
+    const DATE_TYPES = [
+        'week',
+        'month',
+    ];
 
     protected $fillable = [
         'product_id',
-        'payment_type_id',
-        'type',
-        'is_active',
-        'amount',
+        'product_bonus_id',
+        'date_type',
+        'unix_date',
+        'amount', // Количество платежей
     ];
 
     protected $dates = [
@@ -25,12 +42,18 @@ class Bonus extends Model
         'updated_at',
     ];
 
-    /**
-     * @param $query
-     * @return static
-     */
-    public function scopeActive($query)
+    public function users()
     {
-        return $query->where('is_active', 1);
+        return $this->belongsToMany(User::class)->withPivot('stake', 'bonus_amount');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function productBonus()
+    {
+        return $this->belongsTo(ProductBonus::class);
     }
 }

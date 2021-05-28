@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductWithUsersResource;
+use App\Models\Bonus;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\StatisticsModel;
@@ -131,18 +132,17 @@ class UsersBonusesController extends Controller
         $productId = $request->input('productId');
         $userId = $request->get('userId');
 
-        $usersBonuses = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
-            ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
+        $usersBonuses = Bonus::join('product_bonuses', 'product_bonuses.id', '=', 'product_bonus_id')
+            ->join('payment_types', 'payment_types.id', '=', 'product_bonuses.payment_type_id')
             ->select(
-                'users_bonuses.*',
-                'bonuses.type',
-                'bonuses.amount as bonuses_amount',
+                'bonuses.*',
+                'product_bonuses.type',
+                'product_bonuses.amount as product_bonuses_amount',
                 'payment_types.payment_type',
-                \DB::raw('(users_bonuses.amount * bonuses.amount) as total_bonus')
+                \DB::raw('(bonuses.amount * product_bonuses.amount) as total_bonus')
             )
-            // ->where('users_bonuses.user_id', $userId)
-            ->where('users_bonuses.product_id', $productId)
-            ->where('users_bonuses.date_type', $period)
+            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.date_type', $period)
             ->orderBy('payment_types.payment_type')
             ->get()->groupBy('unix_date')->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
@@ -151,32 +151,48 @@ class UsersBonusesController extends Controller
             })
             ->toArray();
 
-        $usersBonusesGroup = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
-            ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
+        $recordsBonuses = Bonus::join('product_bonuses', 'product_bonuses.id', '=', 'product_bonus_id')
+            ->join('payment_types', 'payment_types.id', '=', 'product_bonuses.payment_type_id')
             ->select(
-                \DB::raw("SUM(users_bonuses.amount * bonuses.amount) as total_bonus"),
-                'users_bonuses.unix_date'
-                )
-            ->where('users_bonuses.user_id', $userId)
-            ->where('users_bonuses.product_id', $productId)
-            ->where('users_bonuses.date_type', $period)
-            ->groupBy('users_bonuses.unix_date')
-            ->get();
-
-        $recordsBonuses = UsersBonuses::join('bonuses', 'bonuses.id', '=', 'users_bonuses.bonus_id')
-            ->join('payment_types', 'payment_types.id', '=', 'bonuses.payment_type_id')
-            ->select(
-                \DB::raw('MAX(users_bonuses.amount) AS max_amount'),
-                \DB::raw("CONCAT(payment_types.payment_type,'-',bonuses.type) as bonusType")
+                \DB::raw('MAX(bonuses.amount) AS max_amount'),
+                \DB::raw("CONCAT(payment_types.payment_type,'-',product_bonuses.type) as bonusType")
             )
-            ->where('users_bonuses.product_id', $productId)
-            ->where('users_bonuses.date_type', $period)
+            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.date_type', $period)
             ->groupBy(['bonusType'])
             ->get()
             ->pluck('max_amount', 'bonusType')
             ->toArray();
 
-        $usersBonusesForChart = $usersBonusesGroup->pluck('total_bonus', 'unix_date')->toArray();
+        $usersBonusesForChart = Bonus::join('product_bonuses', 'product_bonuses.id', '=', 'product_bonus_id')
+            ->join('payment_types', 'payment_types.id', '=', 'product_bonuses.payment_type_id')
+            ->select(
+                \DB::raw("SUM(product_bonuses.amount * bonuses.amount) as total_bonus"),
+                'bonuses.unix_date'
+            )
+            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.date_type', $period)
+            ->groupBy('bonuses.unix_date')
+            ->get()
+            ->pluck('total_bonus', 'unix_date')
+            ->toArray();
+
+        $usersBonusesGroupByUnixDate = Bonus::join('bonus_user', 'bonus_user.bonus_id', '=', 'bonuses.id')
+            ->join('product_bonuses', 'product_bonuses.id', '=', 'bonuses.product_bonus_id')
+            ->join('users', 'users.id', '=', 'bonus_user.user_id')
+            ->select(
+                'bonuses.unix_date',
+                'users.name',
+                'bonus_user.stake',
+                \DB::raw("SUM(bonus_user.bonus_amount * product_bonuses.amount) as total_bonus"),
+            )
+            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.date_type', $period)
+            ->groupBy('bonuses.unix_date', 'bonus_user.user_id', 'bonus_user.stake')
+            ->get()
+            ->groupBy('unix_date')
+            ->toArray();
+
         $chart = [
             'type' => 'highchart',
             'chart' => [
@@ -217,7 +233,8 @@ class UsersBonusesController extends Controller
             'users',
             'userId',
             'recordsBonuses',
-            'authUserRole'
+            'authUserRole',
+            'usersBonusesGroupByUnixDate'
         ));
     }
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddBonusIdToPaymentsTable extends Migration
+class AddProductBonusIdToPayments extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,7 @@ class AddBonusIdToPaymentsTable extends Migration
     public function up()
     {
         Schema::table('payments', function (Blueprint $table) {
-            $table->unsignedBigInteger('bonus_id')->nullable();
+            $table->unsignedBigInteger('product_bonus_id')->nullable();
         });
     }
 
@@ -26,7 +26,7 @@ class AddBonusIdToPaymentsTable extends Migration
     public function down()
     {
         Schema::table('payments', function (Blueprint $table) {
-            $table->dropColumn('bonus_id');
+            $table->dropColumn('product_bonus_id');
         });
     }
 }

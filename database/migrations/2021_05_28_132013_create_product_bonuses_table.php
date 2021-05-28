@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUsersBonusesTable extends Migration
+class CreateProductBonusesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,13 @@ class CreateUsersBonusesTable extends Migration
      */
     public function up()
     {
-        Schema::create('users_bonuses', function (Blueprint $table) {
+        Schema::create('product_bonuses', function (Blueprint $table) {
             $table->id();
-            $table->json('user_ids')->nullable();
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('bonus_id');
-            $table->string('date_type')->default('week');
-            $table->string('unix_date')->nullable();
-            $table->unsignedBigInteger('amount')->default(0);
+            $table->unsignedBigInteger('payment_type_id');
+            $table->string('type');
+            $table->boolean('is_active')->default(true);
+            $table->unsignedBigInteger('amount')->default(0); // Бонус за один платеж
             $table->timestamps();
         });
     }
@@ -32,6 +31,6 @@ class CreateUsersBonusesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users_bonuses');
+        Schema::dropIfExists('product_bonuses');
     }
 }

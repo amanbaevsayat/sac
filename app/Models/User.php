@@ -80,11 +80,11 @@ class User extends Authenticatable
 
     public function products()
     {
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Product::class)->withPivot('stake', 'employment_at');
     }
 
-    public function userBonuses()
+    public function bonuses()
     {
-        return $this->hasMany(UsersBonuses::class, 'user_id');
+        return $this->belongsToMany(Bonus::class)->withPivot('stake', 'bonus_amount');
     }
 }

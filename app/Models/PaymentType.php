@@ -19,8 +19,8 @@ class PaymentType extends Model
         'updated_at',
     ];
 
-    public function bonuses()
+    public function productBonuses()
     {
-        return $this->hasMany(Bonus::class, 'payment_type_id');
+        return $this->hasMany(ProductBonus::class, 'payment_type_id');
     }
 }
