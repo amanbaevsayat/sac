@@ -42,7 +42,6 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         if (Auth::check()) {
-            dd(1);
             return redirect()->url('/subscriptions?sort=ended_at%28desc%29');
         }
         return view('vendor.adminlte.auth.login');

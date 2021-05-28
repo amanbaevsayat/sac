@@ -247,8 +247,6 @@ export default {
                 }
             }
         };
-
-        console.log(this.usersBonuses[this.data.currentPoint]);
     },
     methods: {
         getCurrentValue(bonusIndex, paymentType) {
@@ -293,7 +291,12 @@ export default {
             return  start +' - ' + end;
         },
         getTotalSum() {
-            return this.total;
+            console.log(this.totalSumProp[this.data.currentPoint]);
+            if (this.totalSumProp[this.data.currentPoint]) {
+                return this.totalSumProp[this.data.currentPoint];
+            } else {
+                return 0;
+            }
         },
         pointClick(e) {
             console.log(e.point.category);
