@@ -98,27 +98,25 @@
                         <h1 style="text-align: center">{{ getTitle() }}</h1>
                         <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
                             <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
-                                <div v-if="bonus.user_id == dataProp.userId">
-                                    <h4>{{ bonusesHeaders[paymentType] }}</h4>
-                                    <hr>
-                                    <div style="margin: 40px 0">
-                                        <div class="row" style="margin-bottom: 15px; font-size: 15px;">
-                                            <div class="col-sm-10">
-                                                <div class="progress" style="height: 1.6rem;">
-                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }}</span></div>
-                                                    </div>
-                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(bonusIndex, paymentType) }}</span></div>
-                                                    </div>
-                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</div>
-                                                    </div>
+                                <h4>{{ bonusesHeaders[paymentType] }}</h4>
+                                <hr>
+                                <div style="margin: 40px 0">
+                                    <div class="row" style="margin-bottom: 15px; font-size: 15px;">
+                                        <div class="col-sm-10">
+                                            <div class="progress" style="height: 1.6rem;">
+                                                <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
+                                                    <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }}</span></div>
+                                                </div>
+                                                <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
+                                                    <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(bonusIndex, paymentType) }}</span></div>
+                                                </div>
+                                                <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
+                                                    <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</div>
                                                 </div>
                                             </div>
-                                            <div class="col-sm-2">
-                                                <span style="font-weight: bold"> x {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
-                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <span style="font-weight: bold"> x {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
                                         </div>
                                     </div>
                                 </div>
@@ -249,6 +247,8 @@ export default {
                 }
             }
         };
+
+        console.log(this.usersBonuses[this.data.currentPoint]);
     },
     methods: {
         getCurrentValue(bonusIndex, paymentType) {
@@ -278,7 +278,7 @@ export default {
                     userProduct = product;
                 }
             });
-            console.log(userProduct);
+
             return userProduct.users;
         },
         getStakesOfUser() {
@@ -321,7 +321,7 @@ export default {
         getLastWeekBonusesAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.lastPoint]) {
                 if (this.usersBonuses[this.data.lastPoint][paymentType]) {
-                    return this.usersBonuses[this.data.lastPoint][paymentType][0].bonuses_amount;
+                    return this.usersBonuses[this.data.lastPoint][paymentType][0].product_bonuses_amount;
                 } else {
                     return 0;
                 }
@@ -353,7 +353,7 @@ export default {
         },
         getCurrentWeekBonusesAmount(bonusIndex, paymentType) {
             if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].bonuses_amount;
+                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].product_bonuses_amount;
             } else {
                 return 0;
             }
