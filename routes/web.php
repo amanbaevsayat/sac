@@ -25,13 +25,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get("/test", function () {
-    $payments = Payment::where('status', 'Completed')->whereProductId(1)->whereType('transfer')->where('paided_at', '>', '2021-05-24')->get();
-    dd($payments);
     // $payments = Payment::whereStatus('Completed')->get()->groupBy('product_id');
     // foreach ($payments as $key => $productPayments) {
     //     $product = Product::whereId($key)->first();
     //     $productPaymentTypes = $product->paymentTypes->pluck('id', 'payment_type')->toArray();
-    //     $productBonuses = $product->bonuses;
+    //     $productBonuses = $product->productBonuses;
     //     unset($productPaymentTypes['tries']);
     //     foreach ($productPayments as $payment) {
     //         $countBeforePayments = $payment->subscription->payments
@@ -61,7 +59,7 @@ Route::get("/test", function () {
     //                 dd($payment);
     //             }
     //             $payment->update([
-    //                 'bonus_id' => $bonus->id,
+    //                 'product_bonus_id' => $bonus->id,
     //             ]);
     //         }
     //     }
