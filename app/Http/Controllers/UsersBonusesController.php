@@ -184,7 +184,7 @@ class UsersBonusesController extends Controller
                 'bonuses.unix_date',
                 'users.name',
                 'bonus_user.stake',
-                \DB::raw("SUM(bonus_user.bonus_amount * product_bonuses.amount) as total_bonus"),
+                \DB::raw("SUM(bonus_user.bonus_amount * product_bonuses.amount * bonus_user.stake / 100) as total_bonus"),
             )
             ->where('bonuses.product_id', $productId)
             ->where('bonuses.date_type', $period)

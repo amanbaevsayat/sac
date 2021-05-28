@@ -25,45 +25,45 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get("/test", function () {
-    // $payments = Payment::whereStatus('Completed')->get()->groupBy('product_id');
-    // foreach ($payments as $key => $productPayments) {
-    //     $product = Product::whereId($key)->first();
-    //     $productPaymentTypes = $product->paymentTypes->pluck('id', 'payment_type')->toArray();
-    //     $productBonuses = $product->productBonuses;
-    //     unset($productPaymentTypes['tries']);
-    //     foreach ($productPayments as $payment) {
-    //         $countBeforePayments = $payment->subscription->payments
-    //             ->where('status', 'Completed')
-    //             ->where('type', $payment->type)
-    //             ->where('paided_at', '<', $payment->paided_at)
-    //             ->where('id', '!=', $payment->id)
-    //             ->count();
+    $payments = Payment::whereStatus('Completed')->get()->groupBy('product_id');
+    foreach ($payments as $key => $productPayments) {
+        $product = Product::whereId($key)->first();
+        $productPaymentTypes = $product->paymentTypes->pluck('id', 'payment_type')->toArray();
+        $productBonuses = $product->productBonuses;
+        unset($productPaymentTypes['tries']);
+        foreach ($productPayments as $payment) {
+            $countBeforePayments = $payment->subscription->payments
+                ->where('status', 'Completed')
+                ->where('type', $payment->type)
+                ->where('paided_at', '<', $payment->paided_at)
+                ->where('id', '!=', $payment->id)
+                ->count();
 
-    //         if ($countBeforePayments == 0) {
-    //             $bonus = $productBonuses
-    //                 ->where('type', 'firstPayment')
-    //                 ->where('payment_type_id', $productPaymentTypes[$payment->type])
-    //                 ->first();
-    //             if (! isset($bonus)) {
-    //                 dd($payment);
-    //             }
-    //             $payment->update([
-    //                 'bonus_id' => $bonus->id,
-    //             ]);
-    //         } else if ($countBeforePayments > 0) {
-    //             $bonus = $productBonuses
-    //                 ->where('type', 'repeatedPayment')
-    //                 ->where('payment_type_id', $productPaymentTypes[$payment->type])
-    //                 ->first();
-    //             if (! isset($bonus)) {
-    //                 dd($payment);
-    //             }
-    //             $payment->update([
-    //                 'product_bonus_id' => $bonus->id,
-    //             ]);
-    //         }
-    //     }
-    // }
+            if ($countBeforePayments < 1) {
+                $bonus = $productBonuses
+                    ->where('type', 'firstPayment')
+                    ->where('payment_type_id', $productPaymentTypes[$payment->type])->first();
+                if (! isset($bonus)) {
+                    dd($payment);
+                }
+                $payment->update([
+                    'product_bonus_id' => $bonus->id,
+                ]);
+            } else {
+                $bonus = $productBonuses
+                    ->where('type', 'repeatedPayment')
+                    ->where('payment_type_id', $productPaymentTypes[$payment->type])
+                    ->first();
+
+                if (! isset($bonus)) {
+                    dd($payment);
+                }
+                $payment->update([
+                    'product_bonus_id' => $bonus->id,
+                ]);
+            }
+        }
+    }
 })->name("test");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
