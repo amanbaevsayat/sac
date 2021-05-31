@@ -65,14 +65,6 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col" v-if="authUserRoleProp != 'operator'">
-                                <div class="form-group">
-                                    <label for="started_at" class="col-form-label">Выберите оператора</label>
-                                    <select v-model="dataProp.userId" name="userId" class="form-control">
-                                        <option v-for="(user, optionIndex) in getUsers()" :key="optionIndex" :value="user.id">{{ user.name }}</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                         <div class="row">
                             <div class="col">
@@ -157,26 +149,6 @@
                     <hr>
                     <p style="font-size: 15px" v-for="(stake, stakeIndex) in getStakesOfUser()" :key="stakeIndex">{{ stake.name }} ({{ stake.stake }}%) <span style="float: right;">{{ stake.total_bonus }}₸</span></p>
                 </div>
-                <!-- <div class="card" style="position: fixed; padding: 20px 15px; margin-bottom: 0px; padding-bottom: 10px;">
-                    <p>
-                        <svg style="color: #38c172" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
-                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
-                        </svg>
-                        <span style="font-size: 16px;">  - продано абонементов на этой неделе</span>
-                    </p>
-                    <p>
-                        <svg style="color: rgb(251 211 98)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
-                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
-                        </svg>
-                        <span style="font-size: 16px;">  - продано абонементов на прошлой неделе</span>
-                    </p>
-                    <p>
-                        <svg style="color: rgb(208 208 208)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-square-fill" viewBox="0 0 16 16">
-                            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"></path>
-                        </svg>
-                        <span style="font-size: 16px;">  - рекорд среди всех недель</span>
-                    </p>
-                </div> -->
             </div>
         </div>
     </div>
@@ -196,10 +168,7 @@ export default {
         'usersBonusesProp',
         'bonusesHeadersProp',
         'totalSumProp',
-        'usersProp',
-        'userIdProp',
         'recordsProp',
-        'authUserRoleProp',
         'usersBonusesGroupUnixDateProp'
     ],
     components: {
@@ -210,8 +179,6 @@ export default {
             usersBonusesGroupUnixDate: this.usersBonusesGroupUnixDateProp,
             records: this.recordsProp,
             total: 0,
-            userId: this.userIdProp,
-            users: this.usersProp,
             bonusesHeaders: this.bonusesHeadersProp,
             usersBonuses: this.usersBonusesProp,
             route: this.routeProp,
@@ -226,7 +193,7 @@ export default {
                 period: this.dataProp.period,
                 currentPoint: this.dataProp.currentPoint,
                 lastPoint: this.dataProp.lastPoint,
-                userId: this.userId,
+                userId: this.dataProp.userId,
             },
         }
     },
@@ -268,16 +235,6 @@ export default {
                 this.records[paymentType],
                 this.getLastWeekAmount(bonusIndex, paymentType)
             ]);
-        },
-        getUsers() {
-            let userProduct = null;
-            this.products.forEach((product) => {
-                if (product.id == this.data.productId) {
-                    userProduct = product;
-                }
-            });
-
-            return userProduct.users;
         },
         getStakesOfUser() {
             if (this.usersBonusesGroupUnixDate[this.data.currentPoint]) {

@@ -57,67 +57,88 @@ class UsersBonusesController extends Controller
         ];
     }
 
-    private function getUserOfProduct($productId, $userId)
+    private function getProductId(User $user, $productId)
     {
-        $product = Product::whereId($productId)->first();
-        $authUser = User::whereId(Auth::id())->firstOrFail();
-        $userExistsForProduct = Product::whereId($productId)->whereHas('users', function ($query) use ($userId) {
-            $query->where('id', $userId);
-        })->exists();
-        if ($authUser->isOperator()) {
-            return Auth::id();
-        }
+        if ($user->isOperator()) {
+            if (! $productId) {
+                $product = Product::whereHas('users', function ($query) use ($user) {
+                    $query->where('id', $user->id);
+                })->first();
 
-        if ($userExistsForProduct) {
-            return $userId;
+                if (isset($product)) {
+                    return $product->id;
+                } else {
+                    abort(404, 'У оператора нет присвоенных услуг');
+                }
+            } else {
+                $product = Product::whereId($productId)->whereHas('users', function ($query) use ($user) {
+                    $query->where('id', $user->id);
+                })->first();
+
+                if (isset($product)) {
+                    return $productId;
+                } else {
+                    $product = Product::whereHas('users', function ($query) use ($user) {
+                        $query->where('id', $user->id);
+                    })->first();
+
+                    if (isset($product)) {
+                        return $product->id;
+                    } else {
+                        abort(404, 'У оператора нет присвоенных услуг');
+                    }
+                }
+            }
         } else {
-            return $product->users->first()->id;
+            if (! $productId) {
+                return Product::first()->id;
+            } else {
+                $product = Product::whereId($productId)->first();
+
+                if (isset($product)) {
+                    return $productId;
+                } else {
+                    $product = Product::first();
+
+                    if (isset($product)) {
+                        return $product->id;
+                    } else {
+                        abort(404, 'Нет активных услуг');
+                    }
+                }
+            }
         }
     }
 
     public function show(Request $request)
     {
         access(['can-head', 'can-host', 'can-operator']);
+        $user = User::whereId(Auth::id())->firstOrFail();
+        $products = $user->isOperator() ? Product::select('id', 'title')->whereHas('users', function ($query) use ($user) {
+            $query->where('id', $user->id);
+        })->get()->toArray() : Product::select('id', 'title')->get()->toArray();
         $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($request->input('period', 'week'));
+        $data = [];
+        $data['productId'] = $this->getProductId($user, $request->get('productId'));
+
         if (
             ! $request->has('currentPoint') ||
             ! $request->has('lastPoint') ||
             ! $request->has('period') ||
-            ! $request->has('productId') ||
             ! $request->has('from') || 
-            ! $request->has('to') || 
-            ! $request->has('userId')
+            ! $request->has('to')
         ) {
             $data = [
                 "currentPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['current'],
                 "lastPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['last'],
                 "period" => $request->input('period') ?? 'week',
-                "productId" => $request->input('productId') ?? Product::first()->id ?? null,
                 "from" => $request->input('from') ?? Carbon::now()->subMonths(3)->format('Y-m-d'),
                 "to" => $request->input('to') ?? Carbon::now()->format('Y-m-d'),
-                // "userId" => $request->input('userId') ?? Auth::id(),
             ];
-
-            $data['userId'] = $this->getUserOfProduct($data['productId'], $request->input('userId'));
 
             return redirect()->route('users_bonuses.show', $data);
         }
-        $userId = Auth::id();
-        $user = User::whereId($userId)->first();
-        $authUserRole = $user->getRole();
-        if (! isset($user)) {
-            abort(404);
-        }
-        $this->checkRole($user, $request->all());
 
-        if ($user->isOperator()) {
-            $products = Product::whereHas('users', function ($query) use ($userId) {
-                $query->where('id', $userId);
-            })->get();
-        } else {
-            $products = Product::get();
-        }
-        $productsWithUsers = ProductWithUsersResource::collection($products);
         $request->validate([
             "from" => "required|date_format:Y-m-d",
             "to" => "required|date_format:Y-m-d",
@@ -126,11 +147,10 @@ class UsersBonusesController extends Controller
         ]);
 
         $period = $request->input('period');
+        $productId = $request->input('productId');
         $from = Carbon::createFromFormat('Y-m-d', $request->input('from'), 'Asia/Almaty')->startOfDay()->setTimezone('Asia/Almaty');
         $to = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
-        $categories = $this->getPeriods($request->get('period'), $from, $to);
-        $productId = $request->input('productId');
-        $userId = $request->get('userId');
+        $categories = $this->getPeriods($period, $from, $to);
 
         $usersBonuses = Bonus::join('product_bonuses', 'product_bonuses.id', '=', 'product_bonus_id')
             ->join('payment_types', 'payment_types.id', '=', 'product_bonuses.payment_type_id')
@@ -190,6 +210,14 @@ class UsersBonusesController extends Controller
             ->where('bonuses.date_type', $period)
             ->groupBy('bonuses.unix_date', 'bonus_user.user_id', 'bonus_user.stake')
             ->get()
+            ->transform(function ($item) {
+                return [
+                    'unix_date' => $item['unix_date'],
+                    'name' => $item['name'],
+                    'stake' => $item['stake'],
+                    'total_bonus' => number_format($item['total_bonus'], 0, '.', ' '),
+                ];
+            })
             ->groupBy('unix_date')
             ->toArray();
 
@@ -222,34 +250,13 @@ class UsersBonusesController extends Controller
             ],
         ];
 
-        $users = User::whereHas('role', function ($query) {
-            $query->where('code', 'operator');
-        })->get()->pluck('name', 'id')->toArray();
         return view('users-bonuses.show', compact(
-            'productsWithUsers',
+            'products',
             'chart',
             'usersBonuses',
             'usersBonusesForChart',
-            'users',
-            'userId',
             'recordsBonuses',
-            'authUserRole',
             'usersBonusesGroupByUnixDate'
         ));
-    }
-
-    private function checkRole(User $user, array $request)
-    {
-        if ($user->isOperator()) {
-            if ($user->id != $request['userId']) {
-                abort(404);
-            }
-            $productsExists = Product::whereHas('users', function ($query) use ($request) {
-                $query->where('id', $request['userId']);
-            })->exists();
-            if (! $productsExists) {
-                abort(404);
-            }
-        }
     }
 }
