@@ -41,7 +41,6 @@ class UpdateUsersBonuses extends Command
      */
     public function handle()
     {
-        \Log::info('Обновление бонусов');
         $products = Product::all();
         $endOfWeekStartOfDay = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
         $endOfMonthStartOfDay = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
@@ -95,47 +94,45 @@ class UpdateUsersBonuses extends Command
                             $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]->count() : 0;
                         }
 
-                        // if (isset($groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id])) {
-                            $bonus = $product->bonuses()->updateOrCreate([
-                                'product_bonus_id' => $productBonus->id,
-                                'date_type' => $dateType,
-                                'unix_date' => $unixDate,
-                            ], [
-                                'amount' => $bonusAmount ?? 0,
-                            ]);
+                        $bonus = $product->bonuses()->updateOrCreate([
+                            'product_bonus_id' => $productBonus->id,
+                            'date_type' => $dateType,
+                            'unix_date' => $unixDate,
+                        ], [
+                            'amount' => $bonusAmount ?? 0,
+                        ]);
 
-                            foreach ($productUsers as $user) {
-                                // Проверка на то, высчитывать бонусы со дня вступления в команду
-                                // Если в середине недели устроился, то считать по ней
-                                $userEmploymentAt = Carbon::parse($user->pivot->employment_at);
+                        foreach ($productUsers as $user) {
+                            // Проверка на то, высчитывать бонусы со дня вступления в команду
+                            // Если в середине недели устроился, то считать по ней
+                            $userEmploymentAt = Carbon::parse($user->pivot->employment_at);
 
-                                if ($dateType == 'week') {
-                                    $unixDate = $data[$dateType]['key'];
-                                    $startedAt = $userEmploymentAt > $data[$dateType]['start'] ? $userEmploymentAt : $data[$dateType]['start'];
-                                    $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
-                                        $startedAt,
-                                        $data[$dateType]['end'], 
-                                    ])->groupBy('product_bonus_id');
-                                    $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]->count() : 0;
-                                } else {
-                                    $unixDate = $data[$dateType]['key'];
-                                    $startedAt = $userEmploymentAt > $data[$dateType]['start'] ? $userEmploymentAt : $data[$dateType]['start'];
-                                    $groupSuccessPaymentsByBonusesBetweenMonth = $successPayments->whereBetween('paided_at', [
-                                        $startedAt,
-                                        $data[$dateType]['end'],
-                                    ])->groupBy('product_bonus_id');
-                                    $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]->count() : 0;
-                                }
-                                $user->bonuses()->detach([$bonus->id]);
-
-                                $user->bonuses()->attach([
-                                    $bonus->id => [
-                                        'stake' => $user->pivot->stake,
-                                        'bonus_amount' => $bonusAmount,
-                                    ],
-                                ]);
+                            if ($dateType == 'week') {
+                                $unixDate = $data[$dateType]['key'];
+                                $startedAt = $userEmploymentAt > $data[$dateType]['start'] ? $userEmploymentAt : $data[$dateType]['start'];
+                                $groupSuccessPaymentsByBonusesBetweenWeek = $successPayments->whereBetween('paided_at', [
+                                    $startedAt,
+                                    $data[$dateType]['end'], 
+                                ])->groupBy('product_bonus_id');
+                                $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenWeek[$productBonus->id]->count() : 0;
+                            } else {
+                                $unixDate = $data[$dateType]['key'];
+                                $startedAt = $userEmploymentAt > $data[$dateType]['start'] ? $userEmploymentAt : $data[$dateType]['start'];
+                                $groupSuccessPaymentsByBonusesBetweenMonth = $successPayments->whereBetween('paided_at', [
+                                    $startedAt,
+                                    $data[$dateType]['end'],
+                                ])->groupBy('product_bonus_id');
+                                $bonusAmount = isset($groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]) ? $groupSuccessPaymentsByBonusesBetweenMonth[$productBonus->id]->count() : 0;
                             }
-                        // }
+                            $user->bonuses()->detach([$bonus->id]);
+
+                            $user->bonuses()->attach([
+                                $bonus->id => [
+                                    'stake' => $user->pivot->stake,
+                                    'bonus_amount' => $bonusAmount,
+                                ],
+                            ]);
+                        }
                     }
                 }
             }

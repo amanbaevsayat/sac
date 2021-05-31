@@ -35,21 +35,21 @@
                     <product-price-component :prices-prop="{{ json_encode(old('prices') ?? []) }}"></product-price-component>
                 </div>
             </div>
-
+            <hr>
             <div class="form-group row">
                 <label for="prices" class="col-sm-2 col-form-label">Доступные типы оплат</label>
                 <div class="col-sm-10">
                     <product-payment-type-component :product-payment-types-prop="{{ json_encode(old('paymentTypes') ?? []) }}" :payment-types-prop="{{ json_encode($paymentTypes) }}"></product-payment-type-component>
                 </div>
             </div>
-
+            <hr>
             <div class="form-group row">
                 <label for="prices" class="col-sm-2 col-form-label">Операторы услуги</label>
                 <div class="col-sm-10">
                     <product-users-component :product-users-prop="{{ json_encode(old('productUsers') ?? []) }}" :users-prop="{{ json_encode($users) }}"></product-users-component>
                 </div>
             </div>
-
+            <hr>
             <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Имя мастера</label>
                 <div class="col-sm-10">

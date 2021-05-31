@@ -166,7 +166,7 @@ class UsersBonusesController extends Controller
             ->get()->groupBy('unix_date')->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
                     return $item->payment_type . '-' . $item->type;
-                });
+                })->sortKeys();
             })
             ->toArray();
 

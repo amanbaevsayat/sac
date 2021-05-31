@@ -1,16 +1,33 @@
 <template>
     <div>
-        <div class="col-sm-4 nopadding" v-for="(productUserAccount, productUserId) in productUsers" :key="productUserId">
-            <div class="input-group col-sm-12 nopadding" style="margin-bottom: 10px">
+        <div class="col-sm-12 row nopadding">
+            <div class="col-sm-4 nopadding">
+                <label class="col-sm-12 col-form-label nopadding" style="margin-bottom: 5px!important">Оператор</label>
+                
+            </div>
+            <div class="col-sm-4 nopadding">
+                <label class="col-sm-12 col-form-label nopadding" style="margin-bottom: 5px!important">Бонусная ставка</label>
+                
+            </div>
+            <div class="col-sm-4 nopadding input-group">
+                <label class="col-sm-12 col-form-label nopadding" style="margin-bottom: 5px!important">Дата вступления на работу</label>
+            </div>
+        </div>
+        <div class="col-sm-12 row nopadding" v-for="(productUserAccount, productUserId) in productUsers" :key="productUserId">
+            <div class="col-sm-4 nopadding">
                 <select class="form-control" :name="'productUsers['+ productUserId +'][id]'" id="" v-model="productUserAccount.id">
                     <option v-for="(account, userIndex) in users" :key="userIndex" :value="userIndex">{{ account }}</option>
                 </select>
-                <div style="display: flex;width: 90px">
+            </div>
+            <div class="col-sm-4 nopadding">
+                <div style="display: flex">
                     <input type="text" :name="'productUsers['+ productUserId +'][stake]'" id="" v-model="productUserAccount.stake" class="form-control" placeholder="Процентная ставка">
                     <div class="input-group-append">
                         <span class="input-group-text">%</span>
                     </div>
                 </div>
+            </div>
+            <div class="col-sm-4 nopadding input-group">
                 <datetime
                     type="date"
                     v-model="productUserAccount.employment_at"

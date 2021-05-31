@@ -351,6 +351,50 @@ class StatisticsController extends Controller
             ],
         ]);
 
+        $activeSubscriptions = StatisticsModel::where('period_type', $request->get('period'))
+            ->where('product_id', $request->get('productId'))
+            ->where('type', StatisticsModel::SIXTEENTH_STATISTICS)
+            ->get()
+            ->pluck('value', 'key');
+        $chats->push([
+            'type' => 'highchart',
+            'chart' => [
+                'type' => 'area',
+            ],
+            "title" => ["text" => 'Активные абонементы (общее)'],
+            'xAxis' => [
+                'type' => 'datetime',
+            ],
+            "series" => [
+                [
+                    'editable' => false,
+                    "name" => "Общее",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptions) {
+                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptions[$category] ?? 0)];
+                    })->toArray()),
+                    "color" => "#c2de80",
+                    'statisticsType' => StatisticsModel::SIXTEENTH_STATISTICS,
+                    'description' => 'Тип оплаты: (cloudpayments|прямой перевод) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
+                    'stacking' => 'normal'
+                ],
+            ],
+            'plotOptions' => [
+                'area' => [
+                    'fillOpacity' => 0.5,
+                    'dataLabels' => [
+                        'enabled' => true,
+                        'color' => '#000',
+                        'className' => 'temirlan',
+                    ],
+                    'label' => [
+                        'style' => [
+                            'color' => '#000'
+                        ]
+                    ]
+                ],
+            ],
+        ]);
+
         $activeSubscriptionsCP = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::TWELFTH_STATISTICS)->get()->pluck('value', 'key');
         $activeSubscriptionsDT = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIFTEENTH_STATISTICS)->get()->pluck('value', 'key');
         $chats->push([
@@ -358,7 +402,7 @@ class StatisticsController extends Controller
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Активные абонементы.'],
+            "title" => ["text" => 'Активные абонементы. (прямой перевод + подписка)'],
             'xAxis' => [
                 'type' => 'datetime',
             ],
@@ -391,7 +435,14 @@ class StatisticsController extends Controller
                     'fillOpacity' => 0.5,
                     'dataLabels' => [
                         'enabled' => true,
+                        'color' => '#000',
+                        'className' => 'temirlan',
                     ],
+                    'label' => [
+                        'style' => [
+                            'color' => '#000'
+                        ]
+                    ]
                 ],
             ],
         ]);
@@ -551,6 +602,11 @@ class StatisticsController extends Controller
             "title" => ["text" => 'Доход по типу платежей'],
             "xAxis" => [
                 "type" => 'datetime',
+                'label' => [
+                    'style' => [
+                        'color' => '#000',
+                    ],
+                ],
             ],
             "series" => [
                 [
@@ -578,11 +634,17 @@ class StatisticsController extends Controller
             ],
             'plotOptions' => [
                 'area' => [
-                    // 'stacking' => 'normal',
                     'fillOpacity' => 0.5,
                     'dataLabels' => [
                         'enabled' => true,
+                        'color' => '#000',
+                        'className' => 'temirlan',
                     ],
+                    'label' => [
+                        'style' => [
+                            'color' => '#000'
+                        ]
+                    ]
                 ],
                 'column' => [
                     // 'grouping' => true,

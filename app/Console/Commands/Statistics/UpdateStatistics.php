@@ -85,6 +85,9 @@ class UpdateStatistics extends Command
 
                 // Страница количественные - 5-диаграмма: Активные абонементы. - Прямой перевод
                 $this->updateFifteenthStatistics($product, $period);
+
+                // Страница количественные - 6-диаграмма: Активные абонементы. - общее
+                $this->updateSixteenthStatistics($product, $period);
             }
         }
     }
@@ -385,6 +388,32 @@ class UpdateStatistics extends Command
         StatisticsModel::updateOrCreate([
             'period_type' => $period,
             'type' => StatisticsModel::FIFTEENTH_STATISTICS,
+            'product_id' => $product->id,
+            'key' => $date,
+        ], [
+            'value' => $subscriptionsCount,
+        ]);
+    }
+
+    private function updateSixteenthStatistics(Product $product, string $period)
+    {
+        if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+            $date = (int) Carbon::now()->endOfMonth()->startOfDay()->valueOf();
+        } else {
+            $date = (int) Carbon::now()->endOfWeek()->startOfDay()->valueOf();
+        }
+        $subscriptionsCount = Subscription::whereProductId($product->id)
+            ->whereIn('status', ['paid', 'waiting'])
+            ->whereIn('payment_type', ['transfer', 'cloudpayments'])
+            ->whereHas('payments', function ($q) {
+                $q->where('status', 'Completed');
+            })
+            ->count();
+
+        
+        StatisticsModel::updateOrCreate([
+            'period_type' => $period,
+            'type' => StatisticsModel::SIXTEENTH_STATISTICS,
             'product_id' => $product->id,
             'key' => $date,
         ], [

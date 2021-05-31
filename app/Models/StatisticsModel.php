@@ -51,6 +51,9 @@ class StatisticsModel extends Model
     // Страница количественные - 6-диаграмма: События недели
     const EVENTS_OF_WEEK = 14;
 
+    // Страница количественные - 7-диаграмма: Активные абонементы (общее)
+    const SIXTEENTH_STATISTICS = 16;
+
     const PERIOD_TYPE_WEEK = 'week';
     const PERIOD_TYPE_MONTH = 'month';
 
