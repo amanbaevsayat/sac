@@ -248,7 +248,6 @@ export default {
             return  start +' - ' + end;
         },
         getTotalSum() {
-            console.log(this.totalSumProp[this.data.currentPoint]);
             if (this.totalSumProp[this.data.currentPoint]) {
                 return this.totalSumProp[this.data.currentPoint];
             } else {
@@ -256,7 +255,6 @@ export default {
             }
         },
         pointClick(e) {
-            console.log(e.point.category);
             this.total = 0;
             this.data.currentPoint = e.point.category;
             this.data.lastPoint = e.point.category - 604800000;

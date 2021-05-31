@@ -76,7 +76,7 @@ class UsersBonusesController extends Controller
                 })->first();
 
                 if (isset($product)) {
-                    return $productId;
+                    return $product->id;
                 } else {
                     $product = Product::whereHas('users', function ($query) use ($user) {
                         $query->where('id', $user->id);
@@ -126,30 +126,29 @@ class UsersBonusesController extends Controller
             ! $request->has('lastPoint') ||
             ! $request->has('period') ||
             ! $request->has('from') || 
-            ! $request->has('to')
+            ! $request->has('to') ||
+            $data['productId'] != $request->get('productId')
         ) {
-            $data = [
-                "currentPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['current'],
-                "lastPoint" => $request->input('point') ?? $getCurrentAndLastPeriod['last'],
-                "period" => $request->input('period') ?? 'week',
-                "from" => $request->input('from') ?? Carbon::now()->subMonths(3)->format('Y-m-d'),
-                "to" => $request->input('to') ?? Carbon::now()->format('Y-m-d'),
-            ];
+            $data['currentPoint']   = $request->input('point') ?? $getCurrentAndLastPeriod['current'];
+            $data['lastPoint']      = $request->input('point') ?? $getCurrentAndLastPeriod['last'];
+            $data['period']         = $request->input('period') ?? 'week';
+            $data['from']           = $request->input('from') ?? Carbon::now()->subMonths(3)->format('Y-m-d');
+            $data['to']             = $request->input('to') ?? Carbon::now()->format('Y-m-d');
 
             return redirect()->route('users_bonuses.show', $data);
         }
 
         $request->validate([
-            "from" => "required|date_format:Y-m-d",
-            "to" => "required|date_format:Y-m-d",
+            "from"      => "required|date_format:Y-m-d",
+            "to"        => "required|date_format:Y-m-d",
             "productId" => "required",
-            "period" => "required",
+            "period"    => "required",
         ]);
 
-        $period = $request->input('period');
-        $productId = $request->input('productId');
-        $from = Carbon::createFromFormat('Y-m-d', $request->input('from'), 'Asia/Almaty')->startOfDay()->setTimezone('Asia/Almaty');
-        $to = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
+        $period     = $request->input('period');
+        $productId  = $request->input('productId');
+        $from       = Carbon::createFromFormat('Y-m-d', $request->input('from'), 'Asia/Almaty')->startOfDay()->setTimezone('Asia/Almaty');
+        $to         = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
         $categories = $this->getPeriods($period, $from, $to);
 
         $usersBonuses = Bonus::join('product_bonuses', 'product_bonuses.id', '=', 'product_bonus_id')
