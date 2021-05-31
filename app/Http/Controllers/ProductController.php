@@ -12,6 +12,7 @@ use App\Http\Resources\ProductUsersResource;
 use App\Models\PaymentType;
 use App\Models\Price;
 use App\Models\ProductBonus;
+use App\Models\Reason;
 use App\Models\Subscription;
 use App\Models\User;
 use Carbon\Carbon;
@@ -121,6 +122,7 @@ class ProductController extends Controller
         access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
         $productUsers = $product->users;
+        $reasons = $product->reasons()->where('is_active', true)->pluck('title');
         $users = User::all()->pluck('account', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
         $paymentTypes = Subscription::PAYMENT_TYPE;
@@ -128,6 +130,7 @@ class ProductController extends Controller
         return view("{$this->root}.edit", [
             'product' => $product,
             'productPrices' => $productPrices,
+            'reasons' => $reasons,
             'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
             'paymentTypes' => $paymentTypes,
             'productUsers' => ProductUsersResource::collection($productUsers),
@@ -160,10 +163,12 @@ class ProductController extends Controller
     private function updateOrCreate(array $request, ?Product $product, $type) 
     {
         $priceIds = [];
+        $reasonIds = [];
         $paymentTypeIds = [];
         $prices = $request['prices'] ?? [];
         $productUsers = $request['productUsers'] ?? [];
         $paymentTypes = $request['paymentTypes'] ?? [];
+        $productReasons = $request['reasons'] ?? [];
 
         if ($type == 'update') {
             $product->update($request);
@@ -179,6 +184,18 @@ class ProductController extends Controller
                 ]);
                 $priceIds[] = $price->id;
             }
+        }
+
+        foreach ($productReasons as $reason) {
+            $productReason = Reason::updateOrCreate([
+                'title' => $reason,
+                'product_id' => $product->id,
+            ], [
+                'is_active',
+                'title' => $reason,
+                'product_id' => $product->id,
+            ]);
+            $reasonIds[] = $productReason->id;
         }
 
         foreach ($paymentTypes as $item) {
@@ -216,6 +233,9 @@ class ProductController extends Controller
         }
 
         $product->prices()->whereNotIn('id', $priceIds)->delete();
+        $product->reasons()->whereNotIn('id', $reasonIds)->update([
+            'is_active' => false,
+        ]);
         $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
         $product->users()->detach();
 

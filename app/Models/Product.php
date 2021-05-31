@@ -28,6 +28,11 @@ class Product extends Model
         return $this->belongsToMany(Subscription::class)->withTimestamps();
     }
 
+    public function reasons()
+    {
+        return $this->hasMany(Reason::class, 'product_id')->where('is_active', 1);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class)->withPivot('stake', 'employment_at');

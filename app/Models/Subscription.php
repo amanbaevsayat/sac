@@ -54,6 +54,7 @@ class Subscription extends Model
         'cp_subscription_id',
         'user_id',
         'manual_write_off_at',
+        'reason_id',
     ];
 
     protected $dates = [
@@ -204,6 +205,11 @@ class Subscription extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function reason()
+    {
+        return $this->belongsTo(Reason::class);
     }
 
     public function payments()
