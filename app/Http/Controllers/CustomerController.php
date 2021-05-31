@@ -102,7 +102,17 @@ class CustomerController extends Controller
             ], 422);
         }
 
-        foreach ($data['subscriptions'] as $item) {
+        foreach ($data['subscriptions'] as $key => $item) {
+            if ($item['status'] == 'refused' && ! $item['reason_id']) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => [
+                        'subscriptions.' . $key . '.reason_id' => [
+                            'Укажите причину отказа'
+                        ],
+                    ]
+                ], 422);
+            }
             $subscription = $customer->subscriptions()->where('product_id', $item['product_id'])->first();
             $endedAt = Carbon::parse($item['ended_at']);
             $triesAt = Carbon::parse($item['tries_at']);
@@ -116,6 +126,7 @@ class CustomerController extends Controller
                 'ended_at' => $endedAt,
                 'tries_at' => $triesAt,
                 'status' => $item['status'],
+                'reason_id' => $item['reason_id'],
             ]);
 
             if (! isset($data['customer']['id'])) {

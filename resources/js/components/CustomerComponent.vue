@@ -146,6 +146,12 @@
                                         </div>
                                     </div>
                                     <div class="row" style="margin-bottom: 15px">
+                                        <div v-if="subscription.status == 'refused'" class="form-group col-sm-6">
+                                            <label for="reason_id" class="col-form-label">Причина отказа</label>
+                                            <select v-model="subscription.reason_id" :name="'subscriptions.' + subIndex + '.reason_id'" id="reason_id" class="col-sm-10 form-control">
+                                                <option v-for="(reason, reasonIndex) in subscription.reasons" :key="reasonIndex" :value="reason.id">{{ reason.title }}</option>
+                                            </select>
+                                        </div>
                                         <div class="col-sm-6">
                                             <button data-toggle="modal" @click="showHistorySubscriptionModal(subscription.id)" class="btn btn-warning" >История абонемента</button>
                                         </div>
@@ -683,6 +689,7 @@ export default {
             this.subscriptions.push({
                 id: null,
                 product_id: null,
+                reason_id: null,
                 user_id: null,
                 price: null,
                 payment_type: null,
