@@ -42,6 +42,7 @@ class NotificationResource extends JsonResource
             ],
             'customer' => [
                 'id' => $this->subscription->customer->id ?? null,
+                'subscriptionId' => $this->subscription->id ?? null,
                 'title' => $this->subscription->customer->name ?? null,
                 'type' => 'customer-link',
                 'value' => isset($this->subscription->customer->id) ? route('customers.show', [$this->subscription->customer->id]) : null,

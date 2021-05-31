@@ -22,6 +22,7 @@ class CustomerResource extends JsonResource
                 'id' => $this->id,
                 'title' => $this->name,
                 'type' => 'customer-link',
+                'subscriptionId' => null,
                 'value' => route('customers.show', [$this->id]),
             ],
             'phone' => [

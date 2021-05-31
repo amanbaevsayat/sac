@@ -31,6 +31,7 @@ class UserLogResource extends JsonResource
                 'id' => $this->subscription->customer->id ?? null,
                 'title' => $this->subscription->customer->name ?? null,
                 'type' => 'customer-link',
+                'subscriptionId' => $this->subscription_id ?? null,
                 'value' => isset($this->subscription->customer->id) ? route('customers.show', [$this->subscription->customer->id]) : null,
             ],
             'customers.phone' => [

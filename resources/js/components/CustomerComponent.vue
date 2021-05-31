@@ -41,9 +41,9 @@
                     </div>
                     <div class="bd-example">
                         <b-card no-body>
-                            <b-tabs v-model="tabIndex" card>
+                            <b-tabs card>
                                 <!-- Render Tabs, supply a unique `key` to each tab -->
-                                <b-tab v-for="(subscription, subIndex) in subscriptions" :key="subIndex" :title="getSubscriptionTitle(subscription.product_id)" :class="'b-tab-' + subIndex">
+                                <b-tab v-for="(subscription, subIndex) in subscriptions" :key="subIndex" :active="showTab(subIndex)" :title="getSubscriptionTitle(subscription.product_id)">
                                     <div class="row">
                                         <button 
                                             type="button" 
@@ -293,11 +293,6 @@
                             </b-tabs>
                         </b-card>
                     </div>
-                    <!-- <div style="text-align: center">
-                        <a @click="addProduct()" class="btn btn-primary">
-                            Добавить услугу
-                        </a>
-                    </div> -->
                     <footer class="modal-footer">
                         <button @click="closeModal()" data-dismiss="modal" type="button" class="btn btn-secondary">Отмена</button>
                         <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button>
@@ -325,14 +320,12 @@ export default {
         'typeProp',
         'nameProp',
         'customerIdProp',
-        // 'paymentTypesProp',
-        // 'statusesProp',
-        // 'quantitiesProp',
+        'subscriptionIdProp',
     ],
     data() {
         return {
-            tabIndex: 0,
             customerId: this.customerIdProp,
+            subscriptionId: this.subscriptionIdProp,
             type: this.typeProp,
             name: this.nameProp,
             spinnerData: {
@@ -373,7 +366,6 @@ export default {
             }
         },
         customer: function (newVal, oldVal) {
-            console.log('Customer changed: ', newVal, ' | was: ', oldVal);
             if (newVal.phone.length == 10) {
                 newVal.phone = '7' . newVal.phone;
             }
@@ -382,15 +374,27 @@ export default {
     },
     mounted() {
         if (this.type == 'create') {
-            console.log('create');
             this.addProduct();
         } else if (this.type == 'edit') {
-            console.log('edit');
         }
 
         this.getOptions();
     },
     methods: {
+        showTab(subIndex) {
+            let k = 0;
+            this.subscriptions.forEach((sub, key) => {
+                if (sub.id == this.subscriptionIdProp) {
+                    k = key;
+                }
+            });
+
+            if (subIndex == k) {
+                return true;
+            } else {
+                return false;
+            }
+        },
         manualWriteOffPayment(subscriptionId) {
             document.getElementById('subscription-' + subscriptionId).disabled = true;
             this.spinnerData.loading = true;
@@ -435,19 +439,15 @@ export default {
             $('#modalHistorySubscription-' + id).modal('hide');
         },
         showHistorySubscriptionModal(id) {
-            console.log('#modalHistorySubscription-' + id);
             $('#modalHistorySubscription-' + id).modal('show');
         },
         deletePayment(payment, paymentIndex, subIndex) {
             if (payment.id) {
-                console.log(payment);
                 let result = confirm('Удалить платеж?');
                 if (result) {
                     axios.delete(`/payments/${payment.id}`).then(response => {
                         let message = response.data.message;
-                        console.log(message);
                         if (response.data.message) {
-                            console.log(message);
                             Vue.$toast.success(message);
                             this.subscriptions[subIndex].payments.splice(paymentIndex, 1);
                         }
@@ -468,7 +468,6 @@ export default {
         },
         setDates(startedAt, subIndex) {
             if (this.type == 'create') {
-                console.log(startedAt);
                 this.subscriptions[subIndex].ended_at = moment().format();
                 this.subscriptions[subIndex].tries_at = moment().add(7, 'days').format();
             }
@@ -487,7 +486,6 @@ export default {
         },
         copyRecurrentLink(index) {
             var input = $('#recurrent-link-' + index);
-            console.log(input);
             var success   = true,
                 range     = document.createRange(),
                 selection;
@@ -532,7 +530,6 @@ export default {
                 let data = response.data.data;
                 if (response.data.data) {
                     this.spinnerData.loading = false;
-                    console.log(data.phone, new Date());
                     if (data.phone.length == 10) {
                         data.phone = '+7' + data.phone;
                     }
@@ -541,14 +538,11 @@ export default {
                     let typesColor = this.typesColor;
                     this.subscriptions.forEach((subscription, subIndex, selfSubscriptions) => {
                         let hstr = [];
-                        // console.log(subscription.history);
                         Object.keys(subscription.history).forEach(function(historyIndex) {
                             let attr = {};
                             attr.highlight = typesColor[historyIndex];
                             attr.dates = [];
-                            // console.log(subscription.history[historyIndex], historyIndex);
                             subscription.history[historyIndex].forEach((payment, paymentIndex, selfPayments) => {
-                                // console.log(payment, paymentIndex);
                                 attr.dates.push(payment.dates);
                             });
                             hstr.push(attr);
@@ -597,7 +591,6 @@ export default {
             this.removeClassInvalid();
             axios.post('/customers/update-with-data', data).then(response => {
                 this.spinnerData.loading = false;
-                console.log(response.data.customer);
                 let customer = response.data.customer;
                 if (response.data.customer) {
                     this.customer = {
@@ -624,6 +617,8 @@ export default {
                         this.addProduct();
                         this.customerId = null;
                         this.customerIdProp = null;
+                        this.subscriptionId = null;
+                        this.subscriptionIdProp = null;
                         $('#modal-customer-create').modal('hide');
                         $('#modal-customer-edit').modal('hide');
                     }
@@ -636,7 +631,6 @@ export default {
             })
             .catch(err => {
                 this.spinnerData.loading = false;
-                console.log(err);
                 if (err.response.status === 422) {
                     let errors = err.response.data.errors;
                     if (errors) {
@@ -653,7 +647,6 @@ export default {
             });
         },
         removeProduct(id, subIndex) {
-            console.log(id, subIndex);
             if (this.type == 'create' || !id) {
                 if (subIndex > -1) {
                     if (this.subscriptions.length > 1) {
@@ -727,7 +720,6 @@ export default {
         },
         getPaymentTypes(productId) {
             if (productId) {
-                console.log(this.paymentTypes[productId]);
                 return this.paymentTypes[productId];
             }
             return [];

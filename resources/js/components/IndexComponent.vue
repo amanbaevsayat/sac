@@ -175,7 +175,7 @@
                                 <input type="text" class="form-control form-control-sm" v-model="item.value" />
                             </div>
                             <div v-else-if="item.type == 'customer-link'">
-                                <a class="custom-link" role="button" @click="openModal(item.id)" data-toggle="modal" data-target="#modal-customer-edit">{{ item.title }}</a>
+                                <a class="custom-link" role="button" @click="openModal(item.id, item.subscriptionId)" data-toggle="modal" data-target="#modal-customer-edit">{{ item.title }}</a>
                             </div>
                             <div v-else-if="item.type == 'link'">
                                 <a class="custom-link" :href="item.value" role="button">{{ item.title }}</a>
@@ -279,14 +279,14 @@
                 </li>
             </ul>
         </nav>
-        <customer-component type-prop="edit" :customer-id-prop="customerId"></customer-component>
+        <customer-component type-prop="edit" :subscription-id-prop="subscriptionId" :customer-id-prop="customerId"></customer-component>
     </div>
 </template>
 
 <script>
 import CustomerComponent from './CustomerComponent.vue';
-import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
-    export default {
+
+export default {
   components: { CustomerComponent },
         props: [
             'prefixProp',
@@ -300,6 +300,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                     customer: [],
                 },
                 customerId: null,
+                subscriptionId: null,
                 prefix: this.prefixProp,
                 mainFilters: {},
                 secondFilters: {},
@@ -319,12 +320,7 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
             this.$nextTick(function(){
                 this.spinnerData.loading = true;
                 this.getFilters();
-                // this.setQueryParams();
-                // this.getData();
             });
-            // let externalScript = document.createElement('script');
-            // externalScript.setAttribute('src', 'https://widget.cloudpayments.ru/bundles/cloudpayments');
-            // document.head.appendChild(externalScript);
         },
         methods: {
             inputSearch(event, filterName, filterType, type) {
@@ -352,9 +348,11 @@ import ButtonCustomerComponent from './ButtonCustomerComponent.vue';
                     loading(false);
                 });
             }, 350),
-            openModal(customerId) {
+            openModal(customerId, subscriptionId) {
                 this.customerId = null;
+                this.subscriptionId = null;
                 this.customerId = customerId;
+                this.subscriptionId = subscriptionId;
             },
             saveItem(items, id) {
                 let data = {};

@@ -27,6 +27,7 @@ class SubscriptionResource extends JsonResource
                 'id' => $this->customer->id,
                 'title' => $this->customer->name,
                 'type' => 'customer-link',
+                'subscriptionId' => $this->id ?? null,
                 'value' => route('customers.show', [$this->customer->id]),
             ],
             'customers.phone' => [
