@@ -143,9 +143,11 @@ class Payment extends Model
 
             if (isset($payment->type) && isset($payment->subscription_id) && isset($payment->status) && $payment->status == 'Completed') {
                 $similarPaymentExists = $payment->subscription->payments()
-                    ->where('type', $payment->type)
                     ->where('status', 'Completed')
-                    ->get();
+                    ->where('type', $payment->type)
+                    ->where('paided_at', '<', $payment->paided_at)
+                    ->where('id', '!=', $payment->id)
+                    ->count();
                 $paymentType = PaymentType::where('product_id', $payment->subscription->product_id)->where('payment_type', $payment->type)->first();
                 if (! $paymentType) {
                     \Log::error('Отсутствует тип платежа. Payment ID: ' . $payment->id);
