@@ -139,8 +139,8 @@ class Payment extends Model
             if (! $payment->subscription) {
                 \Log::error('Отсутствует абонемент. Payment ID: ' . $payment->id);
             }
-            $payment->user_id = $payment->subscription->user_id;
 
+            // Присвоение бонуса к платежу
             if (isset($payment->type) && isset($payment->subscription_id) && isset($payment->status) && $payment->status == 'Completed') {
                 $similarPaymentExists = $payment->subscription->payments()
                     ->where('status', 'Completed')
@@ -165,6 +165,7 @@ class Payment extends Model
                     $payment->product_bonus_id = $bonus->id;
                 }
             }
+
             $payment->save();
         });
         static::deleting(function($payment) {
