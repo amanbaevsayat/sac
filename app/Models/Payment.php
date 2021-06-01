@@ -147,12 +147,12 @@ class Payment extends Model
                     ->where('type', $payment->type)
                     ->where('paided_at', '<', $payment->paided_at)
                     ->where('id', '!=', $payment->id)
-                    ->count();
+                    ->exists();
                 $paymentType = PaymentType::where('product_id', $payment->subscription->product_id)->where('payment_type', $payment->type)->first();
                 if (! $paymentType) {
                     \Log::error('Отсутствует тип платежа. Payment ID: ' . $payment->id);
                 }
-                $type = count($similarPaymentExists) > 0 ? ProductBonus::REPEATED_PAYMENT : ProductBonus::FIRST_PAYMENT;
+                $type = $similarPaymentExists ? ProductBonus::REPEATED_PAYMENT : ProductBonus::FIRST_PAYMENT;
                 $bonus = ProductBonus::where('product_id', $payment->subscription->product_id)
                     ->where('payment_type_id', $paymentType->id)
                     ->where('type', $type)
