@@ -9,6 +9,7 @@ use App\Filters\ProductFilter;
 use App\Http\Resources\PaymentTypeResource;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductUsersResource;
+use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Price;
 use App\Models\ProductBonus;
@@ -73,7 +74,7 @@ class ProductController extends Controller
     public function create()
     {
         access(['can-head', 'can-host']);
-        $paymentTypes = Subscription::PAYMENT_TYPE;
+        $paymentTypes = PaymentType::whereIsActive(true)->get()->pluck('title', 'name')->toArray();
         $users = User::all()->pluck('account', 'id')->toArray();
 
         return view("{$this->root}.create", [
@@ -125,7 +126,7 @@ class ProductController extends Controller
         $reasons = $product->reasons()->where('is_active', true)->pluck('title');
         $users = User::all()->pluck('account', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
-        $paymentTypes = Subscription::PAYMENT_TYPE;
+        $paymentTypes = PaymentType::whereIsActive(true)->get()->pluck('title', 'name')->toArray();
 
         return view("{$this->root}.edit", [
             'product' => $product,
@@ -198,37 +199,32 @@ class ProductController extends Controller
             $reasonIds[] = $productReason->id;
         }
 
+        $product->paymentTypes()->detach();
         foreach ($paymentTypes as $item) {
+            $paymentType = PaymentType::whereName($item['type'])->firstOrFail();
+            $product->paymentTypes()->attach([$paymentType->id]);
             $bonusIds = [];
-            if ($item) {
-                $paymentType = PaymentType::updateOrCreate([
-                    'payment_type' => $item['type'],
-                    'product_id' => $product->id,
-                ]);
-                $paymentTypeIds[] = $paymentType->id;
-
-                if (isset($item['bonuses'])) {
-                    foreach ($item['bonuses'] as $type => $amount) {
-                        $bonus = ProductBonus::updateOrCreate([
-                            'product_id' => $product->id,
-                            'payment_type_id' => $paymentType->id,
-                            'type' => $type,
-                            'amount' => $amount,
-                        ], [
-                            'product_id' => $product->id,
-                            'payment_type_id' => $paymentType->id,
-                            'type' => $type,
-                            'is_active' => true,
-                            'amount' => $amount,
-                        ]);
-
-                        $bonusIds[] = $bonus->id;
-                    }
-
-                    $paymentType->productBonuses()->whereNotIn('id', $bonusIds)->update([
-                        'is_active' => false,
+            if (isset($item['bonuses'])) {
+                foreach ($item['bonuses'] as $type => $amount) {
+                    $bonus = ProductBonus::updateOrCreate([
+                        'product_id' => $product->id,
+                        'payment_type_id' => $paymentType->id,
+                        'type' => $type,
+                        'amount' => $amount,
+                    ], [
+                        'product_id' => $product->id,
+                        'payment_type_id' => $paymentType->id,
+                        'type' => $type,
+                        'is_active' => true,
+                        'amount' => $amount,
                     ]);
+
+                    $bonusIds[] = $bonus->id;
                 }
+
+                $paymentType->productBonuses()->whereNotIn('id', $bonusIds)->update([
+                    'is_active' => false,
+                ]);
             }
         }
 
@@ -236,7 +232,6 @@ class ProductController extends Controller
         $product->reasons()->whereNotIn('id', $reasonIds)->update([
             'is_active' => false,
         ]);
-        $product->paymentTypes()->whereNotIn('id', $paymentTypeIds)->delete();
         $product->users()->detach();
 
         foreach ($productUsers as $productUser) {

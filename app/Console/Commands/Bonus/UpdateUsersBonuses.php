@@ -4,7 +4,6 @@ namespace App\Console\Commands\Bonus;
 
 use App\Models\Bonus;
 use App\Models\Product;
-use App\Models\UsersBonuses;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 

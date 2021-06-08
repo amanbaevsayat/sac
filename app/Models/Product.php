@@ -45,7 +45,8 @@ class Product extends Model
 
     public function paymentTypes()
     {
-        return $this->hasMany(PaymentType::class, 'product_id');
+        return $this->belongsToMany(PaymentType::class);
+            // ->withPivot('stake', 'employment_at');
     }
 
     public function scopeFilter($query, ProductFilter $filters)

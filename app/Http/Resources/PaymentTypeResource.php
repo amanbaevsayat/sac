@@ -16,7 +16,7 @@ class PaymentTypeResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'type' => $this->payment_type,
+            'type' => $this->name,
             'bonuses' => [
                 'firstPayment' => $this->productBonuses->where('is_active', true)->where('type', ProductBonus::FIRST_PAYMENT)->first()->amount ?? 0,
                 'repeatedPayment' => $this->productBonuses->where('is_active', true)->where('type', ProductBonus::REPEATED_PAYMENT)->first()->amount ?? 0,

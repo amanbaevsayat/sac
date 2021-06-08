@@ -15,4 +15,9 @@ class Reason extends Model
         'title',
         'is_active',
     ];
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'reason_id');
+    }
 }

@@ -157,12 +157,12 @@ class UsersBonusesController extends Controller
                 'bonuses.*',
                 'product_bonuses.type',
                 'product_bonuses.amount as product_bonuses_amount',
-                'payment_types.payment_type',
+                'payment_types.name as payment_type',
                 \DB::raw('(bonuses.amount * product_bonuses.amount) as total_bonus')
             )
             ->where('bonuses.product_id', $productId)
             ->where('bonuses.date_type', $period)
-            ->orderBy('payment_types.payment_type')
+            ->orderBy('payment_types.name')
             ->get()->groupBy('unix_date')->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
                     return $item->payment_type . '-' . $item->type;
@@ -174,7 +174,7 @@ class UsersBonusesController extends Controller
             ->join('payment_types', 'payment_types.id', '=', 'product_bonuses.payment_type_id')
             ->select(
                 \DB::raw('MAX(bonuses.amount) AS max_amount'),
-                \DB::raw("CONCAT(payment_types.payment_type,'-',product_bonuses.type) as bonusType")
+                \DB::raw("CONCAT(payment_types.name,'-',product_bonuses.type) as bonusType")
             )
             ->where('bonuses.product_id', $productId)
             ->where('bonuses.date_type', $period)

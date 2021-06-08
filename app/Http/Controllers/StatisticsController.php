@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Reason;
 use App\Models\StatisticsModel;
 use App\Models\Subscription;
 use Carbon\Carbon;
@@ -62,6 +63,7 @@ class StatisticsController extends Controller
         $to = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
         $categories = $this->getPeriods($request->get('period'), $from, $to);
         $productId = $request->input('productId');
+        $product = Product::whereId($productId)->firstOrFail();
 
         $newLeadsFirst = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIRST_STATISTICS)->get()->pluck('value', 'key');
         $newLeadsSecond = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::SECOND_STATISTICS)->get()->pluck('value', 'key');
@@ -356,6 +358,7 @@ class StatisticsController extends Controller
             ->where('type', StatisticsModel::SIXTEENTH_STATISTICS)
             ->get()
             ->pluck('value', 'key');
+
         $chats->push([
             'type' => 'highchart',
             'chart' => [
@@ -447,43 +450,120 @@ class StatisticsController extends Controller
             ],
         ]);
 
-        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
+        // $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
 
-        $eventData = [];
-        foreach ($categories as $key => $category) {
-            $eventData[] = [
-                'id' => $key,
-                'key' => $category,
-                'icon' => 'calendar',
-                'status' => 'success',
-                'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
-                'controls' => [
-                    [
-                        'method' => 'edit',
-                        'icon' => 'edit',
-                    ]
-                ],
-                'createdDate' => Carbon::parse($category / 1000)->isoFormat('YYYY-MM-DD'),
-                'body' => $eventsOfWeek[$category] ?? '',
+        // $eventData = [];
+        // foreach ($categories as $key => $category) {
+        //     $eventData[] = [
+        //         'id' => $key,
+        //         'key' => $category,
+        //         'icon' => 'calendar',
+        //         'status' => 'success',
+        //         'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
+        //         'controls' => [
+        //             [
+        //                 'method' => 'edit',
+        //                 'icon' => 'edit',
+        //             ]
+        //         ],
+        //         'createdDate' => Carbon::parse($category / 1000)->isoFormat('YYYY-MM-DD'),
+        //         'body' => $eventsOfWeek[$category] ?? '',
+        //     ];
+        // }
+
+        // // dd($eventData);
+
+        // $chats->push([
+        //     'type' => 'timeline',
+        //     "series" => [
+        //         [
+        //             'editable' => false,
+        //             "name" => "События недели",
+        //             "data" => array_values(collect($categories)->map(function ($category, $key) use ($eventsOfWeek) {
+        //                 return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($eventsOfWeek[$category] ?? 0)];
+        //             })->toArray()),
+        //             'description' => '',
+        //             'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
+        //         ],
+        //     ],
+        //     'items' => $eventData
+        // ]);
+
+        $reasons = Subscription::join('reasons', 'subscriptions.reason_id', '=', 'reasons.id')
+            ->select(
+                'reasons.title',
+                \DB::raw('DATE(subscriptions.updated_at + INTERVAL (8 - DAYOFWEEK(subscriptions.updated_at)) DAY) as date'),
+                \DB::raw("COUNT(subscriptions.id) as total")
+                // \DB::raw('DATEADD(DAY, 2 - DATEPART(WEEKDAY, subscriptions.updated_at), CAST(subscriptions.updated_at AS DATE))')
+            )
+            ->where('subscriptions.reason_id', '!=', null)
+            ->where('subscriptions.product_id', $product->id)
+            ->whereBetween('subscriptions.updated_at', [$from, $to])
+            ->groupBy(['subscriptions.product_id', 'reasons.title', 'subscriptions.updated_at'])
+            ->get()
+            ->groupBy('title')->transform(function($items, $k) {
+                return $items->groupBy(function ($item, $key) {
+                    return (int) Carbon::parse($item->date)->setTimezone('Asia/Almaty')->endOfWeek()->startOfDay()->valueOf();
+                })->transform(function ($items, $k) {
+                    return $items->count();
+                });
+            })->toArray();
+
+        // dd($reasons);
+        $reasonsSeries = [];
+        
+        foreach ($reasons as $key => $reason) {
+            $data = [];
+
+            foreach ($reason as $date => $total) {
+                $data[] = [
+                    'y' => $total,
+                    'x' => $date,
+                ];
+            }
+
+            $reasonsSeries[] = [
+                'name' => $key,
+                'data' => $data,
             ];
         }
 
-        // dd($eventData);
-
         $chats->push([
-            'type' => 'timeline',
-            "series" => [
-                [
-                    'editable' => false,
-                    "name" => "События недели",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($eventsOfWeek) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($eventsOfWeek[$category] ?? 0)];
-                    })->toArray()),
-                    'description' => '',
-                    'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
+            'type' => 'highchart',
+            'chart' => [
+                'type' => 'column'
+            ],
+            'title' => [
+                'text' => 'Причины отказов'
+            ],
+            // 'subtitle' => [
+            //     'text' => 'Source => WorldClimate.com'
+            // ],
+            'xAxis' => [
+                'type' => 'datetime',
+                // 'categories' => $categories,
+                'crosshair' => true
+            ],
+            'yAxis' => [
+                'min' => 0,
+                'title' => [
+                    'text' => 'Количество отказов'
+                ]
+            ],
+            'tooltip' => [
+                'headerFormat' => '<span style="font-size:10px">{point.key}</span><table>',
+                'pointFormat' => '<tr><td style="color:{series.color};padding:0">{series.name}: </td><td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                'footerFormat' => '</table>',
+                'shared' => true,
+                'useHTML' => true
+            ],
+            "series" => $reasonsSeries,
+            'plotOptions' => [
+                'column' => [
+                    'pointPadding' => 0,
+                    'borderWidth' => 0
                 ],
             ],
-            'items' => $eventData
         ]);
 
         return view('pages.statistics', compact('products', 'chats'));

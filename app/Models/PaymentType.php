@@ -10,8 +10,9 @@ class PaymentType extends Model
     use HasFactory, ModelBase;
 
     protected $fillable = [
-        'product_id',
-        'payment_type',
+        'title',
+        'name',
+        'is_active',
     ];
 
     protected $dates = [
