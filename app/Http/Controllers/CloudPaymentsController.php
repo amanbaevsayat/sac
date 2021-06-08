@@ -27,7 +27,7 @@ class CloudPaymentsController extends Controller
                 'customer_id' => $subscription->customer->id,
                 'product_id' => $subscription->product->id,
                 'user_id' => $lastPayment->user_id ?? null,
-                'type' => $subscription->type,
+                'type' => $subscription->payment_type,
                 'status' => 'new',
                 'amount' => $subscription->price,
                 'quantity' => 1,
