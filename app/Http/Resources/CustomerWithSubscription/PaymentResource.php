@@ -65,7 +65,7 @@ class PaymentResource extends JsonResource
             if ($this->status == 'new') {
                 $title = "{$createdAt}, создана разовая оплата оператором на сумму {$amount} тг";
             } elseif ($this->status == 'Completed') {
-                $title = "{$paidedAt}, успешно оплатил по разовой оплате {$amount} тг. " . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['from'] ?? $this->data['subscription']['first_ended_at'] ?? null)))->isoFormat('DD MMM YYYY') . ' - ' . Carbon::parse(date(DATE_ATOM, strtotime($this->data['subscription']['to'] ?? $this->data['subscription']['second_ended_at'] ?? null)))->isoFormat('DD MMM YYYY');
+                $title = "{$paidedAt}, успешно оплатил по разовой оплате {$amount} тг.";
             } elseif ($this->status == 'Declined') {
                 $description = $this->data['cloudpayments']['CardHolderMessage'] ?? null;
                 $title = "{$paidedAt}, ошибка при разовой оплате на сумму {$amount} тг (Описание: {$description})";
