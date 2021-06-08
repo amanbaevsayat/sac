@@ -18,17 +18,17 @@
                         <div class="col-sm-5">
                             <div class="card-input">
                                 <label class="card-input__label">Имя</label>
-                                <input type="text" class="card-input__input" value="{{ $subscription->customer->name }}" disabled>
+                                <input type="text" class="card-input__input" value="{{ $payment->subscription->customer->name }}" disabled>
                             </div>
                             <div class="card-input">
                                 <label class="card-input__label">Телефон абонента</label>
                                 <the-mask :masked="false" mask="+# (###) ### ##-##" type="text"
-                                    class="card-input__input" id="phone" value="{{ $subscription->customer->phone }}" required disabled>
+                                    class="card-input__input" id="phone" value="{{ $payment->subscription->customer->phone }}" required disabled>
                                 </the-mask>
                             </div>
                             {{--<div class="card-input">
                                 <label class="card-input__label">E-mail *</label>
-                                <input id="email" type="email" class="card-input__input" value="{{ $subscription->customer->email }}" required>
+                                <input id="email" type="email" class="card-input__input" value="{{ $payment->subscription->customer->email }}" required>
                                 <small class="form-text text-muted">На указанный e-mail будет отправлен чек об оплате</small>
                             </div>--}}
                         </div>
@@ -36,7 +36,7 @@
                         <div class="col-sm-6">
                             <div class="card-input">
                                 <label class="card-input__label">Услуга</label>
-                                <input type="text" class="card-input__input" value="{{ $subscription->product->title }}" disabled>
+                                <input type="text" class="card-input__input" value="{{ $payment->subscription->product->title }}" disabled>
                             </div>
                             <div class="card-input">
                                 <label class="card-input__label">Стоимость в месяц</label>
@@ -72,21 +72,12 @@ $( "#cloudpayment-widget-form" ).submit(function( event ) {
     var widget = new cp.CloudPayments();
     
     var data = JSON.parse('<?php echo $data; ?>');
-    widget.charge({ // options
-        publicId: '{{ $publicId }}', //id из личного кабинета
-        description: 'Подписка на ежемесячный онлайн-абонемент', //назначение
-        amount: {{ $payment->amount }}, //сумма
-        currency: 'KZT', //валюта
-        email: null, // Email
-        skin: "modern",
-        accountId: '{{ $subscription->id }}', //идентификатор плательщика (обязательно для создания подписки)
-        data: data
-    },
+    widget.charge(data,
     function (options) { // success
-        window.location.href = "{{ route('cloudpayments.thank_you', [$subscription->id]) }}";
+        window.location.href = "{{ route('cloudpayments.thank_you', [$payment->subscription->id]) }}";
     },
     function (reason, options) { // fail
-        window.location.href = "{{ route('cloudpayments.show_widget', [$subscription->id]) }}";
+        window.location.href = "{{ route('cloudpayments.show_widget', [$payment->subscription->id]) }}";
     });
 });
 </script>

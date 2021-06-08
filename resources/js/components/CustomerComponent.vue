@@ -86,7 +86,7 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="form-group col-sm-6">
+                                        <div class="form-group col-sm-6" v-if="subscription.payment_type != 'simple_payment'">
                                             <label for="started_at" class="col-form-label">Дата старта</label>
                                             <datetime
                                                 :name="'subscriptions.' + subIndex + '.started_at'"
@@ -100,7 +100,7 @@
                                                 :auto="true"
                                             ></datetime>
                                         </div>
-                                        <div class="form-group col-sm-6">
+                                        <div class="form-group col-sm-6" v-if="subscription.payment_type != 'simple_payment'">
                                             <label for="tries_at" class="col-form-label">Дата окончания абонемента и следующего платежа</label>
                                             <div v-if="subscription.payment_type == 'tries'">
                                                 <div v-show="!subscription.is_edit_ended_at">
@@ -151,43 +151,6 @@
                                             <select v-model="subscription.reason_id" :name="'subscriptions.' + subIndex + '.reason_id'" id="reason_id" class="col-sm-10 form-control">
                                                 <option v-for="(reason, reasonIndex) in subscription.reasons" :key="reasonIndex" :value="reason.id">{{ reason.title }}</option>
                                             </select>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <button data-toggle="modal" @click="showHistorySubscriptionModal(subscription.id)" class="btn btn-warning" >История абонемента</button>
-                                        </div>
-                                        <div :id="'modalHistorySubscription-' + subscription.id" class="modal">
-                                            <div class="modal-dialog modal-dialog-centered modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="exampleModalLongTitle">История абонемента</h5>
-                                                        <button type="button" class="close" @click="hideHistorySubscriptionModal(subscription.id)">
-                                                        <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="row">
-                                                            <vc-calendar
-                                                            :min-date='new Date(subscription.started_at)'
-                                                            :max-date='new Date(subscription.ended_at)'
-                                                            :columns="$screens({ default: 1, lg: 2 })"
-                                                            :rows="$screens({ default: 1, lg: 2 })"
-                                                            :is-expanded="$screens({ default: true, lg: true })"
-                                                            :attributes='subscription.history'
-                                                            />
-
-                                                            <div style="width: 100%; margin-top: 20px; text-align: center">
-                                                                <p><span style="color: green">Зеленый</span> - заморозка</p>
-                                                                <p><span style="color: red">Красный</span> - перевод</p>
-                                                                <p><span style="color: yellow">Желтый</span> - подписка</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <footer class="modal-footer">
-                                                        <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
-                                                        <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
-                                                    </footer>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                     <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
@@ -255,7 +218,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row" v-if="subscription.recurrent && subscription.payment_type == 'cloudpayments'" style="margin-bottom: 15px">
+                                    <div class="row" v-if="subscription.recurrent && (subscription.payment_type == 'cloudpayments' || subscription.payment_type == 'simple_payment')" style="margin-bottom: 15px">
                                         <div class="col-sm-6">
                                             <div class="recurrent_block">
                                                 <a target="_blank" :href="subscription.recurrent.link">{{ subscription.recurrent.link }}</a>
@@ -271,6 +234,42 @@
                                     <div v-show="type == 'edit'" class="row" style="margin-bottom: 15px;">
                                         <div class="col-sm-12">
                                             <a target="_blank" :href="'/userlogs?subscription_id=' + subscription.id">Логи абонемента</a>
+                                            <span> | </span>
+                                            <a style="color: #3490dc;cursor: pointer" @click="showHistorySubscriptionModal(subscription.id)">История абонемента</a>
+                                            <div :id="'modalHistorySubscription-' + subscription.id" class="modal">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="exampleModalLongTitle">История абонемента</h5>
+                                                            <button type="button" class="close" @click="hideHistorySubscriptionModal(subscription.id)">
+                                                            <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row">
+                                                                <vc-calendar
+                                                                :min-date='new Date(subscription.started_at)'
+                                                                :max-date='new Date(subscription.ended_at)'
+                                                                :columns="$screens({ default: 1, lg: 2 })"
+                                                                :rows="$screens({ default: 1, lg: 2 })"
+                                                                :is-expanded="$screens({ default: true, lg: true })"
+                                                                :attributes='subscription.history'
+                                                                />
+
+                                                                <div style="width: 100%; margin-top: 20px; text-align: center">
+                                                                    <p><span style="color: green">Зеленый</span> - заморозка</p>
+                                                                    <p><span style="color: red">Красный</span> - перевод</p>
+                                                                    <p><span style="color: yellow">Желтый</span> - подписка</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <footer class="modal-footer">
+                                                            <button @click="hideHistorySubscriptionModal(subscription.id)" type="button" class="btn btn-dark">Выйти</button>
+                                                            <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
+                                                        </footer>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -611,7 +610,7 @@ export default {
                 }
 
                 this.subscriptions.forEach((value, index, self) => {
-                    if (value.payment_type != 'cloudpayments') {
+                    if (value.payment_type != 'cloudpayments' || value.payment_type != 'simple_payment') {
                         this.customer = {
                             name: '',
                             phone: '',

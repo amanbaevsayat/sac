@@ -35,6 +35,7 @@ class Subscription extends Model
         'tries' => 'Пробует бесплатно',
         'transfer' => 'Прямой перевод',
         'cloudpayments' => 'Подписка',
+        'simple_payment' => 'Разовое списание',
     ];
 
     protected $fillable = [

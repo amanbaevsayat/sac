@@ -10,11 +10,15 @@ class CloudPaymentsController extends Controller
 {
     public function showWidget(int $subscriptionId, Request $request)
     {
-        $subscription = Subscription::whereId($subscriptionId)->whereNull('cp_subscription_id')->where('status', '!=', 'paid')->firstOr(function () {
-            abort(404);
-        });
+        $subscription = Subscription::whereId($subscriptionId)
+            ->whereNull('cp_subscription_id')
+            ->whereIn('payment_type', ['cloudpayments', 'simple_payment'])
+            ->where('status', '!=', 'paid')
+            ->firstOr(function () {
+                abort(404);
+            });
 
-        $payment = $subscription->payments()->whereStatus('new')->whereType('cloudpayments')->first();
+        $payment = $subscription->payments()->whereStatus('new')->whereType($subscription->payment_type)->first();
 
         // Если у юзера вышла ошибка с платежом, создаем новый
         if (!$payment) {
@@ -23,26 +27,33 @@ class CloudPaymentsController extends Controller
                 'customer_id' => $subscription->customer->id,
                 'product_id' => $subscription->product->id,
                 'user_id' => $lastPayment->user_id ?? null,
-                'type' => 'cloudpayments',
+                'type' => $subscription->type,
                 'status' => 'new',
                 'amount' => $subscription->price,
                 'quantity' => 1,
                 'paided_at' => Carbon::now(),
             ]);
+        } else {
+            $payment->update([
+                'type' => $subscription->payment_type,
+            ]);
         }
-        // $payment->amount = 10;
-        $product = $subscription->product;
-        $customer = $subscription->customer;
 
+        $publicId = env('CLOUDPAYMENTS_USERNAME');
         $data = [
-            'cloudPayments' => [
-                'recurrent' => [
-                    'interval' => 'Month',
-                    'period' => 1,
+            'publicId' => $publicId, //id из личного кабинета
+            'description' => '', //назначение
+            'amount' => $payment->amount, //сумма
+            'currency' => 'KZT', //валюта
+            'email' => null, // Email
+            'skin' => "modern",
+            'accountId' => $subscription->id, //идентификатор плательщика (обязательно для создания подписки)
+            'data' => [
+                'cloudPayments' => [
                     'customerReceipt' => [
                         'Items' => [ //товарные позиции
                             [
-                                'label' => $product->title, // наименование товара
+                                'label' => $subscription->product->title, // наименование товара
                                 'price' => $payment->amount, // цена
                                 'quantity' => 1.00, //количество
                                 'amount' => $payment->amount, // сумма
@@ -52,16 +63,31 @@ class CloudPaymentsController extends Controller
                                 'measurementUnit' => "шт" //единица измерения
                             ],
                         ],
+                        'calculationPlace' => "www.strela-academy.ru", //место осуществления расчёта, по умолчанию берется значение из кассы
                         'taxationSystem' => 0, //система налогообложения; необязательный, если у вас одна система налогообложения
-                        'email' => $customer->email, //e-mail покупателя, если нужно отправить письмо с чеком
-                        'phone' => $customer->phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+                        'email' => $subscription->customer->email, //e-mail покупателя, если нужно отправить письмо с чеком
+                        'phone' => $subscription->customer->phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
                         'isBso' => false,
                     ],
                 ],
+                'product' => [
+                    'id' => $payment->subscription->product->id,
+                ],
+                'subscription' => [
+                    'id' => $payment->subscription->id,
+                ],
+            ],
+        ];
+
+        if ($subscription->payment_type == 'cloudpayments') {
+            $data['description'] = 'Подписка на ежемесячный онлайн-абонемент';
+            $data['data']['cloudPayments']['recurrent'] = [
+                'interval' => 'Month',
+                'period' => 1,
                 'customerReceipt' => [
                     'Items' => [ //товарные позиции
                         [
-                            'label' => $product->title, // наименование товара
+                            'label' => $subscription->product->title, // наименование товара
                             'price' => $payment->amount, // цена
                             'quantity' => 1.00, //количество
                             'amount' => $payment->amount, // сумма
@@ -71,31 +97,19 @@ class CloudPaymentsController extends Controller
                             'measurementUnit' => "шт" //единица измерения
                         ],
                     ],
-                    'calculationPlace' => "www.strela-academy.ru", //место осуществления расчёта, по умолчанию берется значение из кассы
                     'taxationSystem' => 0, //система налогообложения; необязательный, если у вас одна система налогообложения
-                    'email' => $customer->email, //e-mail покупателя, если нужно отправить письмо с чеком
-                    'phone' => $customer->phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+                    'email' => $subscription->customer->email, //e-mail покупателя, если нужно отправить письмо с чеком
+                    'phone' => $subscription->customer->phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
                     'isBso' => false,
                 ],
-            ],
-            'product' => [
-                'id' => $product->id,
-            ],
-            'subscription' => [
-                'id' => $subscription->id,
-            ],
-        ];
-
-        $publicId = env('CLOUDPAYMENTS_USERNAME');
+            ];
+        } else if ($subscription->payment_type == 'simple_payment') {
+            $data['description'] = 'Покупка услуги - ' . $subscription->product->title;
+        }
 
         return view('cloudpayments.show-widget', [
             'payment' => $payment,
-            'customer' => $subscription->customer,
-            'subscription' => $subscription,
-            'product' => $subscription->product,
-            'price' => $subscription->price,
             'data' => json_encode($data),
-            'publicId' => $publicId,
         ]);
     }
 
