@@ -23,7 +23,7 @@ class SubscriptionResource extends JsonResource
             'is_edit_ended_at'  => false,
             'price'         => $this->price,
             'payment_type'  => $this->payment_type,
-            'payment_types' => $this->product->paymentTypes()->pluck('payment_type'),
+            'payment_types' => $this->product->paymentTypes()->pluck('name'),
             'started_at'    => $this->started_at ? date(DATE_ATOM, strtotime($this->started_at)) : null,
             'paused_at'     => $this->paused_at ? date(DATE_ATOM, strtotime($this->paused_at)) : null,
             'tries_at'      => $this->tries_at ? date(DATE_ATOM, strtotime($this->tries_at)) : null,

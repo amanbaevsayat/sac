@@ -28,7 +28,7 @@ Route::get("/test", function () {
     // $payments = Payment::whereStatus('Completed')->get()->groupBy('product_id');
     // foreach ($payments as $key => $productPayments) {
     //     $product = Product::whereId($key)->first();
-    //     $productPaymentTypes = $product->paymentTypes->pluck('id', 'payment_type')->toArray();
+    //     $productPaymentTypes = $product->paymentTypes->pluck('id', 'name')->toArray();
     //     $productBonuses = $product->productBonuses;
     //     unset($productPaymentTypes['tries']);
     //     foreach ($productPayments as $payment) {

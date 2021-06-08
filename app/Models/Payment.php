@@ -148,7 +148,7 @@ class Payment extends Model
                     ->where('paided_at', '<', $payment->paided_at)
                     ->where('id', '!=', $payment->id)
                     ->exists();
-                $paymentType = PaymentType::where('product_id', $payment->subscription->product_id)->where('payment_type', $payment->type)->first();
+                $paymentType = PaymentType::where('name', $payment->type)->first();
                 if (! $paymentType) {
                     \Log::error('Отсутствует тип платежа. Payment ID: ' . $payment->id);
                 }

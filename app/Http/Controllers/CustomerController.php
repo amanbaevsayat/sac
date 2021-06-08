@@ -44,7 +44,7 @@ class CustomerController extends Controller
         $products = Product::all();
         $data = [];
         foreach ($products as $product) {
-            $paymentTypes = $product->paymentTypes()->pluck('payment_type')->toArray();
+            $paymentTypes = $product->paymentTypes()->pluck('name')->toArray();
             if (! empty($paymentTypes)) {
                 foreach ($paymentTypes as $paymentType) {
                     $data[$product->id][$paymentType] = [

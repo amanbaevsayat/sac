@@ -18,8 +18,18 @@ class PaymentTypeResource extends JsonResource
         return [
             'type' => $this->name,
             'bonuses' => [
-                'firstPayment' => $this->productBonuses->where('is_active', true)->where('type', ProductBonus::FIRST_PAYMENT)->first()->amount ?? 0,
-                'repeatedPayment' => $this->productBonuses->where('is_active', true)->where('type', ProductBonus::REPEATED_PAYMENT)->first()->amount ?? 0,
+                'firstPayment' => $this->productBonuses
+                    ->where('product_id', $this->pivot->product_id)
+                    ->where('payment_type_id', $this->pivot->payment_type_id)
+                    ->where('is_active', true)
+                    ->where('type', ProductBonus::FIRST_PAYMENT)
+                    ->first()->amount ?? 0,
+                'repeatedPayment' => $this->productBonuses
+                    ->where('product_id', $this->pivot->product_id)
+                    ->where('payment_type_id', $this->pivot->payment_type_id)
+                    ->where('is_active', true)
+                    ->where('type', ProductBonus::REPEATED_PAYMENT)
+                    ->first()->amount ?? 0,
             ],
         ];
     }

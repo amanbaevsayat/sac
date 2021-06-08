@@ -200,10 +200,10 @@ class ProductController extends Controller
         }
 
         $product->paymentTypes()->detach();
+        $bonusIds = [];
         foreach ($paymentTypes as $item) {
             $paymentType = PaymentType::whereName($item['type'])->firstOrFail();
             $product->paymentTypes()->attach([$paymentType->id]);
-            $bonusIds = [];
             if (isset($item['bonuses'])) {
                 foreach ($item['bonuses'] as $type => $amount) {
                     $bonus = ProductBonus::updateOrCreate([
@@ -221,12 +221,12 @@ class ProductController extends Controller
 
                     $bonusIds[] = $bonus->id;
                 }
-
-                $paymentType->productBonuses()->whereNotIn('id', $bonusIds)->update([
-                    'is_active' => false,
-                ]);
             }
         }
+
+        ProductBonus::where('product_id' ,$product->id)->whereNotIn('id', $bonusIds)->update([
+            'is_active' => false,
+        ]);
 
         $product->prices()->whereNotIn('id', $priceIds)->delete();
         $product->reasons()->whereNotIn('id', $reasonIds)->update([
