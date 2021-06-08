@@ -30,7 +30,6 @@ class Customer extends Model
         parent::boot();
     
         static::updating(function ($customer) {
-            // dd($customer->getOriginal('phone'), $customer->phone);
             if ($customer->getOriginal('phone') != $customer->phone) {
                 UserLog::create([
                     'subscription_id' => null,
@@ -69,6 +68,11 @@ class Customer extends Model
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class, 'customer_id');
+    }
+
+    public function cards()
+    {
+        return $this->hasMany(Card::class, 'customer_id');
     }
 
     public function payments()

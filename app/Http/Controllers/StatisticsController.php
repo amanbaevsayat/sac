@@ -450,44 +450,65 @@ class StatisticsController extends Controller
             ],
         ]);
 
-        // $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
+        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
 
-        // $eventData = [];
-        // foreach ($categories as $key => $category) {
-        //     $eventData[] = [
-        //         'id' => $key,
-        //         'key' => $category,
-        //         'icon' => 'calendar',
-        //         'status' => 'success',
-        //         'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
-        //         'controls' => [
-        //             [
-        //                 'method' => 'edit',
-        //                 'icon' => 'edit',
-        //             ]
-        //         ],
-        //         'createdDate' => Carbon::parse($category / 1000)->isoFormat('YYYY-MM-DD'),
-        //         'body' => $eventsOfWeek[$category] ?? '',
-        //     ];
-        // }
+        $eventData = [];
+        foreach ($categories as $key => $category) {
+            $eventData[] = [
+                'x' => $category,
+                'name' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
+                'label' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
+                'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
+                'description' => 'awdawd',
+                // 'description' => $eventsOfWeek[$category] ?? '',
+            ];
+        }
 
-        // // dd($eventData);
-
-        // $chats->push([
-        //     'type' => 'timeline',
-        //     "series" => [
-        //         [
-        //             'editable' => false,
-        //             "name" => "События недели",
-        //             "data" => array_values(collect($categories)->map(function ($category, $key) use ($eventsOfWeek) {
-        //                 return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($eventsOfWeek[$category] ?? 0)];
-        //             })->toArray()),
-        //             'description' => '',
-        //             'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
-        //         ],
-        //     ],
-        //     'items' => $eventData
-        // ]);
+        $chats->push([
+            'type' => 'highchart',
+            'chart' => [
+                'zoomType' => 'x',
+                'type' => 'timeline'
+            ],
+            'xAxis' => [
+                'type' => 'datetime',
+                'visible' => false
+            ],
+            'yAxis' => [
+                'gridLineWidth' => 1,
+                'title' => null,
+                'labels' => [
+                    'enabled' => false
+                ]
+            ],
+            'legend' => [
+                'enabled' => false
+            ],
+            'title' => [
+                'text' => 'Timeline of Space Exploration'
+            ],
+            'subtitle' => [
+                'text' => 'Info source: <a href="https://en.wikipedia.org/wiki/Timeline_of_space_exploration">www.wikipedia.org</a>'
+            ],
+            'tooltip' => [
+                'style' => [
+                    'width' => 300
+                ]
+            ],
+            'series' => [
+                [
+                    'dataLabels' => [
+                        'allowOverlap' => false,
+                        // 'format' => '<span style="color:{point.color}">● </span><span style="font-weight: bold;" > ' .
+                        //     '{point.x:%d %b %Y}</span><br/>{point.label}'
+                    ],
+                    'marker' => [
+                        'symbol' => 'circle'
+                    ],
+                    'data' => $eventData
+                ],
+            ],
+        ]);
 
         $reasons = Subscription::join('reasons', 'subscriptions.reason_id', '=', 'reasons.id')
             ->select(

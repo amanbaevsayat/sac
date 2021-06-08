@@ -124,9 +124,10 @@ import 'vue-select/dist/vue-select.css';
 import VCalendar from 'v-calendar';
 import DatePicker from 'v-calendar/lib/components/date-picker.umd'
 import Calendar from 'v-calendar/lib/components/calendar.umd'
-import Highcharts from 'highcharts';
+import Highcharts from 'highcharts'
 import highchartsMore from 'highcharts/highcharts-more'
 import highchartsFunnel from 'highcharts/modules/funnel'
+
 highchartsMore(Highcharts);
 highchartsFunnel(Highcharts);
 import HighchartsVue from 'highcharts-vue'

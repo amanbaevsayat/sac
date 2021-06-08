@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Exceptions\NoticeException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -156,6 +157,7 @@ class CloudPaymentsController extends Controller
             }
 
             $subscription->update($updateData);
+            $this->updateOrCreateCard($subscription->customer, $data);
         }
 
         $data['CardHolderMessage'] = Payment::ERROR_CODES[$data['ReasonCode'] ?? 0];
@@ -180,6 +182,22 @@ class CloudPaymentsController extends Controller
         if (! isset($payment)) {
             throw new NoticeException('Не создался платеж. Transaction Id: ' . $data['TransactionId']);
         }
+    }
+
+    private function updateOrCreateCard(Customer $customer, array $data)
+    {
+        $customer->cards()->updateOrCreate([
+            'token' => $data['Token'],
+        ],
+        [
+            'token' => $data['Token'],
+            'first_six' => $data['CardFirstSix'] ?? null,
+            'last_four' => $data['CardLastFour'] ?? null,
+            'exp_date' => $data['CardExpDate'] ?? null,
+            'type' => $data['CardType'] ?? null,
+            'name' => $data['Name'] ?? null,
+
+        ]);
     }
 
     public function confirmNotification(Request $request)

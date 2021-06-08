@@ -11,7 +11,6 @@ class Card extends Model
     use HasFactory, SoftDeletes, ModelBase;
 
     protected $fillable = [
-        'subscription_id',
         'customer_id',
         'first_six',
         'last_four',
@@ -29,10 +28,5 @@ class Card extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function subscription()
-    {
-        return $this->belongsTo(Subscription::class);
     }
 }
