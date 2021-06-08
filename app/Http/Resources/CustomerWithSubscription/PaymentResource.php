@@ -61,7 +61,7 @@ class PaymentResource extends JsonResource
             } elseif ($this->status == 'Declined') {
                 $title = "{$updatedAt}, не оплатил переводом на сумму {$amount} тг";
             }
-        } elseif ($this->type == 'transfer') {
+        } elseif ($this->type == 'simple_payment') {
             if ($this->status == 'new') {
                 $title = "{$createdAt}, создана разовая оплата оператором на сумму {$amount} тг";
             } elseif ($this->status == 'Completed') {
