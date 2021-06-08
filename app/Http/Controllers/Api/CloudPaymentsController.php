@@ -129,30 +129,33 @@ class CloudPaymentsController extends Controller
             'from' => null,
             'to' => null,
         ];
-        if ($data['Status'] == 'Completed' && $data['SubscriptionId']) {
-            $subscriptionData = [
-                'from' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty'),
-                'to' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1),
-            ];
-
-            $oldEndedAt = Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty');
-            $newEndedAt = Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1);
-            UserLog::create([
-                'subscription_id' => $subscription->id,
-                'user_id' => Auth::id() ?? null,
-                'type' => UserLog::CP_AUTO_RENEWAL,
-                'data' => [
-                    'old' => $oldEndedAt,
-                    'new' => $newEndedAt,
-                    'request' => $data,
-                ],
-            ]);
-
-            $subscription->update([
-                'cp_subscription_id' => $data['SubscriptionId'],
+        if ($data['Status'] == 'Completed') {
+            $updateData = [
                 'status' => 'paid',
-                'ended_at' => $newEndedAt,
-            ]);
+            ];
+            if ($data['SubscriptionId']) {
+                $subscriptionData = [
+                    'from' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty'),
+                    'to' => Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1),
+                ];
+    
+                $oldEndedAt = Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty');
+                $newEndedAt = Carbon::createFromFormat('Y-m-d H:i:s', $subscription->ended_at, 'Asia/Almaty')->addMonths(1);
+                UserLog::create([
+                    'subscription_id' => $subscription->id,
+                    'user_id' => Auth::id() ?? null,
+                    'type' => UserLog::CP_AUTO_RENEWAL,
+                    'data' => [
+                        'old' => $oldEndedAt,
+                        'new' => $newEndedAt,
+                        'request' => $data,
+                    ],
+                ]);
+                $updateData['cp_subscription_id'] = $data['SubscriptionId'];
+                $updateData['ended_at'] = $newEndedAt;
+            }
+
+            $subscription->update($updateData);
         }
 
         $data['CardHolderMessage'] = Payment::ERROR_CODES[$data['ReasonCode'] ?? 0];
