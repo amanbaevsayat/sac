@@ -164,7 +164,7 @@ class CloudPaymentsController extends Controller
             'product_id' => $subscription->product->id,
             'customer_id' => $subscription->customer->id,
             'quantity' => 1,
-            'type' => 'cloudpayments',
+            'type' => $subscription->payment_type,
             'status' => $data['Status'],
             'amount' => $data['Amount'],
             'paided_at' => Carbon::createFromFormat('Y-m-d H:i:s', $data['DateTime'], 'UTC')->setTimezone('Asia/Almaty'),

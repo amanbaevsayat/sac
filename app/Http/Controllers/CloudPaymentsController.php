@@ -35,6 +35,7 @@ class CloudPaymentsController extends Controller
             ]);
         } else {
             $payment->update([
+                'amount' => $subscription->price,
                 'type' => $subscription->payment_type,
             ]);
         }
