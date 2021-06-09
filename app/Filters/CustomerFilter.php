@@ -26,6 +26,19 @@ class CustomerFilter extends BaseFilter
         
     }
 
+    public function customerNameOrPhone($value)
+    {
+        if ($value) {
+            $phone = preg_replace('/[^0-9]/', '', $value);
+            $query = "(name like '%{$value}%'";
+            if (!empty($phone)) {
+                $query .= " OR phone like '%{$phone}%' OR '{$phone}' LIKE CONCAT('%', phone, '%')";
+            }
+            $query .= ")";
+            return $this->builder->whereRaw($query);
+        }
+    }
+
     public function remarkId($value)
     {
         if (is_array($value)) {

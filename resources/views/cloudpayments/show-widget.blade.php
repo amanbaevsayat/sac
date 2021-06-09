@@ -39,7 +39,7 @@
                                 <input type="text" class="card-input__input" value="{{ $payment->subscription->product->title }}" disabled>
                             </div>
                             <div class="card-input">
-                                <label class="card-input__label">Стоимость в месяц</label>
+                                <label class="card-input__label">{{ $payment->type == 'cloudpayments' ? 'Стоимость в месяц' : 'Стоимость' }}</label>
                                 <input type="text" class="card-input__input" value="{{ $payment->amount }} тенге"
                                     disabled>
                             </div>

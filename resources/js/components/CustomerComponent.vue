@@ -609,25 +609,25 @@ export default {
                     this.subscriptions = customer.subscriptions;
                 }
 
-                this.subscriptions.forEach((value, index, self) => {
-                    if (value.payment_type != 'cloudpayments' || value.payment_type != 'simple_payment') {
-                        this.customer = {
-                            name: '',
-                            phone: '',
-                            email: '',
-                            comments: '',
-                        };
+                // this.subscriptions.forEach((value, index, self) => {
+                //     if (value.payment_type != 'cloudpayments' || value.payment_type != 'simple_payment') {
+                //         this.customer = {
+                //             name: '',
+                //             phone: '',
+                //             email: '',
+                //             comments: '',
+                //         };
 
-                        this.subscriptions = [];
-                        this.addProduct();
-                        this.customerId = null;
-                        this.customerIdProp = null;
-                        this.subscriptionId = null;
-                        this.subscriptionIdProp = null;
-                        $('#modal-customer-create').modal('hide');
-                        $('#modal-customer-edit').modal('hide');
-                    }
-                });
+                //         this.subscriptions = [];
+                //         this.addProduct();
+                //         this.customerId = null;
+                //         this.customerIdProp = null;
+                //         this.subscriptionId = null;
+                //         this.subscriptionIdProp = null;
+                //         $('#modal-customer-create').modal('hide');
+                //         $('#modal-customer-edit').modal('hide');
+                //     }
+                // });
                 if (document.getElementById("file")) {
                     document.getElementById("file").value = "";
                 }

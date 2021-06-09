@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UsersBonusesController;
 use App\Http\Controllers\StatisticsController;
 use App\Models\Bonus;
+use App\Models\Card;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Product;
@@ -65,6 +66,28 @@ Route::get("/test", function () {
     //     }
     // }
 })->name("test");
+
+Route::get("/test2", function () {
+    // $payments = Payment::whereType('cloudpayments')->whereStatus('Completed')->get();
+    // foreach ($payments as $payment) {
+    //     if (isset($payment->data['cloudpayments']) && isset($payment->data['cloudpayments']['Token']) && isset($payment->customer)) {
+    //         Card::updateOrCreate([
+    //             'customer_id' => $payment->customer->id,
+    //             'token' => $payment->data['cloudpayments']['Token'],
+    //         ],
+    //         [
+    //             'customer_id' => $payment->customer->id,
+    //             'token' => $payment->data['cloudpayments']['Token'],
+    //             'first_six' => $payment->data['cloudpayments']['CardFirstSix'] ?? null,
+    //             'last_four' => $payment->data['cloudpayments']['CardLastFour'] ?? null,
+    //             'exp_date' => $payment->data['cloudpayments']['CardExpDate'] ?? null,
+    //             'type' => $payment->data['cloudpayments']['CardType'] ?? null,
+    //             'name' => $payment->data['cloudpayments']['Name'] ?? '',
+    
+    //         ]);
+    //     }
+    // }
+})->name("test2");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
