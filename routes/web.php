@@ -77,6 +77,7 @@ Route::get("/test2", function () {
             ],
             [
                 'customer_id' => $payment->customer->id,
+                'cp_account_id' => $payment->data['cloudpayments']['AccountId'] ?? null,
                 'token' => $payment->data['cloudpayments']['Token'],
                 'first_six' => $payment->data['cloudpayments']['CardFirstSix'] ?? null,
                 'last_four' => $payment->data['cloudpayments']['CardLastFour'] ?? null,
@@ -120,6 +121,7 @@ Route::middleware(["auth"])->group(function () {
     Route::get('subscriptions/list', 'SubscriptionController@getList');
     Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
     Route::post('subscriptions/manualWriteOffPayment', 'SubscriptionController@manualWriteOffPayment');
+    Route::post('subscriptions/writeOffPaymentByToken', 'SubscriptionController@writeOffPaymentByToken');
 
     Route::get('userlogs/list', 'UserLogController@getList');
     Route::get('userlogs/filter', 'UserLogController@getFilters');

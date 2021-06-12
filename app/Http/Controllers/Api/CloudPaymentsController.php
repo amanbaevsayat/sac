@@ -103,11 +103,11 @@ class CloudPaymentsController extends Controller
 
     private function savePayment(array $data)
     {
-        $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
+        // $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
 
-        if (! isset($subscription)) {
-            $subscription = Subscription::whereId($data['AccountId'])->first();
-            if (! isset($subscription)) {
+        // if (! isset($subscription)) {
+            // $subscription = Subscription::whereId($data['AccountId'])->first();
+            // if (! isset($subscription)) {
                 $jsonData = '';
                 if (isset($data['Data']) && is_string($data['Data'])) {
                     $jsonData = json_decode($data['Data']);
@@ -115,8 +115,8 @@ class CloudPaymentsController extends Controller
                 if (isset($jsonData->subscription->id)) {
                     $subscription = Subscription::whereId($jsonData->subscription->id)->first();
                 }
-            }
-        }
+            // }
+        // }
 
         if (! isset($subscription)) {
             throw new NoticeException('Не найден абонемент. Transaction Id: ' . $data['TransactionId']);
@@ -188,8 +188,10 @@ class CloudPaymentsController extends Controller
     {
         $customer->cards()->updateOrCreate([
             'token' => $data['Token'],
+            'cp_account_id' => $data['AccoundId'],
         ],
         [
+            'cp_account_id' => $data['AccoundId'],
             'token' => $data['Token'],
             'first_six' => $data['CardFirstSix'] ?? null,
             'last_four' => $data['CardLastFour'] ?? null,

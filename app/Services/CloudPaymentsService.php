@@ -71,6 +71,20 @@ class CloudPaymentsService
         return $data;
     }
 
+    // Оплата по токену (рекарринг)
+    // https://developers.cloudpayments.ru/#oplata-po-tokenu-rekarring
+    public function paymentsTokensCharge(array $requestData)
+    {
+        $data = $this->response($this->call("/payments/tokens/charge", $requestData));
+
+        if (! isset($data['Success']) || $data['Success'] === false) {
+            \Log::error('Cloudpayments - paymentsTokensCharge: ' . $requestData['AccountId']);
+            \Log::error($data);
+        }
+
+        return $data;
+    }
+
     private function call(string $uri, array $data = null)
     {
         return $this->http->post("{$this->baseURL}{$uri}", $data);
