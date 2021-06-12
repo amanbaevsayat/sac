@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 use App\Filters\SubscriptionFilter;
 use App\Http\Resources\SubscriptionCollection;
+use App\Models\Card;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\UserLog;
@@ -237,13 +238,12 @@ class SubscriptionController extends Controller
             throw new \Exception('Ошибка! Обратитесь к менеджеру или администратору.', 500);
         }
 
-        if ($subscription->manual_write_off_at) {
-            $manualWriteOffPlusMinutes = Carbon::parse($subscription->manual_write_off_at)->addMinutes(3);
-            $now = Carbon::now();
-            if ($manualWriteOffPlusMinutes > $now) {
-                $diffSeconds = $manualWriteOffPlusMinutes->diffInSeconds($now);
-                throw new \Exception('Попробуйте через ' . $diffSeconds . ' секунд.', 500);
-            }
+        $manualWriteOffAt = isset($subscription->manual_write_off_at) ? $subscription->manual_write_off_at : Carbon::yesterday();
+        $manualWriteOffPlusMinutes = Carbon::parse($manualWriteOffAt)->addMinutes(2);
+        $now = Carbon::now();
+        if ($manualWriteOffPlusMinutes > $now) {
+            $diffSeconds = $manualWriteOffPlusMinutes->diffInSeconds($now);
+            throw new \Exception('Попробуйте через ' . $diffSeconds . ' секунд.', 500);
         }
 
         $cloudpaymentService = new CloudPaymentsService();
@@ -266,7 +266,78 @@ class SubscriptionController extends Controller
         }
 
         return response()->json([
-            'message' => 'Запрос на списание отправлен.'
+            'message' => 'Запрос на списание отправлен. Обновите страницу через минуту.'
+        ], 200);
+    }
+
+    public function writeOffPaymentByToken(Request $request)
+    {
+        $subscriptionId = $request->get('subscriptionId');
+        $cardId = $request->get('cardId');
+        $subscription = Subscription::whereId($subscriptionId)->firstOrFail();
+        $card = $subscription->customer->cards()->whereId($cardId)->firstOrFail();
+
+        $manualWriteOffAt = isset($subscription->manual_write_off_at) ? $subscription->manual_write_off_at : Carbon::yesterday();
+        $manualWriteOffPlusMinutes = Carbon::parse($manualWriteOffAt)->addMinutes(2);
+        $now = Carbon::now();
+        if ($manualWriteOffPlusMinutes > $now) {
+            $diffSeconds = $manualWriteOffPlusMinutes->diffInSeconds($now);
+            throw new \Exception('Попробуйте через ' . $diffSeconds . ' секунд.', 500);
+        }
+
+        $cloudpaymentService = new CloudPaymentsService();
+        try {
+            UserLog::create([
+                'subscription_id' => $subscription->id,
+                'user_id' => Auth::id(),
+                'type' => UserLog::MANUAL_WRITE_OFF,
+                'data' => [],
+            ]);
+            $subscription->update([
+                'manual_write_off_at' => Carbon::now(),
+            ]);
+            $cloudpaymentService->paymentsTokensCharge([
+                'Amount' => $subscription->price,
+                'Currency' => 'KZT',
+                'AccountId' => $subscription->id,
+                'Token' => $card->token,
+                'Description' => 'Оплата услуги - ' . $subscription->product->title,
+                'JsonData' => [
+                    'cloudPayments' => [
+                        'customerReceipt' => [
+                            'Items' => [ //товарные позиции
+                                [
+                                    'label' => $subscription->product->title, // наименование товара
+                                    'price' => $subscription->price, // цена
+                                    'quantity' => 1.00, //количество
+                                    'amount' => $subscription->price, // сумма
+                                    'vat' => 0, // ставка НДС
+                                    'method' => 0, // тег-1214 признак способа расчета - признак способа расчета
+                                    'object' => 0, // тег-1212 признак предмета расчета - признак предмета товара, работы, услуги, платежа, выплаты, иного предмета расчета
+                                    'measurementUnit' => "шт" //единица измерения
+                                ],
+                            ],
+                            'calculationPlace' => "www.strela-academy.ru", //место осуществления расчёта, по умолчанию берется значение из кассы
+                            'taxationSystem' => 0, //система налогообложения; необязательный, если у вас одна система налогообложения
+                            'email' => $subscription->customer->email, //e-mail покупателя, если нужно отправить письмо с чеком
+                            'phone' => $subscription->customer->phone, //телефон покупателя в любом формате, если нужно отправить сообщение со ссылкой на чек
+                            'isBso' => false,
+                        ],
+                    ],
+                    'product' => [
+                        'id' => $subscription->product_id,
+                    ],
+                    'subscription' => [
+                        'id' => $subscription->id,
+                    ],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            throw new \Exception('Ошибка при запросе на ручное списание денег. Попробуйте позднее', 500);
+        }
+
+        return response()->json([
+            'message' => 'Запрос на списание отправлен. Обновите страницу через минуту.'
         ], 200);
     }
 }

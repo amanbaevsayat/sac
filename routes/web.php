@@ -68,25 +68,10 @@ Route::get("/test", function () {
 })->name("test");
 
 Route::get("/test2", function () {
-    // $payments = Payment::whereType('cloudpayments')->whereStatus('Completed')->get();
-    // foreach ($payments as $payment) {
-    //     if (isset($payment->data['cloudpayments']) && isset($payment->data['cloudpayments']['Token']) && isset($payment->customer)) {
-    //         Card::updateOrCreate([
-    //             'customer_id' => $payment->customer->id,
-    //             'token' => $payment->data['cloudpayments']['Token'],
-    //         ],
-    //         [
-    //             'customer_id' => $payment->customer->id,
-    //             'token' => $payment->data['cloudpayments']['Token'],
-    //             'first_six' => $payment->data['cloudpayments']['CardFirstSix'] ?? null,
-    //             'last_four' => $payment->data['cloudpayments']['CardLastFour'] ?? null,
-    //             'exp_date' => $payment->data['cloudpayments']['CardExpDate'] ?? null,
-    //             'type' => $payment->data['cloudpayments']['CardType'] ?? null,
-    //             'name' => $payment->data['cloudpayments']['Name'] ?? '',
-    
-    //         ]);
-    //     }
-    // }
+    $customers = Customer::whereHas('cards', function ($query) {
+        $query->whereNotNull('token');
+    }, '>', 1)->get();
+    dd(count($customers));
 })->name("test2");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
@@ -120,6 +105,7 @@ Route::middleware(["auth"])->group(function () {
     Route::get('subscriptions/list', 'SubscriptionController@getList');
     Route::get('subscriptions/filter', 'SubscriptionController@getFilters');
     Route::post('subscriptions/manualWriteOffPayment', 'SubscriptionController@manualWriteOffPayment');
+    Route::post('subscriptions/writeOffPaymentByToken', 'SubscriptionController@writeOffPaymentByToken');
 
     Route::get('userlogs/list', 'UserLogController@getList');
     Route::get('userlogs/filter', 'UserLogController@getFilters');

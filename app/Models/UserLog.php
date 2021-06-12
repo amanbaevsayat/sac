@@ -21,7 +21,7 @@ class UserLog extends Model
     const CUSTOMER_PHONE = 9;       // 9) Телефон абонемента
     const START_DATE = 10;          // 10) Дата старта абонемента
     const CHANGE_SUBSCRIPTION_USER  = 11; // 11) Оператор абонемента
-    const MANUAL_WRITE_OFF          = 12; // 12) Кнопка ручное списание
+    const MANUAL_WRITE_OFF          = 12; // 12) Кнопка ручное списание с подписки
 
     const TYPES = [
         self::END_DATE              => 'Дата окончания',

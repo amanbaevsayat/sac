@@ -14,7 +14,7 @@ class CustomerResource extends JsonResource
      */
     public function toArray($request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'phone' => $this->phone,
@@ -22,5 +22,17 @@ class CustomerResource extends JsonResource
             'comments' => $this->comments,
             'subscriptions' => SubscriptionResource::collection($this->subscriptions),
         ];
+
+        $customerCard = $this->cards->first();
+
+        if (isset($customerCard)) {
+            $data['card'] = [
+                'id' => $customerCard->id,
+                'type' => $customerCard->type,
+                'last_four' => $customerCard->last_four,
+            ];
+        }
+
+        return $data;
     }
 }
