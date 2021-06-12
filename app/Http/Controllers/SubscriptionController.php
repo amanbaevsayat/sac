@@ -333,6 +333,7 @@ class SubscriptionController extends Controller
                 ],
             ]);
         } catch (\Throwable $e) {
+            dd($e);
             throw new \Exception('Ошибка при запросе на ручное списание денег. Попробуйте позднее', 500);
         }
 
