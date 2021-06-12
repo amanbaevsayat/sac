@@ -3,12 +3,6 @@
         <div class="modal bd-example-modal-lg" :id="'modal-customer-' + type">
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Карточка клиента</h5>
-                        <button type="button" data-dismiss="modal" class="close">
-                        <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
                     <pulse-loader style="z-index: 999; background: rgba(0, 0, 0, 0.19); height: 100%; line-height: 100vh;" class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
                     <div class="card" style="padding-bottom: 0px">
                         <div class="card-body">
@@ -224,12 +218,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row" v-if="customer.card && (subscription.payment_type == 'simple_payment')" style="margin-bottom: 15px">
-                                        <div class="col-sm-12">
-                                            <span><span style="font-weight: bold">{{ customer.card.type }}</span> (конец карты - {{ customer.card.last_four }}) </span>
-                                            <button type="button" class="btn btn-dark" :id="'writeOffPaymentByToken-' + subscription.id" @click="writeOffPaymentByToken(subscription.id, customer.card.id)">Списать оплату с привязанной карты</button>
-                                        </div>
-                                    </div>
                                     <div class="row" v-if="subscription.recurrent && (subscription.payment_type == 'cloudpayments' || subscription.payment_type == 'simple_payment')" style="margin-bottom: 15px">
                                         <div class="col-sm-6">
                                             <div class="recurrent_block">
@@ -398,24 +386,6 @@ export default {
         this.getOptions();
     },
     methods: {
-        writeOffPaymentByToken(subId, cardId) {
-            document.getElementById('writeOffPaymentByToken-' + subId).disabled = true;
-            this.spinnerData.loading = true;
-
-            axios.post('/subscriptions/writeOffPaymentByToken', {
-                subscriptionId: subId,
-                cardId: cardId
-            }).then(response => {
-                this.spinnerData.loading = false;
-                document.getElementById('writeOffPaymentByToken-' + subId).disabled = false;
-                Vue.$toast.success(response.data.message);
-            })
-            .catch(err => {
-                this.spinnerData.loading = false;
-                document.getElementById('writeOffPaymentByToken-' + subId).disabled = false;
-                Vue.$toast.error(err.response.data.message);
-            });
-        },
         showTab(subIndex) {
             let k = 0;
             this.subscriptions.forEach((sub, key) => {
