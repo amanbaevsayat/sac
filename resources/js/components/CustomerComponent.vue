@@ -224,7 +224,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row" v-if="customer.card && (subscription.payment_type == 'simple_payment')" style="margin-bottom: 15px">
+                                    <div class="row" v-if="customer.card && (subscription.payment_type == 'simple_payment') && subscription.status != 'Completed'" style="margin-bottom: 15px">
                                         <div class="col-sm-12">
                                             <span><span style="font-weight: bold">{{ customer.card.type }}</span> (конец карты - {{ customer.card.last_four }}) </span>
                                             <button type="button" class="btn btn-dark" :id="'writeOffPaymentByToken-' + subscription.id" @click="writeOffPaymentByToken(subscription.id, customer.card.id)">Списать оплату с привязанной карты</button>
@@ -633,6 +633,7 @@ export default {
                         phone: customer.phone,
                         email: customer.email,
                         comments: customer.comments,
+                        card: customer.card,
                     };
 
                     this.subscriptions = customer.subscriptions;

@@ -188,10 +188,10 @@ class CloudPaymentsController extends Controller
     {
         $customer->cards()->updateOrCreate([
             'token' => $data['Token'],
-            'cp_account_id' => $data['AccoundId'],
+            'cp_account_id' => $data['AccountId'],
         ],
         [
-            'cp_account_id' => $data['AccoundId'],
+            'cp_account_id' => $data['AccountId'],
             'token' => $data['Token'],
             'first_six' => $data['CardFirstSix'] ?? null,
             'last_four' => $data['CardLastFour'] ?? null,
