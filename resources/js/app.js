@@ -127,9 +127,11 @@ import Calendar from 'v-calendar/lib/components/calendar.umd'
 import Highcharts from 'highcharts'
 import highchartsMore from 'highcharts/highcharts-more'
 import highchartsFunnel from 'highcharts/modules/funnel'
+import highchartsTimeline from 'highcharts/modules/timeline'
 
 highchartsMore(Highcharts);
 highchartsFunnel(Highcharts);
+highchartsTimeline(Highcharts);
 import HighchartsVue from 'highcharts-vue'
 Highcharts.setOptions({
     lang: {

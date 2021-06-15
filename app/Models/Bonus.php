@@ -18,6 +18,8 @@ class Bonus extends Model
     ];
 
     const HEADERS = [
+        'simple_payment-firstPayment' => 'Новые платежи по разовому списанию',
+        'simple_payment-repeatedPayment' => 'Повторные платежи по разовому списанию',
         'transfer-firstPayment' => 'Новые платежи по прямому переводу',
         'transfer-repeatedPayment' => 'Повторные платежи по прямому переводу',
         'cloudpayments-firstPayment' => 'Новые платежи по подписке',

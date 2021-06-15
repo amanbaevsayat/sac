@@ -456,11 +456,12 @@ class StatisticsController extends Controller
         foreach ($categories as $key => $category) {
             $eventData[] = [
                 'x' => $category,
-                'name' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
-                'label' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
-                'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY'),
-                'description' => 'awdawd',
-                // 'description' => $eventsOfWeek[$category] ?? '',
+                // 'name' => $this->getTimelineName($request->get('period'), Carbon::parse($category / 1000)->isoFormat('DD MMM, YY')),
+                'name' => $this->getTimelineName($request->get('period'), $category),
+                // 'label' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
+                // 'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
+                // 'description' => 'awdawd',
+                'description' => $eventsOfWeek[$category] ?? '',
             ];
         }
 
@@ -475,36 +476,29 @@ class StatisticsController extends Controller
                 'visible' => false
             ],
             'yAxis' => [
-                'gridLineWidth' => 1,
-                'title' => null,
-                'labels' => [
-                    'enabled' => false
-                ]
+                'visible' => false,
             ],
             'legend' => [
                 'enabled' => false
             ],
             'title' => [
-                'text' => 'Timeline of Space Exploration'
-            ],
-            'subtitle' => [
-                'text' => 'Info source: <a href="https://en.wikipedia.org/wiki/Timeline_of_space_exploration">www.wikipedia.org</a>'
+                'text' => 'События недели'
             ],
             'tooltip' => [
                 'style' => [
-                    'width' => 300
-                ]
+                    'width' => 400
+                ],
+                'useHTML' => true,
             ],
             'series' => [
                 [
+                    'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
                     'dataLabels' => [
-                        'allowOverlap' => false,
-                        // 'format' => '<span style="color:{point.color}">● </span><span style="font-weight: bold;" > ' .
-                        //     '{point.x:%d %b %Y}</span><br/>{point.label}'
+                        'connectorWidth' => 3,
                     ],
-                    'marker' => [
-                        'symbol' => 'circle'
-                    ],
+                    // 'marker' => [
+                    //     'symbol' => 'circle'
+                    // ],
                     'data' => $eventData
                 ],
             ],
@@ -572,8 +566,8 @@ class StatisticsController extends Controller
                 ]
             ],
             'tooltip' => [
-                'headerFormat' => '<span style="font-size:10px">{point.key}</span><table>',
-                'pointFormat' => '<tr><td style="color:{series.color};padding:0">{series.name}: </td><td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+                'headerFormat' => '<table>',
+                'pointFormat' => '<tr><td style="color:{series.color};padding:0">{series.name}: </td><td style="padding:0"><b> {point.y}</b></td></tr>',
                 'footerFormat' => '</table>',
                 'shared' => true,
                 'useHTML' => true
@@ -588,6 +582,17 @@ class StatisticsController extends Controller
         ]);
 
         return view('pages.statistics', compact('products', 'chats'));
+    }
+
+    private function getTimelineName($period, $category)
+    {
+        $start = $period == 'week' ? 
+            Carbon::parse($category / 1000)->startOfWeek()->isoFormat('DD') : 
+            Carbon::parse($category / 1000)->startOfMonth()->isoFormat('DD');
+        $end = $period == 'week' ? 
+            Carbon::parse($category / 1000)->endOfWeek()->isoFormat('DD MMM, YY') : 
+            Carbon::parse($category / 1000)->endOfMonth()->isoFormat('DD MMM, YY');
+        return $start . ' - ' . $end;
     }
 
     public function financial(Request $request)

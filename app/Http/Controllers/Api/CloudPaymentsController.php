@@ -103,20 +103,21 @@ class CloudPaymentsController extends Controller
 
     private function savePayment(array $data)
     {
-        // $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
+        $subscription = Subscription::where('cp_subscription_id', $data['SubscriptionId'])->whereNotNull('cp_subscription_id')->first();
 
-        // if (! isset($subscription)) {
-            // $subscription = Subscription::whereId($data['AccountId'])->first();
-            // if (! isset($subscription)) {
-                $jsonData = '';
-                if (isset($data['Data']) && is_string($data['Data'])) {
-                    $jsonData = json_decode($data['Data']);
-                }
-                if (isset($jsonData->subscription->id)) {
-                    $subscription = Subscription::whereId($jsonData->subscription->id)->first();
-                }
-            // }
-        // }
+        if (! isset($subscription)) {
+            $jsonData = '';
+            if (isset($data['Data']) && is_string($data['Data'])) {
+                $jsonData = json_decode($data['Data']);
+            }
+            if (isset($jsonData->subscription->id)) {
+                $subscription = Subscription::whereId($jsonData->subscription->id)->first();
+            }
+
+            if (! isset($subscription)) {
+                $subscription = Subscription::whereId($data['AccountId'])->first();
+            }
+        }
 
         if (! isset($subscription)) {
             throw new NoticeException('Не найден абонемент. Transaction Id: ' . $data['TransactionId']);

@@ -162,8 +162,11 @@ class UsersBonusesController extends Controller
             )
             ->where('bonuses.product_id', $productId)
             ->where('bonuses.date_type', $period)
+            ->where('product_bonuses.amount', '>', 0)
             ->orderBy('payment_types.name')
-            ->get()->groupBy('unix_date')->transform(function($item, $k) {
+            ->get()
+            // ->where('total_bonus', '>', 0)
+            ->groupBy('unix_date')->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
                     return $item->payment_type . '-' . $item->type;
                 })->sortKeys();

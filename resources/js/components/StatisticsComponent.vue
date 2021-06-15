@@ -122,32 +122,24 @@
                         <p v-show="item.description" style="margin-bottom: 0px"><span :style="'font-size: 24px; color:' + item.color">•</span> - {{ item.description }}</p>
                     </div>
                 </div>
-                <div class="card card-body" v-else-if="chart.type == 'timeline'">
-                    <h2 style="margin-bottom: 15px; text-align: center">{{ chart.series[0].name }}</h2>
-                    <simple-timeline
-                        :items="chart.items"
-                        dateFormat="DD MMM, YY"
-                        @timeline-edit="timelineEdit(chart.items, chart.series[0].statisticsType, $event)"
-                        v-on="$listeners"
-                    ></simple-timeline>
-                    <div id="timeline-modal" class="modal">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLongTitle">{{ timeline.title }}</h5>
-                                    <button type="button" class="close" @click="closeTimelineModal()">
-                                    <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <vue-editor v-model="timeline.data" />
-                                </div>
-                                <footer class="modal-footer">
-                                    <button @click="saveTimelineModal()" type="button" class="btn btn-primary">Сохранить</button>
-                                </footer>
+                <div id="timeline-modal" class="modal">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">{{ timeline.title }}</h5>
+                                <button type="button" class="close" @click="closeTimelineModal()">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
+                            <div class="modal-body">
+                                <vue-editor v-model="timeline.data" />
+                            </div>
+                            <footer class="modal-footer">
+                                <button @click="saveTimelineModal()" type="button" class="btn btn-primary">Сохранить</button>
+                            </footer>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -215,9 +207,38 @@ import { VueEditor } from "vue2-editor";
                         return moment(value.value).tz('Asia/Almaty').lang("ru").format('LL');
                     }
                 };
+
+                if (chart.chart.type == 'timeline') {
+                    this.charts[index].plotOptions = {
+                        series: {
+                            cursor: 'pointer',
+                            point: {
+                                events: {
+                                    click: (e) => {
+                                        this.pointClick(e, index);
+                                    }
+                                }
+                            }
+                        }
+                    };
+                }
             }.bind(this));
         },
         methods: {
+            pointClick(e, index) {
+                this.chartsProp[index].series[0].data.forEach(function(series, i) {
+                    if (e.point.category == series.x) {
+                        console.log(index);
+                        this.timeline = {
+                            title: series.name,
+                            data: series.description,
+                            statisticsType: this.chartsProp[index].series[0].statisticsType,
+                            key: series.x,
+                        };
+                    }
+                }.bind(this));
+                this.showTimelineModal();
+            },
             clearTimeline() {
                 this.timeline = {
                     title: '',
