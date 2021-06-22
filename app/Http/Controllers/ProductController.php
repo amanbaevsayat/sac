@@ -122,7 +122,7 @@ class ProductController extends Controller
     {
         access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
-        $productUsers = $product->users;
+        // $productUsers = $product->users;
         $reasons = $product->reasons()->where('is_active', true)->pluck('title');
         $users = User::all()->pluck('account', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
@@ -134,7 +134,7 @@ class ProductController extends Controller
             'reasons' => $reasons,
             'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
             'paymentTypes' => $paymentTypes,
-            'productUsers' => ProductUsersResource::collection($productUsers),
+            // 'productUsers' => ProductUsersResource::collection($productUsers),
             'users' => $users,
         ]);
     }
@@ -167,7 +167,7 @@ class ProductController extends Controller
         $reasonIds = [];
         $paymentTypeIds = [];
         $prices = $request['prices'] ?? [];
-        $productUsers = $request['productUsers'] ?? [];
+        // $productUsers = $request['productUsers'] ?? [];
         $paymentTypes = $request['paymentTypes'] ?? [];
         $productReasons = $request['reasons'] ?? [];
 
@@ -232,16 +232,16 @@ class ProductController extends Controller
         $product->reasons()->whereNotIn('id', $reasonIds)->update([
             'is_active' => false,
         ]);
-        $product->users()->detach();
+        // $product->users()->detach();
 
-        foreach ($productUsers as $productUser) {
-            $product->users()->attach([
-                $productUser['id'] => [
-                    'stake' => $productUser['stake'],
-                    'employment_at' => Carbon::parse($productUser['employment_at']),
-                ],
-            ]);
-        }
+        // foreach ($productUsers as $productUser) {
+        //     $product->users()->attach([
+        //         $productUser['id'] => [
+        //             'stake' => $productUser['stake'],
+        //             'employment_at' => Carbon::parse($productUser['employment_at']),
+        //         ],
+        //     ]);
+        // }
     }
 
     /**

@@ -65,6 +65,60 @@ class StatisticsController extends Controller
         $productId = $request->input('productId');
         $product = Product::whereId($productId)->firstOrFail();
 
+        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
+
+        $eventData = [];
+        foreach ($categories as $key => $category) {
+            $eventData[] = [
+                'x' => $category,
+                // 'name' => $this->getTimelineName($request->get('period'), Carbon::parse($category / 1000)->isoFormat('DD MMM, YY')),
+                'name' => $this->getTimelineName($request->get('period'), $category),
+                // 'label' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
+                // 'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
+                // 'description' => 'awdawd',
+                'description' => $eventsOfWeek[$category] ?? '',
+            ];
+        }
+
+        $chats->push([
+            'type' => 'highchart',
+            'chart' => [
+                'zoomType' => 'x',
+                'type' => 'timeline'
+            ],
+            'xAxis' => [
+                'type' => 'datetime',
+                'visible' => false
+            ],
+            'yAxis' => [
+                'visible' => false,
+            ],
+            'legend' => [
+                'enabled' => false
+            ],
+            'title' => [
+                'text' => 'События недели'
+            ],
+            'tooltip' => [
+                'style' => [
+                    'width' => 400
+                ],
+                'useHTML' => true,
+            ],
+            'series' => [
+                [
+                    'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
+                    'dataLabels' => [
+                        'connectorWidth' => 3,
+                    ],
+                    // 'marker' => [
+                    //     'symbol' => 'circle'
+                    // ],
+                    'data' => $eventData
+                ],
+            ],
+        ]);
+
         $newLeadsFirst = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIRST_STATISTICS)->get()->pluck('value', 'key');
         $newLeadsSecond = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::SECOND_STATISTICS)->get()->pluck('value', 'key');
         $connectedToWhatsapp = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::THIRTEENTH_STATISTICS)->get()->pluck('value', 'key');
@@ -446,60 +500,6 @@ class StatisticsController extends Controller
                             'color' => '#000'
                         ]
                     ]
-                ],
-            ],
-        ]);
-
-        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
-
-        $eventData = [];
-        foreach ($categories as $key => $category) {
-            $eventData[] = [
-                'x' => $category,
-                // 'name' => $this->getTimelineName($request->get('period'), Carbon::parse($category / 1000)->isoFormat('DD MMM, YY')),
-                'name' => $this->getTimelineName($request->get('period'), $category),
-                // 'label' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
-                // 'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
-                // 'description' => 'awdawd',
-                'description' => $eventsOfWeek[$category] ?? '',
-            ];
-        }
-
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'zoomType' => 'x',
-                'type' => 'timeline'
-            ],
-            'xAxis' => [
-                'type' => 'datetime',
-                'visible' => false
-            ],
-            'yAxis' => [
-                'visible' => false,
-            ],
-            'legend' => [
-                'enabled' => false
-            ],
-            'title' => [
-                'text' => 'События недели'
-            ],
-            'tooltip' => [
-                'style' => [
-                    'width' => 400
-                ],
-                'useHTML' => true,
-            ],
-            'series' => [
-                [
-                    'statisticsType' => StatisticsModel::EVENTS_OF_WEEK,
-                    'dataLabels' => [
-                        'connectorWidth' => 3,
-                    ],
-                    // 'marker' => [
-                    //     'symbol' => 'circle'
-                    // ],
-                    'data' => $eventData
                 ],
             ],
         ]);

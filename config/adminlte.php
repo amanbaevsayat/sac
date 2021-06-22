@@ -273,6 +273,17 @@ return [
             ]
         ],
 
+        // products
+        [
+            'text' => 'Команды',
+            'url'  => '/teams',
+            'icon' => 'fa fa-users',
+            "can"  => [
+                'can-head',
+                'can-host',
+            ]
+        ],
+
         // customers
         [
             'text' => 'Клиенты',

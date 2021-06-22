@@ -36,6 +36,7 @@ class Bonus extends Model
         'product_bonus_id',
         'date_type',
         'unix_date',
+        'team_id',
         'amount', // Количество платежей
     ];
 

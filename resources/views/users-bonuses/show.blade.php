@@ -5,7 +5,7 @@
 $data = [
     'from' => request()->get('from') ?? null,
     'to' => request()->get('to') ?? null,
-    'productId' => request()->get('productId') ?? null,
+    'teamId' => request()->get('teamId') ?? null,
     'period' => request()->get('period') ?? null,
     'currentPoint' => request()->get('currentPoint') ?? null,
     'lastPoint' => request()->get('lastPoint') ?? null,
@@ -15,7 +15,7 @@ $data = [
 @endphp
 <users-bonuses-component 
     route-prop="{{ route(\Request::route()->getName()) }}"
-    :products-prop="{{ json_encode($products) }}"
+    :teams-prop="{{ json_encode($teams) }}"
     :periods-prop="{{ json_encode(\App\Models\Bonus::PERIODS) }}"
     :data-prop="{{ json_encode($data) }}"
     :chart-prop="{{ json_encode($chart) }}"

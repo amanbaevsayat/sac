@@ -104,6 +104,7 @@ class Payment extends Model
         'paided_at',
         'data',
         'product_bonus_id',
+        'team_id',
     ];
 
     protected $dates = [
@@ -138,6 +139,12 @@ class Payment extends Model
         static::created(function ($payment) {
             if (! $payment->subscription) {
                 \Log::error('Отсутствует абонемент. Payment ID: ' . $payment->id);
+            } else {
+                if (! $payment->subscription->team_id) {
+                    \Log::error('Отсутствует team_id. Payment ID: ' . $payment->id);
+                } else {
+                    $payment->team_id = $payment->subscription->team_id;
+                }
             }
 
             // Присвоение бонуса к платежу

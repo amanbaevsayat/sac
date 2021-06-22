@@ -84,11 +84,21 @@ class CustomerController extends Controller
 
         $users = User::all()->pluck('account', 'id')->toArray();
 
+        $userRole = Auth::user()->getRole();
+
+        if (Auth::user()->teams->count() > 0) {
+            $userTeamIds = Auth::user()->teams->pluck('id');
+        } else {
+            $userTeamIds = [];
+        }
+
         return response()->json([
             'quantities' => Payment::QUANTITIES,
             'paymentTypes' => $data,
             'users' => $users,
             'user' => Auth::id(),
+            'userRole' => $userRole,
+            'userTeamIds' => $userTeamIds,
         ], 200);
     }
 
@@ -125,9 +135,11 @@ class CustomerController extends Controller
             $endedAt = Carbon::parse($item['ended_at']);
             $triesAt = Carbon::parse($item['tries_at']);
 
-            $subscription = $customer->subscriptions()->updateOrCreate([
+            $subscription = Subscription::updateOrCreate([
                 'product_id' => $item['product_id'],
+                'customer_id' => $customer->id,
             ], [
+                'customer_id' => $customer->id,
                 'price' => $item['price'],
                 'payment_type' => $item['payment_type'],
                 'started_at' => Carbon::parse($item['started_at']),
@@ -137,14 +149,22 @@ class CustomerController extends Controller
                 'reason_id' => $item['reason_id'],
             ]);
 
-            if (! isset($data['customer']['id'])) {
+            // Если абонемент создается
+            if ($subscription->wasRecentlyCreated) {
+                // Если у оператора есть команда
+                if (Auth::user()->teams->count() > 0) {
+                    $subscription->update([
+                        'team_id' => Auth::user()->teams->random()->id,
+                    ]);
+                }
+
                 $subscription->update([
                     'tries_at' => Carbon::parse($item['tries_at']),
                 ]);
             }
+
             if ($subscription->payment_type == 'cloudpayments') {
                 // Если оператор изменил дату следующего платежа, то делаем запрос в cp, на изменения даты
-                
             } elseif ($subscription->payment_type == 'transfer') {
                 if (isset($item['newPayment']['check'])) {
                     $payment = $subscription->payments()->create([

@@ -19,9 +19,9 @@
                         <div class="row">
                             <div class="col">
                                 <div class="form-group">
-                                    <label for="started_at" class="col-form-label">Выберите команду</label>
-                                    <select v-model="data.teamId" name="teamId" class="form-control">
-                                        <option v-for="(team, optionIndex) in teams" :key="optionIndex" :value="team.id">{{ team.name }}</option>
+                                    <label for="started_at" class="col-form-label">Выберите продукт</label>
+                                    <select v-model="data.productId" name="productId" class="form-control">
+                                        <option v-for="(product, optionIndex) in products" :key="optionIndex" :value="product.id">{{ product.title }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -164,7 +164,7 @@ export default {
     props: [
         'routeProp',
         'dataProp',
-        'teamsProp',
+        'productsProp',
         'periodsProp',
         'chartProp',
         'usersBonusesProp',
@@ -186,12 +186,12 @@ export default {
             route: this.routeProp,
             chart: this.chartProp,
             filterOpen: false,
-            teams: this.teamsProp,
+            products: this.productsProp,
             periods: this.periodsProp,
             data: {
                 from: moment(this.dataProp.from).tz('Asia/Almaty').format(),
                 to: moment(this.dataProp.to).tz('Asia/Almaty').format(),
-                teamId: this.dataProp.teamId,
+                productId: this.dataProp.productId,
                 period: this.dataProp.period,
                 currentPoint: this.dataProp.currentPoint,
                 lastPoint: this.dataProp.lastPoint,

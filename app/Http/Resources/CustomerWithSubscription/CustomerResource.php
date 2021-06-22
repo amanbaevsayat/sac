@@ -4,6 +4,7 @@ namespace App\Http\Resources\CustomerWithSubscription;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerResource extends JsonResource
 {
@@ -31,6 +32,14 @@ class CustomerResource extends JsonResource
                 'type' => $customerCard->type,
                 'last_four' => $customerCard->last_four,
             ];
+        }
+
+        $data['userRole'] = Auth::user()->getRole();
+
+        if (Auth::user()->teams->count() > 0) {
+            $data['userTeamIds'] = Auth::user()->teams->pluck('id');
+        } else {
+            $data['userTeamIds'] = [];
         }
 
         return $data;

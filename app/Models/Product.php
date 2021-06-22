@@ -38,6 +38,11 @@ class Product extends Model
         return $this->belongsToMany(User::class)->withPivot('stake', 'employment_at');
     }
 
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class);
+    }
+
     public function prices()
     {
         return $this->hasMany(Price::class, 'product_id');

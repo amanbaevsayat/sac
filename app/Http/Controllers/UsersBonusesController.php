@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\StatisticsModel;
 use App\Models\Subscription;
+use App\Models\Team;
 use App\Models\User;
 use App\Models\UsersBonuses;
 use Carbon\Carbon;
@@ -57,51 +58,51 @@ class UsersBonusesController extends Controller
         ];
     }
 
-    private function getProductId(User $user, $productId)
+    private function getTeamId(User $user, $teamId)
     {
         if ($user->isOperator()) {
-            if (! $productId) {
-                $product = Product::whereHas('users', function ($query) use ($user) {
+            if (! $teamId) {
+                $team = Team::whereHas('users', function ($query) use ($user) {
                     $query->where('id', $user->id);
                 })->first();
 
-                if (isset($product)) {
-                    return $product->id;
+                if (isset($team)) {
+                    return $team->id;
                 } else {
                     abort(404, 'У оператора нет присвоенных услуг');
                 }
             } else {
-                $product = Product::whereId($productId)->whereHas('users', function ($query) use ($user) {
+                $team = Team::whereId($teamId)->whereHas('users', function ($query) use ($user) {
                     $query->where('id', $user->id);
                 })->first();
 
-                if (isset($product)) {
-                    return $product->id;
+                if (isset($team)) {
+                    return $team->id;
                 } else {
-                    $product = Product::whereHas('users', function ($query) use ($user) {
+                    $team = Team::whereHas('users', function ($query) use ($user) {
                         $query->where('id', $user->id);
                     })->first();
 
-                    if (isset($product)) {
-                        return $product->id;
+                    if (isset($team)) {
+                        return $team->id;
                     } else {
                         abort(404, 'У оператора нет присвоенных услуг');
                     }
                 }
             }
         } else {
-            if (! $productId) {
-                return Product::first()->id;
+            if (! $teamId) {
+                return Team::first()->id;
             } else {
-                $product = Product::whereId($productId)->first();
+                $team = Team::whereId($teamId)->first();
 
-                if (isset($product)) {
-                    return $productId;
+                if (isset($team)) {
+                    return $teamId;
                 } else {
-                    $product = Product::first();
+                    $team = Team::first();
 
-                    if (isset($product)) {
-                        return $product->id;
+                    if (isset($team)) {
+                        return $team->id;
                     } else {
                         abort(404, 'Нет активных услуг');
                     }
@@ -114,12 +115,12 @@ class UsersBonusesController extends Controller
     {
         access(['can-head', 'can-host', 'can-operator']);
         $user = User::whereId(Auth::id())->firstOrFail();
-        $products = $user->isOperator() ? Product::select('id', 'title')->whereHas('users', function ($query) use ($user) {
+        $teams = $user->isOperator() ? Team::select('id', 'name')->whereHas('users', function ($query) use ($user) {
             $query->where('id', $user->id);
-        })->get()->toArray() : Product::select('id', 'title')->get()->toArray();
+        })->get()->toArray() : Team::select('id', 'name')->get()->toArray();
         $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($request->input('period', 'week'));
         $data = [];
-        $data['productId'] = $this->getProductId($user, $request->get('productId'));
+        $data['teamId'] = $this->getTeamId($user, $request->get('teamId'));
 
         if (
             ! $request->has('currentPoint') ||
@@ -127,7 +128,7 @@ class UsersBonusesController extends Controller
             ! $request->has('period') ||
             ! $request->has('from') || 
             ! $request->has('to') ||
-            $data['productId'] != $request->get('productId')
+            $data['teamId'] != $request->get('teamId')
         ) {
             $data['currentPoint']   = $request->input('point') ?? $getCurrentAndLastPeriod['current'];
             $data['lastPoint']      = $request->input('point') ?? $getCurrentAndLastPeriod['last'];
@@ -141,12 +142,12 @@ class UsersBonusesController extends Controller
         $request->validate([
             "from"      => "required|date_format:Y-m-d",
             "to"        => "required|date_format:Y-m-d",
-            "productId" => "required",
+            "teamId"    => "required",
             "period"    => "required",
         ]);
 
         $period     = $request->input('period');
-        $productId  = $request->input('productId');
+        $teamId     = $request->input('teamId');
         $from       = Carbon::createFromFormat('Y-m-d', $request->input('from'), 'Asia/Almaty')->startOfDay()->setTimezone('Asia/Almaty');
         $to         = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
         $categories = $this->getPeriods($period, $from, $to);
@@ -160,7 +161,7 @@ class UsersBonusesController extends Controller
                 'payment_types.name as payment_type',
                 \DB::raw('(bonuses.amount * product_bonuses.amount) as total_bonus')
             )
-            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.team_id', $teamId)
             ->where('bonuses.date_type', $period)
             ->where('product_bonuses.amount', '>', 0)
             ->orderBy('payment_types.name')
@@ -179,7 +180,7 @@ class UsersBonusesController extends Controller
                 \DB::raw('MAX(bonuses.amount) AS max_amount'),
                 \DB::raw("CONCAT(payment_types.name,'-',product_bonuses.type) as bonusType")
             )
-            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.team_id', $teamId)
             ->where('bonuses.date_type', $period)
             ->groupBy(['bonusType'])
             ->get()
@@ -192,7 +193,7 @@ class UsersBonusesController extends Controller
                 \DB::raw("SUM(product_bonuses.amount * bonuses.amount) as total_bonus"),
                 'bonuses.unix_date'
             )
-            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.team_id', $teamId)
             ->where('bonuses.date_type', $period)
             ->groupBy('bonuses.unix_date')
             ->get()
@@ -208,7 +209,7 @@ class UsersBonusesController extends Controller
                 'bonus_user.stake',
                 \DB::raw("SUM(bonus_user.bonus_amount * product_bonuses.amount * bonus_user.stake / 100) as total_bonus"),
             )
-            ->where('bonuses.product_id', $productId)
+            ->where('bonuses.team_id', $teamId)
             ->where('bonuses.date_type', $period)
             ->groupBy('bonuses.unix_date', 'bonus_user.user_id', 'bonus_user.stake')
             ->get()
@@ -253,7 +254,7 @@ class UsersBonusesController extends Controller
         ];
 
         return view('users-bonuses.show', compact(
-            'products',
+            'teams',
             'chart',
             'usersBonuses',
             'usersBonusesForChart',

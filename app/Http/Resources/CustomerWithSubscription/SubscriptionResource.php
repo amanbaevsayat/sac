@@ -52,6 +52,7 @@ class SubscriptionResource extends JsonResource
             'history' => HistoryResource::collection($this->payments->where('status', '!=', 'new')->sortByDesc('type'))->collection->groupBy('type'),
             'reasons' => ReasonResource::collection($this->product->reasons->where('is_active', true) ?? []),
             'reason_id' => $this->reason_id,
+            'team_id' => $this->team_id,
         ];
 
         return $data;

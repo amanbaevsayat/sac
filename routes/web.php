@@ -89,6 +89,42 @@ Route::get("/test2", function () {
         }
     }
 })->name("test2");
+
+Route::get("/test3", function () {
+    $productsSubscriptions = Subscription::whereStatus('paid')->get()->groupBy('product_id');
+    $teams = [
+        'zhir-v-minus' => 1,
+        'yoga-lates' => 2,
+    ];
+    foreach ($productsSubscriptions as $productId => $subscriptions) {
+        $product = Product::whereId($productId)->first();
+        if ($product->code == 'zhir-v-minus' || $product->code == 'yoga-lates') {
+            foreach ($subscriptions as $subscription) {
+                $subscription->update([
+                    'team_id' => $teams[$subscription->product->code],
+                ]);
+            }
+        }
+    }
+})->name("test3");
+
+Route::get("/test4", function () {
+    $payments = Payment::whereStatus('Completed')->where('team_id', '')->get();
+    $teams = [
+        'zhir-v-minus' => 1,
+        'yoga-lates' => 2,
+    ];
+    foreach ($payments as $payment) {
+        if (isset($payment->subscription) && isset($payment->subscription->product)) {
+            $product = $payment->subscription->product;
+            if ($product->code == 'zhir-v-minus' || $product->code == 'yoga-lates') {
+                $payment->update([
+                    'team_id' => $teams[$product->code],
+                ]);
+            }
+        }
+    }
+})->name("test4");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
@@ -112,6 +148,9 @@ Route::middleware(["auth"])->group(function () {
     Route::get('products/list', 'ProductController@getList');
     Route::get('products/filter', 'ProductController@getFilters');
 
+    Route::get('teams/list', 'TeamController@getList');
+    Route::get('teams/filter', 'TeamController@getFilters');
+
     Route::get('users/list', 'UserController@getList');
     Route::get('users/filter', 'UserController@getFilters');
 
@@ -134,6 +173,7 @@ Route::middleware(["auth"])->group(function () {
     Route::resources([
         'customers' => 'CustomerController',
         'products' => 'ProductController',
+        'teams' => 'TeamController',
         'subscriptions' => 'SubscriptionController',
         'payments' => 'PaymentController',
         'users' => 'UserController',

@@ -87,4 +87,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Bonus::class)->withPivot('stake', 'bonus_amount');
     }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class);
+    }
 }

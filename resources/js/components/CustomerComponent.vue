@@ -49,7 +49,8 @@
                         <b-card no-body>
                             <b-tabs card>
                                 <!-- Render Tabs, supply a unique `key` to each tab -->
-                                <b-tab v-for="(subscription, subIndex) in subscriptions" :key="subIndex" :active="showTab(subIndex)" :title="getSubscriptionTitle(subscription.product_id)">
+                                <b-tab v-for="(subscription, subIndex) in subscriptions" :key="subIndex" :active="showTab(subIndex)" :title="getSubscriptionTitle(subscription.product_id)" style="position: relative;">
+                                    <div v-if="isDisabled(subscription)" style="width: 100%; height: 100%; display: block; background: #0000001a; z-index: 10000; top: 0; position: absolute; left: 0;"></div>
                                     <div class="row">
                                         <button 
                                             type="button" 
@@ -71,7 +72,7 @@
                                         </div>
                                         <div class="form-group col-sm-6">
                                             <label for="price" class="col-form-label">Цена</label>
-                                            <select v-model="subscription.price" :name="'subscriptions.' + subIndex + '.price'" id="price" class="col-sm-10 form-control">
+                                            <select v-model="subscription.price" :name="'subscriptions.' + subIndex + '.price'" id="price" class="col-sm-10 form-control" :disabled="isDisabled(subscription)">
                                                 <option v-if="subscription.price != null" :value="subscription.price" selected>{{ subscription.price }}</option>
                                                 <option v-for="(option, optionIndex) in getPrices(subscription.product_id)" :key="optionIndex" :value="option" v-if="option != subscription.price">{{ option }}</option>
                                             </select>
@@ -80,13 +81,13 @@
                                     <div class="row">
                                         <div class="form-group col-sm-6">
                                             <label for="payment_type" class="col-form-label">Тип оплаты</label>
-                                            <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="col-sm-10 form-control">
+                                            <select v-model="subscription.payment_type" :name="'subscriptions.' + subIndex + '.payment_type'" id="payment_type" class="col-sm-10 form-control" :disabled="isDisabled(subscription)">
                                                 <option v-for="(option, optionIndex) in getPaymentTypes(subscription.product_id)" :key="optionIndex" :value="optionIndex">{{ option.title }}</option>
                                             </select>
                                         </div>
                                         <div class="form-group col-sm-6">
                                             <label for="status" class="col-form-label">Статус абонемента</label>
-                                            <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="col-sm-10 form-control">
+                                            <select v-model="subscription.status" :name="'subscriptions.' + subIndex + '.status'" id="status" class="col-sm-10 form-control" :disabled="isDisabled(subscription)">
                                                 <option v-for="(option, optionIndex) in getStatuses(subscription.product_id, subscription.payment_type)" :key="optionIndex" :value="optionIndex">{{ option }}</option>
                                             </select>
                                         </div>
@@ -104,6 +105,7 @@
                                                 zone="Asia/Almaty"
                                                 format="dd LLLL"
                                                 :auto="true"
+                                                :disabled="isDisabled(subscription)"
                                             ></datetime>
                                         </div>
                                         <div class="form-group col-sm-6" v-if="subscription.payment_type != 'simple_payment'">
@@ -111,7 +113,7 @@
                                             <div v-if="subscription.payment_type == 'tries'">
                                                 <div v-show="!subscription.is_edit_ended_at">
                                                     <span class="ended_at-span">{{ showDate(subscription.tries_at) }}</span>
-                                                    <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
+                                                    <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at" :disabled="isDisabled(subscription)">Изменить</button>
                                                 </div>
                                                 <datetime
                                                     v-show="subscription.is_edit_ended_at"
@@ -124,12 +126,13 @@
                                                     zone="Asia/Almaty"
                                                     format="dd LLLL"
                                                     :auto="true"
+                                                    :disabled="isDisabled(subscription)"
                                                 ></datetime>
                                             </div>
                                             <div v-else-if="subscription.payment_type == 'transfer' || subscription.payment_type == 'cloudpayments'">
                                                 <div v-show="!subscription.is_edit_ended_at">
                                                     <span class="ended_at-span">{{ showDate(subscription.ended_at) }}</span>
-                                                    <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at">Изменить</button>
+                                                    <button class="btn btn-info" @click="subscription.is_edit_ended_at = !subscription.is_edit_ended_at" :disabled="isDisabled(subscription)">Изменить</button>
                                                 </div>
                                                 <datetime
                                                     v-show="subscription.is_edit_ended_at"
@@ -142,6 +145,7 @@
                                                     zone="Asia/Almaty"
                                                     format="dd LLLL"
                                                     :auto="true"
+                                                    :disabled="isDisabled(subscription)"
                                                 ></datetime>
                                             </div>
                                         </div>
@@ -154,14 +158,14 @@
                                     <div class="row" style="margin-bottom: 15px">
                                         <div v-if="subscription.status == 'refused'" class="form-group col-sm-6">
                                             <label for="reason_id" class="col-form-label">Причина отказа</label>
-                                            <select v-model="subscription.reason_id" :name="'subscriptions.' + subIndex + '.reason_id'" id="reason_id" class="col-sm-10 form-control">
+                                            <select v-model="subscription.reason_id" :name="'subscriptions.' + subIndex + '.reason_id'" id="reason_id" class="col-sm-10 form-control" :disabled="isDisabled(subscription)">
                                                 <option v-for="(reason, reasonIndex) in subscription.reasons" :key="reasonIndex" :value="reason.id">{{ reason.title }}</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
                                         <div class="col-sm-6">
-                                            <button data-toggle="modal" class="btn btn-primary" @click="showTransferModal(subscription.id)">Загрузить чек</button>
+                                            <button data-toggle="modal" class="btn btn-primary" @click="showTransferModal(subscription.id)" :disabled="isDisabled(subscription)">Загрузить чек</button>
                                         </div>
                                         <div :id="'modalTransfer-' + subscription.id" class="modal">
                                             <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -227,7 +231,7 @@
                                     <div class="row" v-if="customer.card && (subscription.payment_type == 'simple_payment') && subscription.status != 'paid'" style="margin-bottom: 15px">
                                         <div class="col-sm-12">
                                             <span><span style="font-weight: bold">{{ customer.card.type }}</span> (конец карты - {{ customer.card.last_four }}) </span>
-                                            <button type="button" class="btn btn-dark" :id="'writeOffPaymentByToken-' + subscription.id" @click="writeOffPaymentByToken(subscription.id, customer.card.id)">Списать оплату с привязанной карты</button>
+                                            <button type="button" class="btn btn-dark" :id="'writeOffPaymentByToken-' + subscription.id" @click="writeOffPaymentByToken(subscription.id, customer.card.id)" :disabled="isDisabled(subscription)">Списать оплату с привязанной карты</button>
                                         </div>
                                     </div>
                                     <div class="row" v-if="subscription.recurrent && (subscription.payment_type == 'cloudpayments' || subscription.payment_type == 'simple_payment')" style="margin-bottom: 15px">
@@ -342,6 +346,8 @@ export default {
     data() {
         return {
             customerId: this.customerIdProp,
+            userTeamIds: [],
+            userRole: 'operator',
             subscriptionId: this.subscriptionIdProp,
             type: this.typeProp,
             name: this.nameProp,
@@ -398,6 +404,17 @@ export default {
         this.getOptions();
     },
     methods: {
+        isDisabled(subscription) {
+            if (this.userRole == 'head' || this.userRole == 'host') {
+                return false;
+            }
+
+            if (subscription.team_id) {
+                return ! this.userTeamIds.includes(subscription.team_id);
+            } else {
+                return false;
+            }
+        },
         writeOffPaymentByToken(subId, cardId) {
             document.getElementById('writeOffPaymentByToken-' + subId).disabled = true;
             this.spinnerData.loading = true;
@@ -569,6 +586,8 @@ export default {
                     }
                     this.customer = data;
                     this.subscriptions = data.subscriptions;
+                    this.userTeamIds = data.userTeamIds;
+                    this.userRole = data.userRole;
                     let typesColor = this.typesColor;
                     this.subscriptions.forEach((subscription, subIndex, selfSubscriptions) => {
                         let hstr = [];
@@ -596,6 +615,8 @@ export default {
                 this.quantities = response.data.quantities;
                 this.users = response.data.users;
                 this.user = response.data.user;
+                this.userTeamIds = response.data.userTeamIds;
+                this.userRole = response.data.userRole;
             });
         },
         setFileToSubscription(value, index) {
@@ -719,6 +740,7 @@ export default {
                 id: null,
                 product_id: null,
                 reason_id: null,
+                team_id: null,
                 user_id: null,
                 price: null,
                 payment_type: null,
