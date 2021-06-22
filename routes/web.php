@@ -91,7 +91,7 @@ Route::get("/test2", function () {
 })->name("test2");
 
 Route::get("/test3", function () {
-    $productsSubscriptions = Subscription::whereStatus('paid')->get()->groupBy('product_id');
+    $productsSubscriptions = Subscription::whereNull('team_id')->whereStatus('paid')->get()->groupBy('product_id');
     $teams = [
         'zhir-v-minus' => 1,
         'yoga-lates' => 2,
@@ -109,7 +109,7 @@ Route::get("/test3", function () {
 })->name("test3");
 
 Route::get("/test4", function () {
-    $payments = Payment::whereStatus('Completed')->where('team_id', '')->get();
+    $payments = Payment::whereStatus('Completed')->whereNull('team_id')->get();
     $teams = [
         'zhir-v-minus' => 1,
         'yoga-lates' => 2,
