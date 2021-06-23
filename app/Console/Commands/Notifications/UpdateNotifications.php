@@ -97,7 +97,7 @@ class UpdateNotifications extends Command
 
         Notification::where('type', Notification::TYPE_ENDED_SUBSCRIPTIONS_DT_3)->whereNotIn('subscription_id', $fifthTypeSubscriptionsIds)->delete();
 
-        $sixthTypeSubscriptions = Subscription::whereIn('status', ['tries', 'waiting'])->wherePaymentType('tries')->whereRaw('CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END < ?', [$now])->get();
+        $sixthTypeSubscriptions = Subscription::whereIn('status', ['tries', 'waiting'])->wherePaymentType('tries')->whereRaw('CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END < ?', [$threeDaysAhead])->get();
         $sixthTypeSubscriptionsIds = [];
         foreach ($sixthTypeSubscriptions as $subscription) {
             $sixthTypeSubscriptionsIds[] = $subscription->id;
