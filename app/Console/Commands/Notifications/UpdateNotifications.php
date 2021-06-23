@@ -111,7 +111,7 @@ class UpdateNotifications extends Command
         }
         Notification::where('type', Notification::TYPE_ENDED_TRIAL_PERIOD)->whereNotIn('subscription_id', $sixthTypeSubscriptionsIds)->delete();
 
-        $seventhTypeSubscriptions = Subscription::whereIn('status', ['waiting', 'rejected'])->wherePaymentType('cloudpayments')->get();
+        $seventhTypeSubscriptions = Subscription::whereIn('status', ['waiting', 'rejected'])->get();
         $seventhTypeSubscriptionsIds = [];
         foreach ($seventhTypeSubscriptions as $subscription) {
             $seventhTypeSubscriptionsIds[] = $subscription->id;

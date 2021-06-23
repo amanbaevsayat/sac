@@ -27,12 +27,12 @@ class Notification extends Model
     const TYPE_ENDED_SUBSCRIPTIONS_DT = 4; // Закончились абонементы (прямой перевод)
     const TYPE_ENDED_SUBSCRIPTIONS_DT_3 = 5; // Заканчиваются абонементы (прямой перевод) До +3 дней
     const TYPE_ENDED_TRIAL_PERIOD = 6; // Закончился пробный период
-    const WAITING_PAYMENT_CP = 7; // Жду оплату по подписке
+    const WAITING_PAYMENT_CP = 7; // Жду оплату
 
     const TYPES = [
         self::TYPE_CANCEL_SUBSCRIPTION => 'Отменили подписку',
         self::TYPE_SUBSCRIPTION_ERRORS => 'Ошибки подписок',
-        self::WAITING_PAYMENT_CP => 'Жду оплату по подписке',
+        self::WAITING_PAYMENT_CP => 'Жду оплату',
         self::TYPE_ENDED_SUBSCRIPTIONS_DT => 'Закончились абонементы (прям. перевод)',
         self::TYPE_ENDED_SUBSCRIPTIONS_DT_3 => 'Заканчиваются абонементы (прям. перевод)',
         self::TYPE_ENDED_TRIAL_PERIOD => 'Закончился пробный период',
