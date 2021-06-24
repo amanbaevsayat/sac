@@ -198,7 +198,7 @@ class CloudPaymentsController extends Controller
             'last_four' => $data['CardLastFour'] ?? null,
             'exp_date' => $data['CardExpDate'] ?? null,
             'type' => $data['CardType'] ?? null,
-            'name' => $data['Name'] ?? null,
+            'name' => $data['Name'] ?? 'Default',
 
         ]);
     }

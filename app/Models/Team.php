@@ -13,6 +13,7 @@ class Team extends Model
 
     protected $fillable = [
         'name',
+        'title',
     ];
 
     public function products()

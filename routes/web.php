@@ -125,6 +125,15 @@ Route::get("/test4", function () {
         }
     }
 })->name("test4");
+
+Route::get("/test4", function () {
+    $clients = Customer::whereHas('subscriptions', function ($query) {
+        $query->whereIn('product_id', [1, 3])->whereStatus('paid');
+    }, '>', 1)->count();
+
+    dd($clients);
+
+})->name("test4");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
