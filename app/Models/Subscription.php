@@ -77,11 +77,17 @@ class Subscription extends Model
         parent::boot();
 
         static::creating(function ($query) {
+            // Если у команда оператора прикреплен к продукту
             $team = Auth::user()->teams->where('product_id', $query->product_id)->first();
 
             if (! $team) {
-                $subscription = $query->customer->subscriptions->where('product_id', $query->product_id)->sortBy('created_at')->first();
-                $team = $subscription->team;
+                // Ищем самый первый абонемент, у которого team_id != null
+                $subscription = $query->customer->subscriptions->where('team_id', '!=', null)->where('product_id', '!=', $query->product_id)->sortBy('created_at')->first();
+                if (! isset($subscription)) {
+                    $team = null;
+                } else {
+                    $team = $subscription->team;
+                }
             }
             $query->team_id = $team->id ?? null;
             $query->user_id = Auth::id();
