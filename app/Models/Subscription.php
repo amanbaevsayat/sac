@@ -78,7 +78,7 @@ class Subscription extends Model
 
         static::creating(function ($query) {
             $team = Auth::user()->teams->where('product_id', $query->product_id)->first();
-            $query->item_id = $team->id ?? null;
+            $query->team_id = $team->id ?? null;
             $query->user_id = Auth::id();
             $data = [
                 'cloudpayments' => $query->data['cloudpayments'] ?? [],
