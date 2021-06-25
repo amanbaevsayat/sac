@@ -155,19 +155,6 @@ class CustomerController extends Controller
 
             // Если абонемент создается
             if ($subscription->wasRecentlyCreated) {
-                // Если у оператора есть команда
-                if (Auth::user()->teams->count() > 0) {
-                    $teamCount = Auth::user()->teams->where('product_id', $subscription->product_id)->count();
-                    $teamId = $teamCount > 1
-                         ? Auth::user()->teams->where('product_id', $subscription->product_id)->random()->id
-                         : (Auth::user()->teams->where('product_id', $subscription->product_id)->first()->id ?? null);
-                    $subscription->update([
-                        'team_id' => $teamId,
-                    ]);
-                } else {
-                    \Log::error('У оператора нет команды. ID оператора: ' . Auth::id());
-                }
-
                 $subscription->update([
                     'tries_at' => Carbon::parse($item['tries_at']),
                 ]);
