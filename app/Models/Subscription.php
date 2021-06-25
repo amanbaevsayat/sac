@@ -78,6 +78,11 @@ class Subscription extends Model
 
         static::creating(function ($query) {
             $team = Auth::user()->teams->where('product_id', $query->product_id)->first();
+
+            if (! $team) {
+                $subscription = $query->customer->subscriptions->where('product_id', $query->product_id)->sortBy('created_at')->first();
+                $team = $subscription->team;
+            }
             $query->team_id = $team->id ?? null;
             $query->user_id = Auth::id();
             $data = [
@@ -205,6 +210,11 @@ class Subscription extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function customer()
