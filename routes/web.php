@@ -91,49 +91,59 @@ Route::get("/test2", function () {
 })->name("test2");
 
 Route::get("/test3", function () {
-    $productsSubscriptions = Subscription::whereNull('team_id')->whereStatus('paid')->get()->groupBy('product_id');
+    $subscriptions = Subscription::
+        // whereNull('team_id')
+        // ->whereStatus('paid')
+        whereNotIn('product_id', [1, 3])
+        ->get();
+        // ->groupBy('product_id');
+
     $teams = [
         'zhir-v-minus' => 1,
-        'yoga-lates' => 2,
+        'yoga-lates' => 2
     ];
-    foreach ($productsSubscriptions as $productId => $subscriptions) {
-        $product = Product::whereId($productId)->first();
-        if ($product->code == 'zhir-v-minus' || $product->code == 'yoga-lates') {
-            foreach ($subscriptions as $subscription) {
-                $subscription->update([
-                    'team_id' => $teams[$subscription->product->code],
-                ]);
+
+    // foreach ($productsSubscriptions as $productId => $subscriptions) {
+        foreach ($subscriptions as $subscription) {
+            $subs = $subscription->customer->subscriptions->where('team_id', '!=', null)->where('product_id', '!=', $subscription->productId);
+            $subscriptionCount = $subs->count();
+
+            if ($subscriptionCount == 0) {
+                $team = rand(1,2);
+            } else if ($subscriptionCount == 1) {
+                $team = $subs->first()->team_id;
+            } else {
+                $team = $subs->first()->team_id;
             }
+
+            $subscription->update([
+                'team_id' => $team,
+                // 'team_id' => $teams[$subscription->product->code],
+            ]);
         }
-    }
+    // }
 })->name("test3");
 
 Route::get("/test4", function () {
-    $payments = Payment::whereStatus('Completed')->whereNull('team_id')->get();
-    $teams = [
-        'zhir-v-minus' => 1,
-        'yoga-lates' => 2,
-    ];
+    $payments = Payment::
+        whereStatus('Completed')
+        // ->whereNull('team_id')
+        ->get();
+    $paymentIds = [];
     foreach ($payments as $payment) {
         if (isset($payment->subscription) && isset($payment->subscription->product)) {
-            $product = $payment->subscription->product;
-            if ($product->code == 'zhir-v-minus' || $product->code == 'yoga-lates') {
-                $payment->update([
-                    'team_id' => $teams[$product->code],
-                ]);
-            }
+            $payment->update([
+                'team_id' => $payment->subscription->team_id,
+            ]);
+        } else {
+            $paymentIds[] = $payment->id;
+            // dd($payment, $payment->subscription, $payment->product);
         }
     }
+
+    dd($paymentIds);
 })->name("test4");
 
-Route::get("/test4", function () {
-    $clients = Customer::whereHas('subscriptions', function ($query) {
-        $query->whereIn('product_id', [1, 3])->whereStatus('paid');
-    }, '>', 1)->count();
-
-    dd($clients);
-
-})->name("test4");
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();

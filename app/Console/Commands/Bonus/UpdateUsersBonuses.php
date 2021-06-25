@@ -76,7 +76,7 @@ class UpdateUsersBonuses extends Command
     
                     // Все успешные платежи услуги
                     $teamSuccessPayments = $product->payments->where('status', 'Completed')->where('team_id', '!=', null)->groupBy('team_id');
-    
+
                     foreach ($teamSuccessPayments as $teamId => $successPayments) {
                         $team = Team::whereId($teamId)->first();
                         $teamUsers = $team->users;

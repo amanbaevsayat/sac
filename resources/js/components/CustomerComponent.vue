@@ -162,6 +162,12 @@
                                                 <option v-for="(reason, reasonIndex) in subscription.reasons" :key="reasonIndex" :value="reason.id">{{ reason.title }}</option>
                                             </select>
                                         </div>
+                                        <div class="form-group col-sm-6" v-if="userRole != 'operator'">
+                                            <label for="team_id" class="col-form-label">Команда</label>
+                                            <select v-model="subscription.team_id" :name="'subscriptions.' + subIndex + '.team_id'" id="team_id" class="col-sm-10 form-control" :disabled="isDisabled(subscription)">
+                                                <option v-for="(team, teamIndex) in teamsProp" :key="teamIndex" :value="team.id">{{ team.name }}</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
                                         <div class="col-sm-6">
@@ -345,7 +351,7 @@ export default {
     ],
     data() {
         return {
-            customerId: this.customerIdProp,
+            teamsProp: [],
             userTeamIds: [],
             userRole: 'operator',
             subscriptionId: this.subscriptionIdProp,
@@ -617,6 +623,7 @@ export default {
                 this.user = response.data.user;
                 this.userTeamIds = response.data.userTeamIds;
                 this.userRole = response.data.userRole;
+                this.teamsProp = response.data.teams;
             });
         },
         setFileToSubscription(value, index) {

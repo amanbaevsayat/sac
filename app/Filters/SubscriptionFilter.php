@@ -56,6 +56,30 @@ class SubscriptionFilter extends BaseFilter
         }
     }
 
+    public function teamId($value)
+    {
+        if (is_array($value)) {
+            if ($value[0] == 'undefined') {
+                return $this->builder;
+            }
+            if (in_array(9999, $value)) {
+                return $this->builder->where('team_id', null);
+            } else {
+                return $this->builder->whereIn('team_id', $value);
+            }
+        } else {
+            if ($value == 'undefined') {
+                return $this->builder;
+            }
+            if (9999 == $value) {
+                return $this->builder->where('team_id', null);
+            } else {
+                return $this->builder->where('team_id', $value);
+            }
+            return $this->builder->where('team_id', $value);
+        }
+    }
+
     public function customerNameOrPhone($value)
     {
         if ($value) {

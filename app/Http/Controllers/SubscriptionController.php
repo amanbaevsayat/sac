@@ -10,6 +10,7 @@ use App\Http\Resources\SubscriptionCollection;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Card;
+use App\Models\Team;
 use App\Models\UserLog;
 use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
@@ -40,6 +41,9 @@ class SubscriptionController extends Controller
     {
         access(['can-operator', 'can-head', 'can-host']);
         $products = Product::get()->pluck('title', 'id');
+        $teams = Team::get()->pluck('name', 'id')->toArray();
+        $teams[9999] = 'Без команды';
+
         $data['main'] = [
             // [
             //     'name' => 'customer_id',
@@ -65,6 +69,12 @@ class SubscriptionController extends Controller
                 'title' => 'Тип оплаты',
                 'type' => 'select-multiple',
                 'options' => Subscription::PAYMENT_TYPE,
+            ],
+            [
+                'name' => 'team_id',
+                'title' => 'Команды',
+                'type' => 'select-multiple',
+                'options' => $teams,
             ],
             [
                 'name' => 'from_start_date',

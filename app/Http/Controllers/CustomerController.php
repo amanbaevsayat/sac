@@ -12,6 +12,7 @@ use App\Http\Resources\CustomerWithSubscription\CustomerResource as CustomerWith
 use App\Models\Subscription;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -92,6 +93,8 @@ class CustomerController extends Controller
             $userTeamIds = [];
         }
 
+        $teams = Team::select('id', 'name')->get()->toArray();
+
         return response()->json([
             'quantities' => Payment::QUANTITIES,
             'paymentTypes' => $data,
@@ -99,6 +102,7 @@ class CustomerController extends Controller
             'user' => Auth::id(),
             'userRole' => $userRole,
             'userTeamIds' => $userTeamIds,
+            'teams' => $teams,
         ], 200);
     }
 
@@ -167,6 +171,14 @@ class CustomerController extends Controller
                 $subscription->update([
                     'tries_at' => Carbon::parse($item['tries_at']),
                 ]);
+            }
+
+            if (Auth::user()->getRole() == 'head' || Auth::user()->getRole() == 'host') {
+                if (isset($item['team_id']) && $item['team_id']) {
+                    $subscription->update([
+                        'team_id' => $item['team_id'],
+                    ]);
+                }
             }
 
             if ($subscription->payment_type == 'cloudpayments') {
