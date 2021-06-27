@@ -78,7 +78,9 @@ class Subscription extends Model
 
         static::creating(function ($query) {
             // Если у команда оператора прикреплен к продукту
-            $team = Auth::user()->teams->where('product_id', $query->product_id)->first();
+            $team = Auth::user()->teams()->whereHas('products', function ($q) use ($query) {
+                $q->where('id', $query->product_id);
+            })->first();
 
             if (! $team) {
                 // Ищем самый первый абонемент, у которого team_id != null
@@ -226,6 +228,11 @@ class Subscription extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function reason()

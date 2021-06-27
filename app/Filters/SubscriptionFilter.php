@@ -76,7 +76,6 @@ class SubscriptionFilter extends BaseFilter
             } else {
                 return $this->builder->where('team_id', $value);
             }
-            return $this->builder->where('team_id', $value);
         }
     }
 

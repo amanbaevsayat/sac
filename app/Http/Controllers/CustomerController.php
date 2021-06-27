@@ -176,6 +176,7 @@ class CustomerController extends Controller
                         'customer_id' => $customer->id,
                         'product_id' => $subscription->product->id,
                         'user_id' => Auth::id(),
+                        'team_id' => $subscription->team_id,
                         'type' => 'transfer',
                         'status' => 'Completed',
                         'quantity' => $item['newPayment']['quantity'] ?? 1,

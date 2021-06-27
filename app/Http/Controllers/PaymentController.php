@@ -10,6 +10,7 @@ use App\Http\Resources\PaymentCollection;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Subscription;
+use App\Models\Team;
 use App\Models\UserLog;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -44,6 +45,8 @@ class PaymentController extends Controller
         unset($paymentTypes['tries']);
         unset($paymentTypes['frozen']);
         $products = Product::get()->pluck('title', 'id');
+        $teams = Team::get()->pluck('name', 'id')->toArray();
+        $teams[9999] = 'Без команды';
 
         $data['main'] = [
             [
@@ -63,6 +66,12 @@ class PaymentController extends Controller
                 'title' => 'Статус платежа',
                 'type' => 'select-multiple',
                 'options' => Payment::STATUSES,
+            ],
+            [
+                'name' => 'team_id',
+                'title' => 'Команды',
+                'type' => 'select-multiple',
+                'options' => $teams,
             ],
             [
                 'name' => 'amount',

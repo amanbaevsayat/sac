@@ -61,6 +61,10 @@ class SubscriptionCollection extends ResourceCollection
                     'title' => 'Cloudpayment ID',
                     'key' => 'cp_subscription_id',
                 ],
+                [
+                    'title' => 'Создал',
+                    'key' => 'user_id',
+                ],
             ],
             'pagination' => [
                 'current_page' => $this->currentPage(),
