@@ -34,6 +34,9 @@ class UserResource extends JsonResource
             'phone' => [
                 'value' => $this->phone,
             ],
+            'is_active' => [
+                'value' => $this->is_active ? 'Активный' : 'Не активный',
+            ],
         ];
     }
 }

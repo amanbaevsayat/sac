@@ -39,6 +39,11 @@ class UserCollection extends ResourceCollection
                     'title' => 'Телефон',
                     'key' => 'phone',
                 ],
+                [
+                    'name' => 'is_active',
+                    'title' => 'Статус',
+                    'type' => 'checkbox',
+                ],
             ],
             'pagination' => [
                 'current_page' => $this->currentPage(),
