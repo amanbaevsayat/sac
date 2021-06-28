@@ -542,6 +542,7 @@ export default {
             this.customerId = null;
             this.customerIdProp = null;
             this.subscriptions = [];
+            this.addProduct();
             this.$bvModal.hide('modal-customer-' + this.type);
             this.$bvModal.hide('modal-customer-create');
         },
