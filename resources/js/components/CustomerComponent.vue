@@ -150,11 +150,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'cloudpayments' && type == 'edit' && subscription.cp_subscription_id != null">
-                                        <div class="form-group col-sm-6">
-                                            <button type="button" class="btn btn-dark" :id="'subscription-' + subscription.id" @click="manualWriteOffPayment(subscription.id)">Ручное списание</button>
-                                        </div>
-                                    </div>
                                     <div class="row" style="margin-bottom: 15px">
                                         <div v-if="subscription.status == 'refused'" class="form-group col-sm-6">
                                             <label for="reason_id" class="col-form-label">Причина отказа</label>
@@ -162,11 +157,16 @@
                                                 <option v-for="(reason, reasonIndex) in subscription.reasons" :key="reasonIndex" :value="reason.id">{{ reason.title }}</option>
                                             </select>
                                         </div>
-                                        <div class="form-group col-sm-6" v-if="userRole != 'operator'">
+                                        <div class="form-group col-sm-6" v-if="userRole != 'operator' || userTeamIds.length > 1">
                                             <label for="team_id" class="col-form-label">Команда</label>
                                             <select v-model="subscription.team_id" :name="'subscriptions.' + subIndex + '.team_id'" id="team_id" class="col-sm-10 form-control" :disabled="isDisabled(subscription)">
                                                 <option v-for="(team, teamIndex) in teamsProp" :key="teamIndex" :value="team.id">{{ team.name }}</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'cloudpayments' && type == 'edit' && subscription.cp_subscription_id != null">
+                                        <div class="form-group col-sm-6">
+                                            <button type="button" class="btn btn-dark" :id="'subscription-' + subscription.id" @click="manualWriteOffPayment(subscription.id)">Ручное списание</button>
                                         </div>
                                     </div>
                                     <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">

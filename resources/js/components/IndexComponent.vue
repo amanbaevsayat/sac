@@ -220,7 +220,7 @@
                             <button v-if="prefix == 'subscriptions' || prefix == 'notifications'" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
-                            <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions' && prefix != 'notifications'">
+                            <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions' && prefix != 'notifications' && prefix != 'teams' && prefix != 'products'">
                                 <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" :id="'dropdownMenuButton' + itemsIndex" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="fa fa-cog"></i>
                                 </button>

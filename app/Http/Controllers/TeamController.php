@@ -168,9 +168,9 @@ class TeamController extends Controller
      */
     public function destroy(Team $team)
     {
-        access(['can-head', 'can-host']);
+        // access(['can-head', 'can-host']);
 
-        $team->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
+        // $team->delete();
+        // return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
     }
 }

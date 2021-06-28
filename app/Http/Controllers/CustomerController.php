@@ -160,7 +160,9 @@ class CustomerController extends Controller
                 ]);
             }
 
-            if (Auth::user()->getRole() == 'head' || Auth::user()->getRole() == 'host') {
+            $userTeamCount = Auth::user()->teams->count();
+
+            if (Auth::user()->getRole() == 'head' || Auth::user()->getRole() == 'host' || $userTeamCount > 1) {
                 if (isset($item['team_id']) && $item['team_id']) {
                     $subscription->update([
                         'team_id' => $item['team_id'],

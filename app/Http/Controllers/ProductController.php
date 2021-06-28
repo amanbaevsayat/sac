@@ -267,10 +267,10 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        access(['can-head', 'can-host']);
+        // access(['can-head', 'can-host']);
 
-        $product->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
+        // $product->delete();
+        // return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно удален.');
     }
 
     public function withPrices()
