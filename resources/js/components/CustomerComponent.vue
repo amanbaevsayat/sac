@@ -171,17 +171,17 @@
                                     </div>
                                     <div class="row" style="margin-bottom: 15px" v-if="subscription.payment_type == 'transfer'">
                                         <div class="col-sm-6">
-                                            <button data-toggle="modal" class="btn btn-primary" @click="showTransferModal(subscription.id)" :disabled="isDisabled(subscription)">Загрузить чек</button>
+                                            <button  class="btn btn-primary" @click="showTransferModal(subscription.id)" :disabled="isDisabled(subscription)">Загрузить чек</button>
                                         </div>
-                                        <div :id="'modalTransfer-' + subscription.id" class="modal">
-                                            <div class="modal-dialog modal-dialog-centered modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
+                                        <b-modal size="lg" hide-footer title="Загрузить чек" :id="'modalTransfer-' + subscription.id" class="modal">
+                                            <!-- <div class="modal-dialog modal-dialog-centered modal-lg"> -->
+                                                <!-- <div class="modal-content"> -->
+                                                    <!-- <div class="modal-header">
                                                         <h5 class="modal-title" id="exampleModalLongTitle">Загрузить чек</h5>
                                                         <button type="button" class="close" @click="hideTransferModal(subscription.id)">
                                                         <span aria-hidden="true">&times;</span>
                                                         </button>
-                                                    </div>
+                                                    </div> -->
                                                     <div class="modal-body">
                                                         <div class="row">
                                                             <div class="form-group col-sm-6">
@@ -230,9 +230,9 @@
                                                         <button @click="hideTransferModal(subscription.id, subscription.newPayment.to, subIndex)" type="button" class="btn btn-primary">Сохранить</button>
                                                         <!-- <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button> -->
                                                     </footer>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                <!-- </div>
+                                            </div> -->
+                                        </b-modal>
                                     </div>
                                     <div class="row" v-if="customer.card && (subscription.payment_type == 'simple_payment') && subscription.status != 'paid'" style="margin-bottom: 15px">
                                         <div class="col-sm-12">
@@ -487,10 +487,12 @@ export default {
         },
         hideTransferModal(id, toDate, index) {
             this.subscriptions[index].ended_at = toDate;
-            $('#modalTransfer-' + id).modal('hide');
+            // $('#modalTransfer-' + id).modal('hide');
+            this.$bvModal.hide('modalTransfer-' + id);
         },
         showTransferModal(id) {
-            $('#modalTransfer-' + id).modal('show');
+            // $('#modalTransfer-' + id).modal('show');
+            this.$bvModal.show('modalTransfer-' + id);
         },
         hideHistorySubscriptionModal(id) {
             $('#modalHistorySubscription-' + id).modal('hide');
