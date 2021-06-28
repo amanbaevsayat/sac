@@ -31,6 +31,12 @@
                 </div>
             </div>
             <div class="form-group row">
+                <label for="is_active" class="col-sm-2 col-form-label">Активен</label>
+                <div class="col-sm-10">
+                    <input type="checkbox" id="is_active" name="is_active" {{ ($user->is_active == true ? ' checked' : '') }}>
+                </div>
+            </div>
+            <div class="form-group row">
                 <label for="phone" class="col-sm-2 col-form-label">Телефон</label>
                 <div class="col-sm-10">
                     <phone-component name-prop="phone" value-prop="{{ $user->phone }}" class-prop="form-control">

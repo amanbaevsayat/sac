@@ -118,6 +118,7 @@ class UserController extends Controller
     {
         access(['can-head', 'can-host']);
         $data = $request->all();
+        $data['is_active'] = $request->get('is_active') == 'on' ? true : false;
         $data['password'] = bcrypt($request->get('pass'));
         $user->update($data);
 
