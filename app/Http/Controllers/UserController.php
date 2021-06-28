@@ -73,6 +73,7 @@ class UserController extends Controller
     {
         access(['can-head', 'can-host']);
         $data = $request->all();
+        $data['is_active'] = $request->get('is_active') == 'on' ? true : false;
         $data['password'] = bcrypt($request->get('pass'));
         $user = $user->create($data);
         return redirect()->route("{$this->root}.index")->with('success', 'Продукт успешно создан.');

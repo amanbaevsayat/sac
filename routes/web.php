@@ -148,7 +148,7 @@ Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();
 
-Route::middleware(["auth"])->group(function () {
+Route::middleware(["auth", 'auth.user'])->group(function () {
     Route::get("/dashboard", [HomeController::class, "dashboard"])->name("dashboard");
     Route::post("/statistics", [StatisticsController::class, "update"])->name("statistics.update");
     Route::post("/statistics/timeline", [StatisticsController::class, "updateTimeline"])->name("statistics_timeline.update");
