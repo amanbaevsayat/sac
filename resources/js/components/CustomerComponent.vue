@@ -1,14 +1,14 @@
 <template>
     <div>
-        <div class="modal bd-example-modal-lg" :id="'modal-customer-' + type">
-            <div class="modal-dialog modal-xl" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
+        <b-modal ref="modal-customer" hide-footer @hidden="closeModal()" no-fade size="xl" title="Карточка клиента" class="modal bd-example-modal-lg" :id="'modal-customer-' + type">
+            <!-- <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content"> -->
+                    <!-- <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLongTitle">Карточка клиента</h5>
                         <button type="button" data-dismiss="modal" class="close">
                         <span aria-hidden="true">&times;</span>
                         </button>
-                    </div>
+                    </div> -->
                     <pulse-loader style="z-index: 999; background: rgba(0, 0, 0, 0.19); height: 100%; line-height: 100vh;" class="spinner" :loading="spinnerData.loading" :color="spinnerData.color" :size="spinnerData.size"></pulse-loader>
                     <div class="card" style="padding-bottom: 0px">
                         <div class="card-body">
@@ -321,12 +321,12 @@
                         </b-card>
                     </div>
                     <footer class="modal-footer">
-                        <button @click="closeModal()" data-dismiss="modal" type="button" class="btn btn-secondary">Отмена</button>
+                        <button @click="closeModal()" type="button" class="btn btn-secondary">Отмена</button>
                         <button @click="submit()" type="button" class="btn btn-primary">Сохранить</button>
                     </footer>
-                </div>
-            </div>
-        </div>
+                <!-- </div>
+            </div> -->
+        </b-modal>
     </div>
 </template>
 <script>
@@ -533,13 +533,17 @@ export default {
             return moment(date).locale('ru').format('DD MMM YY');
         },
         closeModal() {
-            // this.customer = {
-            //     name: '',
-            //     phone: '',
-            //     email: '',
-            //     comments: '',
-            // };
-            // this.subscriptions = [];
+            this.customer = {
+                name: '',
+                phone: '',
+                email: '',
+                comments: '',
+            };
+            this.customerId = null;
+            this.customerIdProp = null;
+            this.subscriptions = [];
+            this.$bvModal.hide('modal-customer-' + this.type);
+            this.$bvModal.hide('modal-customer-create');
         },
         copyRecurrentLink(index) {
             var input = $('#recurrent-link-' + index);

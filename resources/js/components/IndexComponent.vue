@@ -175,7 +175,7 @@
                                 <input type="text" class="form-control form-control-sm" v-model="item.value" />
                             </div>
                             <div v-else-if="item.type == 'customer-link'">
-                                <a class="custom-link" role="button" @click="openModal(item.id, item.subscriptionId)" data-toggle="modal" data-target="#modal-customer-edit">{{ item.title }}</a>
+                                <a class="custom-link" role="button" @click="openModal(item.id, item.subscriptionId)">{{ item.title }}</a>
                             </div>
                             <div v-else-if="item.type == 'link'">
                                 <a class="custom-link" :href="item.value" role="button">{{ item.title }}</a>
@@ -353,6 +353,8 @@ export default {
                 this.subscriptionId = null;
                 this.customerId = customerId;
                 this.subscriptionId = subscriptionId;
+                // this.$refs['modal-customer'].show()
+                this.$bvModal.show('modal-customer-edit');
             },
             saveItem(items, id) {
                 let data = {};
