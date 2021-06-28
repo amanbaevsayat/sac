@@ -297,7 +297,7 @@
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <ul class="list-group">
-                                                <li class="list-group-item" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
+                                                <li :class="'list-group-item list-payment-' + payment.status" v-for="(payment, paymentIndex) in subscription.payments" :key="paymentIndex">
                                                     <a :href="payment.url" target="_blank">ID: {{ payment.id }}</a>
                                                     <span> | </span>
                                                     {{ payment.title }}
@@ -807,6 +807,12 @@ export default {
 }
 </script>
 <style scoped>
+.list-payment-Completed {
+    background: #00da1b40;
+}
+.list-payment-Declined {
+    background: #cc1f1f38;
+}
 .b-tabs .card-header {
     background-color: rgba(0,0,0,.03)!important;
     border-bottom: 1px solid rgba(0,0,0,.125)!important;
