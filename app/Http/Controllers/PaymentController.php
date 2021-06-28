@@ -74,11 +74,6 @@ class PaymentController extends Controller
                 'options' => $teams,
             ],
             [
-                'name' => 'amount',
-                'title' => 'Сумма',
-                'type' => 'input',
-            ],
-            [
                 'name' => 'from',
                 'title' => 'С даты',
                 'type' => 'date',
@@ -87,6 +82,11 @@ class PaymentController extends Controller
                 'name' => 'to',
                 'title' => 'По дату',
                 'type' => 'date',
+            ],
+            [
+                'name' => 'amount',
+                'title' => 'Сумма',
+                'type' => 'input',
             ],
             [
                 'name' => 'id',

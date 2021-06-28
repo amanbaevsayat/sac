@@ -141,9 +141,9 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        access(['can-head', 'can-host']);
+        // access(['can-head', 'can-host']);
 
-        $user->delete();
-        return redirect()->route("{$this->root}.index")->with('success', 'Пользователь успешно удален.');
+        // $user->delete();
+        // return redirect()->route("{$this->root}.index")->with('success', 'Пользователь успешно удален.');
     }
 }

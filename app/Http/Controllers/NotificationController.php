@@ -96,12 +96,12 @@ class NotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    // public function create()
-    // {
-    //     access(['can-operator', 'can-head', 'can-host']);
+    public function create()
+    {
+        access(['can-operator', 'can-head', 'can-host']);
 
-    //     return view("{$this->root}.create");
-    // }
+        return view("{$this->root}.create");
+    }
 
     /**
      * Store a newly created resource in storage.

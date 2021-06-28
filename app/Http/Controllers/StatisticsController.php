@@ -10,7 +10,7 @@ use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
-
+use Illuminate\Support\Str;
 class StatisticsController extends Controller
 {
     private function getPeriods($periodType, $from, $to)
@@ -69,13 +69,13 @@ class StatisticsController extends Controller
 
         $eventData = [];
         foreach ($categories as $key => $category) {
+            $label = Str::limit(strip_tags(html_entity_decode($eventsOfWeek[$category] ?? '')), $limit = 35, $end = '...');
             $eventData[] = [
                 'x' => $category,
-                // 'name' => $this->getTimelineName($request->get('period'), Carbon::parse($category / 1000)->isoFormat('DD MMM, YY')),
+                // 'name' => 'name',
                 'name' => $this->getTimelineName($request->get('period'), $category),
-                // 'label' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
-                // 'title' => Carbon::parse($category / 1000)->isoFormat('DD MMM, YY') . '123',
-                // 'description' => 'awdawd',
+                'label' => $label,
+                // 'title' => 'title',
                 'description' => $eventsOfWeek[$category] ?? '',
             ];
         }

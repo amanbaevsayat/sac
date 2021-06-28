@@ -167,6 +167,7 @@ class CloudPaymentsController extends Controller
             'transaction_id' => $data['TransactionId'],
         ], [
             'subscription_id' => $subscription->id,
+            'user_id' => $subscription->user_id,
             'product_id' => $subscription->product->id,
             'customer_id' => $subscription->customer->id,
             'quantity' => 1,

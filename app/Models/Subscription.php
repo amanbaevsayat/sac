@@ -86,7 +86,7 @@ class Subscription extends Model
                 // Ищем самый первый абонемент, у которого team_id != null
                 $subscription = $query->customer->subscriptions->where('team_id', '!=', null)->where('product_id', '!=', $query->product_id)->sortBy('created_at')->first();
                 if (! isset($subscription)) {
-                    $team = null;
+                    $team = Auth::user()->teams()->first();
                 } else {
                     $team = $subscription->team;
                 }
