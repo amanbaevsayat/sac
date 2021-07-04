@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Exceptions\NoticeException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Jobs\Cloudpayments\PayFailNotification;
 use App\Models\Customer;
 use App\Models\Notification;
 use App\Models\Payment;
@@ -87,11 +88,11 @@ class CloudPaymentsController extends Controller
     {
         try {
             $data = $request->all();
-            $this->savePayment($data);
+            PayFailNotification::dispatch($data)->onQueue('cp_pay');
 
             return response()->json([
                 'code' => 0,
-            ]);
+            ], 200);
         } catch (\Throwable $e) {
             \Log::info($data);
             \Log::error($e);
@@ -131,6 +132,8 @@ class CloudPaymentsController extends Controller
             'from' => null,
             'to' => null,
         ];
+
+        $updateData = [];
         if ($data['Status'] == 'Completed') {
             $updateData = [
                 'status' => 'paid',

@@ -113,7 +113,7 @@ class Subscription extends Model
                         $cloudPaymentsService = new CloudPaymentsService();
                         $data = [
                             'Id' => $subscription->cp_subscription_id,
-                            'StartDate' => Carbon::parse($endedAt)->format('Y-m-d\TH:i:s.u'),
+                            'StartDate' => Carbon::parse($endedAt)->format('Y-m-d\TH:i:s'),
                         ];
 
                         // Запрос в cloudpayments об изменении даты следующего платежа

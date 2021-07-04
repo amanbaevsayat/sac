@@ -269,7 +269,7 @@ class SubscriptionController extends Controller
             ]);
             $cloudpaymentService->updateSubscription([
                 'Id' => $subscription->cp_subscription_id,
-                'StartDate' => Carbon::yesterday()->format('Y-m-d\TH:i:s.u'),
+                'StartDate' => Carbon::yesterday()->format('Y-m-d\TH:i:s'),
             ]);
         } catch (\Throwable $e) {
             throw new \Exception('Ошибка при запросе на ручное списание денег. Попробуйте позднее', 500);

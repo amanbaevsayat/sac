@@ -127,7 +127,7 @@ Route::get("/test3", function () {
 Route::get("/test4", function () {
     $payments = Payment::
         whereStatus('Completed')
-        // ->whereNull('team_id')
+        ->whereNull('team_id')
         ->get();
     $paymentIds = [];
     foreach ($payments as $payment) {

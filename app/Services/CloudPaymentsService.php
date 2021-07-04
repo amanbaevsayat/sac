@@ -45,6 +45,7 @@ class CloudPaymentsService
     // https://developers.cloudpayments.ru/#izmenenie-podpiski-na-rekurrentnye-platezhi
     public function updateSubscription(array $request)
     {
+        // dd($request);
         $data = $this->response($this->call("/subscriptions/update", $request));
 
         if (! isset($data['Success']) || $data['Success'] === false) {
