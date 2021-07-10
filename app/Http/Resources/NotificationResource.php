@@ -53,7 +53,7 @@ class NotificationResource extends JsonResource
             ],
         ];
 
-        $data['product_id'] = [
+        $data['product_title'] = [
             'value' => $this->subscription->product->title ?? null,
         ];
 
@@ -107,6 +107,16 @@ class NotificationResource extends JsonResource
                 'class' => 'silver'
             ];
         }
+
+        $data['reason_id'] = [
+            'value' => $this->subscription->reason_id ?? null,
+            'type' => 'hidden',
+        ];
+
+        $data['product_id'] = [
+            'value' => $this->subscription->product_id ?? null,
+            'type' => 'hidden',
+        ];
 
         return $data;
     }

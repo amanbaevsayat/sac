@@ -74,6 +74,15 @@ class PaymentFilter extends BaseFilter
         }
     }
 
+    public function productId($value)
+    {
+        if (is_array($value)) {
+            return $this->builder->whereIn('product_id', $value);
+        } else {
+            return $this->builder->where('product_id', $value);
+        }
+    }
+
     public function teamId($value)
     {
         if (is_array($value)) {

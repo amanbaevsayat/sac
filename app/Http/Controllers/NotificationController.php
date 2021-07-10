@@ -6,6 +6,7 @@ use App\Models\Notification;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Filters\NotificationFilter;
+use App\Http\Requests\CreateSubscriptionRequest;
 use App\Http\Resources\CustomerCollection;
 use App\Http\Resources\NotificationCollection;
 use App\Models\UserLog;
@@ -154,7 +155,7 @@ class NotificationController extends Controller
      * @param  \App\Models\Notification $notification
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Notification $notification)
+    public function update(CreateSubscriptionRequest $request, Notification $notification)
     {
         access(['can-operator', 'can-head', 'can-host']);
         $data = [
@@ -168,6 +169,7 @@ class NotificationController extends Controller
             
             $notification->subscription->update([
                 'status' => $request->get('status'),
+                'reason_id' => $request->get('reason_id'),
             ]);
         }
 

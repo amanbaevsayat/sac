@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Reason;
 use App\Models\Remark;
 use App\Models\Subscription;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -15,9 +16,13 @@ class SubscriptionCollection extends ResourceCollection
     {
         return [
             'data' => SubscriptionResource::collection($this->collection),
+            'data' => SubscriptionResource::collection($this->collection),
             'others' => [
                 'payment_types' => Subscription::PAYMENT_TYPE,
                 'statuses' => Subscription::STATUSES,
+                'reasons' => Reason::all()->groupBy('product_id')->transform(function($item) {
+                    return $item->pluck('title', 'id');
+                }),
             ],
             'dataTitles' => [
                 [
@@ -64,6 +69,16 @@ class SubscriptionCollection extends ResourceCollection
                 [
                     'title' => 'Создал',
                     'key' => 'user_id',
+                ],
+                [
+                    'title' => 'Причина отказа',
+                    'key' => 'reason_id',
+                    'display' => 'none',
+                ],
+                [
+                    'title' => 'ID продукта',
+                    'key' => 'product_id',
+                    'display' => 'none',
                 ],
             ],
             'pagination' => [

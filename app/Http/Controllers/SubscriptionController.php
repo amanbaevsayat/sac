@@ -203,6 +203,7 @@ class SubscriptionController extends Controller
 
         $subscription->update([
             'status' => $request->get('status'),
+            'reason_id' => $request->get('reason_id'),
         ]);
 
         $message = 'Данные абонемента успешно изменены.';
@@ -269,7 +270,8 @@ class SubscriptionController extends Controller
             ]);
             $cloudpaymentService->updateSubscription([
                 'Id' => $subscription->cp_subscription_id,
-                'StartDate' => Carbon::yesterday()->format('Y-m-d\TH:i:s'),
+                // 'StartDate' => Carbon::yesterday()->format('Y-m-d\TH:i:s'),
+                'Description' => 'Дата списания: ' . Carbon::yesterday()->format('Y-m-d\TH:i:s'),
             ]);
         } catch (\Throwable $e) {
             throw new \Exception('Ошибка при запросе на ручное списание денег. Попробуйте позднее', 500);

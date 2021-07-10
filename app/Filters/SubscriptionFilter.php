@@ -41,6 +41,11 @@ class SubscriptionFilter extends BaseFilter
         }
     }
 
+    // public function payments($value)
+    // {
+    //     // dd($value);
+    // }
+
     public function status($value)
     {
         if (is_array($value)) {
@@ -53,6 +58,15 @@ class SubscriptionFilter extends BaseFilter
                 return $this->builder;
             }
             return $this->builder->where('status', $value);
+        }
+    }
+
+    public function productId($value)
+    {
+        if (is_array($value)) {
+            return $this->builder->whereIn('product_id', $value);
+        } else {
+            return $this->builder->where('product_id', $value);
         }
     }
 
@@ -98,7 +112,8 @@ class SubscriptionFilter extends BaseFilter
     {
         preg_match('#\((.*?)\)#', $value, $match);
         $name = preg_replace("/\([^)]+\)/", "", $value);
-        if ($match[1] == 'asc') {
+
+        if ($match[1] == 'asc' && $name != 'payments') {
             if ($name == 'ended_at') {
                 $this->builder->orderByRaw(
                     "CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END ASC"
@@ -106,7 +121,7 @@ class SubscriptionFilter extends BaseFilter
             } else {
                 $this->builder->orderBy($name);
             }
-        } elseif ($match[1] == 'desc') {
+        } elseif ($match[1] == 'desc' && $name != 'payments') {
             if ($name == 'ended_at') {
                 $this->builder->orderByRaw(
                     "CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END DESC"
@@ -114,7 +129,12 @@ class SubscriptionFilter extends BaseFilter
             } else {
                 $this->builder->orderBy($name, 'desc');
             }
+        } elseif ($name == 'payments') {
+            $this->builder->withCount(['payments' => function ($query) {
+                $query->where('status', 'Completed');
+            }])->orderBy('payments_count', 'desc');
         }
+
         return $this->builder;
     }
 

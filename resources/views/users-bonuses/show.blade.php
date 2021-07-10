@@ -15,6 +15,7 @@ $data = [
 @endphp
 <users-bonuses-component 
     route-prop="{{ route(\Request::route()->getName()) }}"
+    :products-prop="{{ json_encode($products) }}"
     :teams-prop="{{ json_encode($teams) }}"
     :periods-prop="{{ json_encode(\App\Models\Bonus::PERIODS) }}"
     :data-prop="{{ json_encode($data) }}"

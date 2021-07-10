@@ -144,6 +144,22 @@ Route::get("/test4", function () {
     dd($paymentIds);
 })->name("test4");
 
+Route::get("/test5", function () {
+    $subscriptions = Subscription::whereHas('payments', function ($q) {
+        $q->where('status', 'Completed');
+    })->where('status', 'refused')->whereBetween('updated_at', [
+        Carbon::parse('2021-06-20 00:00:00'),
+        Carbon::parse('2021-06-27 23:59:59'),
+    ])->get();
+
+    foreach ($subscriptions as $subscription) {
+        $subscription->update([
+            'updated_at' => Carbon::parse('2020-11-00 00:00:00')
+        ]);
+    }
+    // dd($subscriptions->count());
+})->name("test5");
+
 Route::get("/", [HomeController::class, "homepage"])->name("homepage");
 Route::get("/thank-you", [HomeController::class, "thankYou"])->name("thankYou");
 Auth::routes();

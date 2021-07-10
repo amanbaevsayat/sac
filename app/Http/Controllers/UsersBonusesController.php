@@ -121,6 +121,7 @@ class UsersBonusesController extends Controller
         $getCurrentAndLastPeriod = $this->getCurrentAndLastPeriod($request->input('period', 'week'));
         $data = [];
         $data['teamId'] = $this->getTeamId($user, $request->get('teamId'));
+        $products = Product::get()->pluck('title', 'id')->toArray();
 
         if (
             ! $request->has('currentPoint') ||
@@ -167,10 +168,15 @@ class UsersBonusesController extends Controller
             ->orderBy('payment_types.name')
             ->get()
             // ->where('total_bonus', '>', 0)
-            ->groupBy('unix_date')->transform(function($item, $k) {
+            ->groupBy('unix_date')
+            ->transform(function($item, $k) {
                 return $item->groupBy(function ($item, $key) {
-                    return $item->payment_type . '-' . $item->type;
-                })->sortKeys();
+                    return $item->product_id;
+                })->transform(function ($item, $key) {
+                    return $item->groupBy(function ($item, $key) {
+                        return $item->payment_type . '-' . $item->type;
+                    })->sortKeys();
+                });
             })
             ->toArray();
 
@@ -255,6 +261,7 @@ class UsersBonusesController extends Controller
 
         return view('users-bonuses.show', compact(
             'teams',
+            'products',
             'chart',
             'usersBonuses',
             'usersBonusesForChart',

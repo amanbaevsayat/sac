@@ -69,7 +69,7 @@ class StatisticsController extends Controller
 
         $eventData = [];
         foreach ($categories as $key => $category) {
-            $label = Str::limit(strip_tags(html_entity_decode($eventsOfWeek[$category] ?? '')), $limit = 35, $end = '...');
+            $label = Str::limit(strip_tags(html_entity_decode($eventsOfWeek[$category] ?? '')), $limit = 70, $end = '...');
             $eventData[] = [
                 'x' => $category,
                 // 'name' => 'name',
@@ -202,7 +202,7 @@ class StatisticsController extends Controller
                         ];
                     })->toArray()),
                     "color" => "#db9876",
-                    'description' => 'Данные загружаются вручную',
+                    'description' => '(Подключились к WhatsApp) / (Новые лиды) * 100',
                 ],
             ],
             'plotOptions' => [
@@ -240,7 +240,7 @@ class StatisticsController extends Controller
                 [
                     // 'editable' => true,
                     'statisticsType' => StatisticsModel::FIRST_STATISTICS,
-                    "name" => "Конверсия из пробных в клиенты",
+                    "name" => "Конверсия из пробных в клиенты - (Показатели с задержкой в 2 недели)",
                     "data" => array_values(collect($categories)->map(function ($category, $key) use ($inflowClientsAtStartedAt, $connectedToWhatsapp) {
                         $conWhat = (is_numeric($connectedToWhatsapp[$category] ?? 0) && ($connectedToWhatsapp[$category] ?? 0) != 0) ? $connectedToWhatsapp[$category] : 1;
                         $clients = (is_numeric($inflowClientsAtStartedAt[$category] ?? 0) && ($inflowClientsAtStartedAt[$category] ?? 0) != 0) ? $inflowClientsAtStartedAt[$category] : 1;
@@ -277,7 +277,7 @@ class StatisticsController extends Controller
             "series" => [
                 [
                     'editable' => false,
-                    "name" => "Приток клиентов",
+                    "name" => "Новые платежи",
                     "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsSecond) {
                         return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($newLeadsSecond[$category] ?? 0)];
                     })->toArray()),
@@ -321,7 +321,7 @@ class StatisticsController extends Controller
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Динамика базы клиентов (по дате старта)'],
+            "title" => ["text" => 'Динамика базы клиентов (по дате старта) - Показатели с задержкой в 2 недели'],
             'xAxis' => [
                 'type' => 'datetime',
             ],
@@ -373,7 +373,7 @@ class StatisticsController extends Controller
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Оплата второго месяца'],
+            "title" => ["text" => 'Оплата второго месяца - Показатели с задержкой в 2 недели'],
             'xAxis' => [
                 'type' => 'datetime',
             ],
@@ -637,37 +637,24 @@ class StatisticsController extends Controller
                 }
             });
         
-        $turnoverCloudpayments = \DB::table('payments')
+        $turnovers = \DB::table('payments')
             ->select('payments.*' ,\DB::raw('quantity * amount as total'))
             ->whereProductId($productId)
             ->whereNull('deleted_at')
-            ->whereType('cloudpayments')
+            ->where('type', '!=', 'tries')
             ->whereStatus('Completed')
             ->whereBetween('paided_at', [$from, $to])
             ->get()
-            ->groupBy(function($payment) use ($period) {
-                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
-                    return (int) Carbon::parse($payment->paided_at)->endOfMonth()->startOfDay()->valueOf();
-                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
-                    return (int) Carbon::parse($payment->paided_at)->endOfWeek()->startOfDay()->valueOf();
-                }
-            });
-        
-        $turnoverTransfers = \DB::table('payments')
-            ->select('payments.*' ,\DB::raw('quantity * amount as total'))
-            ->whereProductId($productId)
-            ->whereNull('deleted_at')
-            ->whereType('transfer')
-            ->whereStatus('Completed')
-            ->whereBetween('paided_at', [$from, $to])
-            ->get()
-            ->groupBy(function($payment) use ($period) {
-                if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
-                    return (int) Carbon::parse($payment->paided_at)->endOfMonth()->startOfDay()->valueOf();
-                } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
-                    return (int) Carbon::parse($payment->paided_at)->endOfWeek()->startOfDay()->valueOf();
-                }
-            });
+            ->groupBy('type')
+            ->transform(function($item, $k) use ($period) {
+                return $item->groupBy(function($payment) use ($period) {
+                    if ($period === StatisticsModel::PERIOD_TYPE_MONTH) {
+                        return (int) Carbon::parse($payment->paided_at)->endOfMonth()->startOfDay()->valueOf();
+                    } else if ($period === StatisticsModel::PERIOD_TYPE_WEEK) {
+                        return (int) Carbon::parse($payment->paided_at)->endOfWeek()->startOfDay()->valueOf();
+                    }
+                });
+            })->toArray();
 
         $chats->push([
             'type' => 'highchart',
@@ -718,8 +705,8 @@ class StatisticsController extends Controller
                 [
                     'editable' => false,
                     "name" => "Доход по переводам",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnoverTransfers) {
-                        return ['stack' => 1, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnoverTransfers[$category]) ? $turnoverTransfers[$category]->sum('total') : 0];
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnovers) {
+                        return ['stack' => 1, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnovers['transfer'][$category]) ? collect($turnovers['transfer'][$category])->sum('total') : 0];
                     })->toArray()),
                     "color" => "#e8bf29",
                     "description" => "Доход по переводам - Прямой перевод | Суммирование всех платежей (цена * количество)",
@@ -729,11 +716,22 @@ class StatisticsController extends Controller
                 [
                     'editable' => false,
                     "name" => "Доход по подпискам",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnoverCloudpayments) {
-                        return ['stack' => 2, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnoverCloudpayments[$category]) ? $turnoverCloudpayments[$category]->sum('total') : 0];
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnovers) {
+                        return ['stack' => 2, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnovers['cloudpayments'][$category]) ? collect($turnovers['cloudpayments'][$category])->sum('total') : 0];
                     })->toArray()),
                     "color" => "#2adaca",
                     "description" => "Доход по подпискам - Cloudpayments | Суммирование всех платежей (цена * количество)",
+                    'groupPadding' => 0,
+                    'stacking' => 'normal'
+                ],
+                [
+                    'editable' => false,
+                    "name" => "Доход по разовым платежам",
+                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($turnovers) {
+                        return ['stack' => 2, 'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => isset($turnovers['simple_payment'][$category]) ? collect($turnovers['simple_payment'][$category])->sum('total') : 0];
+                    })->toArray()),
+                    "color" => "#c2de80",
+                    "description" => "Доход по разовым платежам - Cloudpayments | Суммирование всех платежей (цена * количество)",
                     'groupPadding' => 0,
                     'stacking' => 'normal'
                 ],

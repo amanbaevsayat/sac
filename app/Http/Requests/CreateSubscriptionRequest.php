@@ -26,7 +26,7 @@ class CreateSubscriptionRequest extends FormRequest
         return [
             // 'started_at' => 'date',
             // 'paused_at' => 'date|nullable',
-            // 'ended_at' => 'date|nullable',
+            'reason_id' => 'required_if:status,refused',
             'status' => 'required',
         ];
     }
@@ -40,6 +40,7 @@ class CreateSubscriptionRequest extends FormRequest
     {
         return [
             'required' => ':attribute не может быть пустым.',
+            'reason_id.required_if' => 'Укажите причину отказа',
         ];
     }
 

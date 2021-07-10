@@ -88,28 +88,31 @@
                 <div class="card">
                     <div style="margin-left: 20px; margin-top: 20px; margin-bottom: 30px; margin-right: 0px;" v-if="dataProp.period == 'week'">
                         <h1 style="text-align: center">{{ getTitle() }}</h1>
-                        <div v-for="(usersBonus, paymentType) in usersBonuses[data.currentPoint]" :key="paymentType">
-                            <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
-                                <div  v-if="bonus.amount > 0">
-                                    <h4>{{ bonusesHeaders[paymentType] }}</h4>
-                                    <hr>
-                                    <div style="margin: 40px 0">
-                                        <div class="row" style="margin-bottom: 15px; font-size: 15px;">
-                                            <div class="col-sm-10">
-                                                <div class="progress" style="height: 1.6rem;">
-                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }}</span></div>
-                                                    </div>
-                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(bonusIndex, paymentType) }}</span></div>
-                                                    </div>
-                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(bonusIndex, paymentType) / getMaxValue(bonusIndex, paymentType) * 100) + '%'}">
-                                                        <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(bonusIndex, paymentType) }} шт.</div>
+                        <div v-for="(usersProducts, productIndex) in usersBonuses[data.currentPoint]" :key="productIndex">
+                            <h3 style="margin-bottom: 20px">{{ products[productIndex] }}</h3>
+                            <div v-for="(usersBonus, paymentType) in usersProducts" :key="paymentType">
+                                <div v-for="(bonus, bonusIndex) in usersBonus" :key="bonusIndex">
+                                    <div  v-if="bonus.amount > 0">
+                                        <h4>{{ bonusesHeaders[paymentType] }}</h4>
+                                        <hr>
+                                        <div style="margin: 40px 0">
+                                            <div class="row" style="margin-bottom: 15px; font-size: 15px;">
+                                                <div class="col-sm-10">
+                                                    <div class="progress" style="height: 1.6rem;">
+                                                        <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar record-polzunok bg-secondary" :style="{width: (records[paymentType] / getMaxValue(productIndex, bonusIndex, paymentType) * 100) + '%'}">
+                                                            <div class="record-value progress-value"><span class="record-span">{{ records[paymentType] }}</span></div>
+                                                        </div>
+                                                        <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar last-polzunok bg-warning" :style="{width: (getLastWeekAmount(productIndex, bonusIndex, paymentType) / getMaxValue(productIndex, bonusIndex, paymentType) * 100) + '%'}">
+                                                            <div class="last-value progress-value"><span class="last-span" :style="{left: (getLastWeekAmount(productIndex, bonusIndex, paymentType) / getMaxValue(productIndex, bonusIndex, paymentType) * 100) < 10 ? '4px' : ''}">{{ getLastWeekAmount(productIndex, bonusIndex, paymentType) }}</span></div>
+                                                        </div>
+                                                        <div role="progressbar" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-success progress-bar-striped progress-bar-animated" :style="{width: (getCurrentWeekAmount(productIndex, bonusIndex, paymentType) / getMaxValue(productIndex, bonusIndex, paymentType) * 100) + '%'}">
+                                                            <div style="position: relative; font-size: 14px; font-weight: bold;">{{ getCurrentWeekAmount(productIndex, bonusIndex, paymentType) }} шт.</div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-sm-2">
-                                                <span style="font-weight: bold"> x {{ getCurrentWeekBonusesAmount(bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(bonusIndex, paymentType) }}₸</span>
+                                                <div class="col-sm-2">
+                                                    <span style="font-weight: bold"> x {{ getCurrentWeekBonusesAmount(productIndex, bonusIndex, paymentType) }}₸ = {{ getCurrentWeekTotalBonus(productIndex, bonusIndex, paymentType) }}₸</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -165,6 +168,7 @@ export default {
         'routeProp',
         'dataProp',
         'teamsProp',
+        'productsProp',
         'periodsProp',
         'chartProp',
         'usersBonusesProp',
@@ -187,6 +191,7 @@ export default {
             chart: this.chartProp,
             filterOpen: false,
             teams: this.teamsProp,
+            products: this.productsProp,
             periods: this.periodsProp,
             data: {
                 from: moment(this.dataProp.from).tz('Asia/Almaty').format(),
@@ -218,12 +223,12 @@ export default {
         };
     },
     methods: {
-        getCurrentValue(bonusIndex, paymentType) {
-            return this.getCurrentWeekAmount(bonusIndex, paymentType) / this.getMaxValue(bonusIndex, paymentType) * 100;
+        getCurrentValue(productIndex, bonusIndex, paymentType) {
+            return this.getCurrentWeekAmount(productIndex, bonusIndex, paymentType) / this.getMaxValue(productIndex, bonusIndex, paymentType) * 100;
         },
-        getLastValue(bonusIndex, paymentType) {
-            if (this.getCurrentWeekAmount(bonusIndex, paymentType) < this.getLastWeekAmount(bonusIndex, paymentType)) {
-                return (this.getLastWeekAmount(bonusIndex, paymentType) / this.getMaxValue(bonusIndex, paymentType) * 100) - this.getCurrentValue(bonusIndex, paymentType);
+        getLastValue(productIndex, bonusIndex, paymentType) {
+            if (this.getCurrentWeekAmount(productIndex, bonusIndex, paymentType) < this.getLastWeekAmount(productIndex, bonusIndex, paymentType)) {
+                return (this.getLastWeekAmount(productIndex, bonusIndex, paymentType) / this.getMaxValue(productIndex, bonusIndex, paymentType) * 100) - this.getCurrentValue(productIndex, bonusIndex, paymentType);
             } else {
                 return 0;
             }
@@ -231,11 +236,11 @@ export default {
         getRecordValue(bonusIndex, paymentType) {
             
         },
-        getMaxValue(bonusIndex, paymentType) {
+        getMaxValue(productIndex, bonusIndex, paymentType) {
             return Math.max.apply(null, [
-                this.getCurrentWeekAmount(bonusIndex, paymentType),
+                this.getCurrentWeekAmount(productIndex, bonusIndex, paymentType),
                 this.records[paymentType],
-                this.getLastWeekAmount(bonusIndex, paymentType)
+                this.getLastWeekAmount(productIndex, bonusIndex, paymentType)
             ]);
         },
         getStakesOfUser() {
@@ -267,10 +272,10 @@ export default {
         convertDate(date, format) {
             return moment(date).tz('Asia/Almaty').lang("ru").format(format);
         },
-        getLastWeekAmount(bonusIndex, paymentType) {
-            if (this.usersBonuses[this.data.lastPoint]) {
-                if (this.usersBonuses[this.data.lastPoint][paymentType]) {
-                    return this.usersBonuses[this.data.lastPoint][paymentType][0].amount;
+        getLastWeekAmount(productIndex, bonusIndex, paymentType) {
+            if (this.usersBonuses[this.data.lastPoint] && this.usersBonuses[this.data.lastPoint][productIndex]) {
+                if (this.usersBonuses[this.data.lastPoint][productIndex][paymentType]) {
+                    return this.usersBonuses[this.data.lastPoint][productIndex][paymentType][0].amount;
                 } else { 
                     return 0;
                 }
@@ -278,10 +283,10 @@ export default {
                 return 0;
             }
         },
-        getLastWeekBonusesAmount(bonusIndex, paymentType) {
-            if (this.usersBonuses[this.data.lastPoint]) {
-                if (this.usersBonuses[this.data.lastPoint][paymentType]) {
-                    return this.usersBonuses[this.data.lastPoint][paymentType][0].product_bonuses_amount;
+        getLastWeekBonusesAmount(productIndex, bonusIndex, paymentType) {
+            if (this.usersBonuses[this.data.lastPoint] && this.usersBonuses[this.data.lastPoint][productIndex]) {
+                if (this.usersBonuses[this.data.lastPoint][productIndex][paymentType]) {
+                    return this.usersBonuses[this.data.lastPoint][productIndex][paymentType][0].product_bonuses_amount;
                 } else {
                     return 0;
                 }
@@ -289,10 +294,10 @@ export default {
                 return 0;
             }
         },
-        getLastWeekTotalBonus(bonusIndex, paymentType) {
-            if (this.usersBonuses[this.data.lastPoint]) {
-                if (this.usersBonuses[this.data.lastPoint][paymentType]) {
-                    return this.usersBonuses[this.data.lastPoint][paymentType][0].total_bonus;
+        getLastWeekTotalBonus(productIndex, bonusIndex, paymentType) {
+            if (this.usersBonuses[this.data.lastPoint] && this.usersBonuses[this.data.lastPoint][productIndex]) {
+                if (this.usersBonuses[this.data.lastPoint][productIndex][paymentType]) {
+                    return this.usersBonuses[this.data.lastPoint][productIndex][paymentType][0].total_bonus;
                 } else {
                     return 0;
                 }
@@ -300,10 +305,10 @@ export default {
                 return 0;
             }
         },
-        getCurrentWeekAmount(bonusIndex, paymentType) {
-            if (this.usersBonuses[this.data.currentPoint]) {
-                if (this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex]) {
-                    return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].amount;
+        getCurrentWeekAmount(productIndex, bonusIndex, paymentType) {
+            if (this.usersBonuses[this.data.currentPoint] && this.usersBonuses[this.data.currentPoint][productIndex]) {
+                if (this.usersBonuses[this.data.currentPoint][productIndex][paymentType][bonusIndex]) {
+                    return this.usersBonuses[this.data.currentPoint][productIndex][paymentType][bonusIndex].amount;
                 } else {
                     return 0;
                 }
@@ -311,16 +316,16 @@ export default {
                 return 0;
             }
         },
-        getCurrentWeekBonusesAmount(bonusIndex, paymentType) {
-            if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].product_bonuses_amount;
+        getCurrentWeekBonusesAmount(productIndex, bonusIndex, paymentType) {
+            if (this.usersBonuses[this.data.currentPoint] && this.usersBonuses[this.data.currentPoint][productIndex]) {
+                return this.usersBonuses[this.data.currentPoint][productIndex][paymentType][bonusIndex].product_bonuses_amount;
             } else {
                 return 0;
             }
         },
-        getCurrentWeekTotalBonus(bonusIndex, paymentType) {
-            if (this.usersBonuses[this.data.currentPoint]) {
-                return this.usersBonuses[this.data.currentPoint][paymentType][bonusIndex].total_bonus;
+        getCurrentWeekTotalBonus(productIndex, bonusIndex, paymentType) {
+            if (this.usersBonuses[this.data.currentPoint] && this.usersBonuses[this.data.currentPoint][productIndex]) {
+                return this.usersBonuses[this.data.currentPoint][productIndex][paymentType][bonusIndex].total_bonus;
             } else {
                 return 0;
             }

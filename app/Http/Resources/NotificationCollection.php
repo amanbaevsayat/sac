@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Notification;
+use App\Models\Reason;
 use App\Models\Subscription;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -28,6 +29,9 @@ class NotificationCollection extends ResourceCollection
                 'payment_types' => Subscription::PAYMENT_TYPE,
                 'statuses' => Subscription::STATUSES,
                 'types' => Notification::TYPES,
+                'reasons' => Reason::all()->groupBy('product_id')->transform(function($item) {
+                    return $item->pluck('title', 'id');
+                }),
             ],
             'dataTitles' => [
                 [

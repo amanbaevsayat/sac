@@ -127,7 +127,7 @@
                                 #
                             </span>
                         </th>
-                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex" :style="{width: item.width, 'text-align': item.textAlign}">
+                        <th scope="col" v-for="(item, dataTitlesIndex) in dataTitles" :key="dataTitlesIndex" :style="{width: item.width, 'text-align': item.textAlign, display: item.display}">
                             <a v-if="item.key" class="thead-title" @click="changeSortQueryParams(item.key)">
                                 {{ item.title }}
                             </a>
@@ -194,7 +194,7 @@
                                 <input type="checkbox"
                                     :name="name"
                                     v-model="item.value" 
-                                    @change="saveItem(items, items.id.value)">
+                                    @change="saveItem(items, items.id.value, itemsIndex)">
                             </div>
                             <div v-else>
                                 <div class="custom-text" v-if="name == 'status'">
@@ -217,7 +217,7 @@
                             </div>
                         </td>
                         <td class="text-right" v-if="prefix != 'payments'">
-                            <button v-if="prefix == 'subscriptions' || prefix == 'notifications'" @click="saveItem(items, items.id.value)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
+                            <button v-if="prefix == 'subscriptions' || prefix == 'notifications'" @click="saveItem(items, items.id.value, itemsIndex)" type="button" class="btn btn-danger btn-sm save-button" title="Сохранить">
                                 <i class="fa fa-save"></i>
                             </button>
                             <div class="dropdown btn-group" role="group" v-if="prefix != 'subscriptions' && prefix != 'notifications' && prefix != 'teams' && prefix != 'products'">
@@ -280,6 +280,23 @@
             </ul>
         </nav>
         <customer-component type-prop="edit" :subscription-id-prop="subscriptionId" :customer-id-prop="customerId"></customer-component>
+        <b-modal size="md" hide-footer title="Укажите причину отказа" id="reason-modal" class="modal">
+            <div v-if="existsReasons()">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="form-group col-sm-12">
+                            <label for="quantity" class="col-form-label">Причина отказа</label>
+                            <select v-model="data[reasonDataIndex].reason_id.value" name="reason_id" id="reason_id" class="col-sm-12 form-control">
+                                <option v-for="(reasonTitle, reasonId) in others.reasons[reasonProductId]" :key="reasonId" :value="reasonId">{{ reasonTitle }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button @click="saveItem(data[reasonDataIndex], data[reasonDataIndex].id.value, reasonDataIndex)" type="button" class="btn btn-primary">Сохранить</button>
+                </footer>
+            </div>
+        </b-modal>
     </div>
 </template>
 
@@ -295,6 +312,8 @@ export default {
         data() {
             return {
                 createLink: this.createLinkProp,
+                reasonProductId: null,
+                reasonDataIndex: null,
                 filterOpen: false,
                 options: {
                     customer: [],
@@ -323,8 +342,14 @@ export default {
             });
         },
         methods: {
+            existsReasons() {
+                if (this.others && this.others.reasons && this.others.reasons[this.reasonProductId]) {
+                    return true;
+                } else {
+                    return false;
+                }
+            },
             inputSearch(event, filterName, filterType, type) {
-                console.log(type);
                 this.queryParams[filterName] = event.target.value;
                 this.queryParams.page = 1;
                 this.setAddressBar();
@@ -333,10 +358,8 @@ export default {
                 }
             },
             changeSelect(e, index) {
-                console.log(123);
             },
             onSearch(search, loading, key) {
-                console.log(search, key);
                 loading(true);
                 this.search(loading, search, this, key);
             },
@@ -356,12 +379,31 @@ export default {
                 // this.$refs['modal-customer'].show()
                 this.$bvModal.show('modal-customer-edit');
             },
-            saveItem(items, id) {
+            setReasonParams(itemsIndex, data) {
+                this.reasonDataIndex = itemsIndex;
+                this.reasonProductId = data.product_id;  
+            },
+            openReasonModal(data, itemsIndex) {
+                this.$bvModal.show('reason-modal');
+            },
+            saveItem(items, id, itemsIndex) {
                 let data = {};
                 Object.keys(items).forEach(function(name) {
                     data[name] = items[name].value;
                 });
+
                 this.spinnerData.loading = true;
+
+                if ((this.prefixProp == 'subscriptions' || this.prefixProp == 'notifications')
+                    && data.status == 'refused'
+                    && data.reason_id === null) {
+                    Promise.resolve(this.setReasonParams(itemsIndex, data)).then(this.openReasonModal(data, itemsIndex));
+                    this.spinnerData.loading = false;
+                    return;
+                } else {
+                    this.$bvModal.hide('reason-modal');
+                }
+
                 axios.put(`/${this.prefix}/${id}`, data)
                     .then(response => {
                         this.spinnerData.loading = false;
@@ -494,7 +536,6 @@ export default {
                         }
                         return data;
                     });
-                    console.log(response.data.second);
                     if (response.data.second) {
                         this.secondFilters = response.data.second.map(function(item, key) {
                             let data = item;

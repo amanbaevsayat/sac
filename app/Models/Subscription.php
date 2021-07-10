@@ -56,6 +56,7 @@ class Subscription extends Model
         'user_id',
         'manual_write_off_at',
         'reason_id',
+        'updated_at',
         'team_id',
     ];
 

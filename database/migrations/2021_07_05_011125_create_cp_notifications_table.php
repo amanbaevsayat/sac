@@ -15,7 +15,7 @@ class CreateCpNotificationsTable extends Migration
     {
         Schema::create('cp_notifications', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('team_id')->nullable();
+            $table->unsignedBigInteger('transaction_id')->nullable();
             $table->json('request')->nullable();
             $table->unsignedSmallInteger('type')->nullable();
             $table->timestamps();

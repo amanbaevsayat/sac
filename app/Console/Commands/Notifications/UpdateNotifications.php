@@ -2,17 +2,11 @@
 
 namespace App\Console\Commands\Cloudpayments;
 
-use App\Models\Card;
-use App\Models\Customer;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Subscription;
-use App\Services\CloudPaymentsService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Builder;
 
 class UpdateNotifications extends Command
 {
@@ -97,7 +91,10 @@ class UpdateNotifications extends Command
 
         Notification::where('type', Notification::TYPE_ENDED_SUBSCRIPTIONS_DT_3)->whereNotIn('subscription_id', $fifthTypeSubscriptionsIds)->delete();
 
-        $sixthTypeSubscriptions = Subscription::whereIn('status', ['tries', 'waiting'])->wherePaymentType('tries')->whereRaw('CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END < ?', [$threeDaysAhead])->get();
+        $sixthTypeSubscriptions = Subscription::whereIn('status', ['tries', 'waiting'])
+            ->whereDoesntHave('payments', function($q) {
+                $q->where('status', 'Completed');
+            })->whereRaw('CASE WHEN tries_at > ended_at THEN tries_at ELSE ended_at END < ?', [$threeDaysAhead])->get();
         $sixthTypeSubscriptionsIds = [];
         foreach ($sixthTypeSubscriptions as $subscription) {
             $sixthTypeSubscriptionsIds[] = $subscription->id;
