@@ -7,9 +7,11 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Filters\ProductFilter;
 use App\Http\Resources\PaymentTypeResource;
+use App\Http\Resources\ProductChartsResource;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductTeamsResource;
 use App\Http\Resources\ProductUsersResource;
+use App\Models\Chart;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Price;
@@ -79,11 +81,13 @@ class ProductController extends Controller
         $paymentTypes = PaymentType::whereIsActive(true)->get()->pluck('title', 'name')->toArray();
         $users = User::all()->pluck('account', 'id')->toArray();
         $teams = Team::all()->pluck('name', 'id')->toArray();
+        $charts = Chart::all()->pluck('title', 'id')->toArray();
 
         return view("{$this->root}.create", [
             'paymentTypes' => $paymentTypes,
             'users' => $users,
             'teams' => $teams,
+            'charts' => $charts,
         ]);
     }
 
@@ -127,9 +131,11 @@ class ProductController extends Controller
         access(['can-head', 'can-host']);
         $productPrices = $product->prices()->pluck('price');
         $productTeams = $product->teams;
+        $productCharts = $product->charts;
         $reasons = $product->reasons()->where('is_active', true)->pluck('title');
         $users = User::all()->pluck('account', 'id')->toArray();
         $teams = Team::all()->pluck('name', 'id')->toArray();
+        $charts = Chart::all()->pluck('title', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
         $paymentTypes = PaymentType::whereIsActive(true)->get()->pluck('title', 'name')->toArray();
 
@@ -140,8 +146,10 @@ class ProductController extends Controller
             'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
             'paymentTypes' => $paymentTypes,
             'productTeams' => ProductTeamsResource::collection($productTeams),
+            'productCharts' => ProductChartsResource::collection($productCharts),
             'teams' => $teams,
             'users' => $users,
+            'charts' => $charts,
         ]);
     }
 
@@ -171,12 +179,14 @@ class ProductController extends Controller
     {
         $priceIds = [];
         $reasonIds = [];
+        $chartIds = [];
         $paymentTypeIds = [];
         $prices = $request['prices'] ?? [];
         // $productUsers = $request['productUsers'] ?? [];
         $productTeams = $request['productTeams'] ?? [];
         $paymentTypes = $request['paymentTypes'] ?? [];
         $productReasons = $request['reasons'] ?? [];
+        $productCharts = $request['charts'] ?? [];
 
         if ($type == 'update') {
             $product->update($request);
@@ -255,6 +265,13 @@ class ProductController extends Controller
         foreach ($productTeams as $productTeam) {
             $product->teams()->attach([
                 $productTeam['id'],
+            ]);
+        }
+
+        $product->charts()->detach();
+        foreach ($productCharts as $productChart) {
+            $product->charts()->attach([
+                $productChart['id'],
             ]);
         }
     }

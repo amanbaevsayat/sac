@@ -60,6 +60,13 @@
             </div>
             <hr>
             <div class="form-group row">
+                <label for="prices" class="col-sm-2 col-form-label">Диаграммы продукта</label>
+                <div class="col-sm-10">
+                    <product-charts-component :product-charts-prop="{{ json_encode($productTeams) }}" :charts-prop="{{ json_encode($teams) }}"></product-teams-component>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
                 <label for="prices" class="col-sm-2 col-form-label">Причины отказов</label>
                 <div class="col-sm-10">
                     <product-reasons-component :reasons-prop="{{ json_encode($reasons) }}"></product-reasons-component>

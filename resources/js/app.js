@@ -53,6 +53,7 @@ Vue.component('product-price-component', require('./components/ProductPriceCompo
 Vue.component('product-reasons-component', require('./components/ProductReasonComponent.vue').default);
 Vue.component('product-payment-type-component', require('./components/ProductPaymentTypeComponent.vue').default);
 Vue.component('product-teams-component', require('./components/ProductTeamsComponent.vue').default);
+Vue.component('product-charts-component', require('./components/ProductChartsComponent.vue').default);
 Vue.component('product-users-component', require('./components/ProductUserComponent.vue').default);
 Vue.component('users-bonuses-component', require('./components/UsersBonusesComponent.vue').default);
 

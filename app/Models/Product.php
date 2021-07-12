@@ -73,4 +73,14 @@ class Product extends Model
     {
         return $this->hasMany(Bonus::class, 'product_id');
     }
+
+    public function charts()
+    {
+        return $this->belongsToMany(Chart::class);
+    }
+
+    public function graphs()
+    {
+        return $this->belongsToMany(Graph::class);
+    }
 }

@@ -711,7 +711,7 @@ class StatisticsController extends Controller
                     "color" => "#e8bf29",
                     "description" => "Доход по переводам - Прямой перевод | Суммирование всех платежей (цена * количество)",
                     'groupPadding' => 0,
-                    'stacking' => 'normal'
+                    // 'stacking' => 'normal'
                 ],
                 [
                     'editable' => false,
@@ -722,7 +722,7 @@ class StatisticsController extends Controller
                     "color" => "#2adaca",
                     "description" => "Доход по подпискам - Cloudpayments | Суммирование всех платежей (цена * количество)",
                     'groupPadding' => 0,
-                    'stacking' => 'normal'
+                    // 'stacking' => 'normal'
                 ],
                 [
                     'editable' => false,
@@ -733,11 +733,13 @@ class StatisticsController extends Controller
                     "color" => "#c2de80",
                     "description" => "Доход по разовым платежам - Cloudpayments | Суммирование всех платежей (цена * количество)",
                     'groupPadding' => 0,
-                    'stacking' => 'normal'
+                    // 'stacking' => 'normal'
                 ],
             ],
             'plotOptions' => [
                 'area' => [
+                    'stacking' => 'normal',
+
                     'fillOpacity' => 0.5,
                     'dataLabels' => [
                         'enabled' => true,
