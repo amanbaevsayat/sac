@@ -38,7 +38,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('update:notifications')->everyTenMinutes();
         $schedule->command('cloudpayments:update:subscription')->hourly();
         $schedule->command('update:users_bonuses')->hourly();
-        $schedule->command('update:statistics')->everySixHours();
+        $schedule->command('update:statistics week')->everySixHours();
+        $schedule->command('update:statistics month')->dailyAt('13:00');
         $schedule->command('queue:restart')
             ->everyFiveMinutes();
 

@@ -62,7 +62,7 @@
             <div class="form-group row">
                 <label for="prices" class="col-sm-2 col-form-label">Диаграммы продукта</label>
                 <div class="col-sm-10">
-                    <product-charts-component :product-charts-prop="{{ json_encode($productTeams) }}" :charts-prop="{{ json_encode($teams) }}"></product-teams-component>
+                    <product-charts-component :product-charts-prop="{{ json_encode($productCharts) }}" :charts-prop="{{ json_encode($charts) }}"></product-teams-component>
                 </div>
             </div>
             <hr>

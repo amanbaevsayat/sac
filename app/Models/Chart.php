@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Chart extends Model
 {
+    const TYPE_QUANTITATIVE = 1;
+    const TYPE_FINANCIAL = 2;
+
     protected $table = 'charts';
 
     protected $fillable = [
@@ -13,6 +16,7 @@ class Chart extends Model
         'description',
         'order',
         'is_stacking',
+        'type',
     ];
 
     protected $dates = [

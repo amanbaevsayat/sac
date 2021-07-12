@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chart;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Reason;
@@ -65,7 +66,7 @@ class StatisticsController extends Controller
         $productId = $request->input('productId');
         $product = Product::whereId($productId)->firstOrFail();
 
-        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
+        $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('graph_id', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
 
         $eventData = [];
         foreach ($categories as $key => $category) {
@@ -80,7 +81,7 @@ class StatisticsController extends Controller
             ];
         }
 
-        $chats->push([
+        $data[0] = [
             'type' => 'highchart',
             'chart' => [
                 'zoomType' => 'x',
@@ -117,392 +118,55 @@ class StatisticsController extends Controller
                     'data' => $eventData
                 ],
             ],
-        ]);
+        ];
 
-        $newLeadsFirst = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIRST_STATISTICS)->get()->pluck('value', 'key');
-        $newLeadsSecond = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::SECOND_STATISTICS)->get()->pluck('value', 'key');
-        $connectedToWhatsapp = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::THIRTEENTH_STATISTICS)->get()->pluck('value', 'key');
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Новые лиды'],
-            "xAxis" => [
-                'type' => 'datetime',
-            ],
-            "series" => [
-                [
-                    'editable' => false,
-                    'statisticsType' => StatisticsModel::SECOND_STATISTICS,
-                    "name" => "Подключились в WhatsApp",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($connectedToWhatsapp) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($connectedToWhatsapp[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#c2de80",
-                    'description' => 'Подключились к WhatsApp - Все у кого дата старта абонемента началась в этот период',
+        $charts = $product->charts->where('type', Chart::TYPE_QUANTITATIVE);
+
+        foreach ($charts as $chart) {
+            $data[$chart->id] = [
+                'type' => 'highchart',
+                'chart' => [
+                    'type' => 'area',
                 ],
-                [
-                    'editable' => true,
-                    'statisticsType' => StatisticsModel::FIRST_STATISTICS,
-                    "name" => "Новые лиды (Instagram)",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsFirst) {
+                'title' => ['text' => $chart->title],
+                'xAxis' => [
+                    'type' => 'datetime',
+                ],
+                'plotOptions' => [
+                    'area' => [
+                        'fillOpacity' => 0.5,
+                        'dataLabels' => [
+                            'enabled' => true,
+                        ],
+                    ],
+                ],
+            ];
+
+            if ($chart->is_stacking) {
+                $data[$chart->id]['plotOptions']['area']['stacking'] = 'normal';
+            }
+
+            foreach ($chart->graphs as $graph) {
+                $statistics = $graph->statistics()->where('product_id', $product->id)->get()->pluck('value', 'key');
+
+                $data[$chart->id]['series'][] = [
+                    'name' => $graph->name,
+                    'productId' => $productId,
+                    'description' => $graph->description,
+                    'color' => $graph->color,
+                    'editable' => !! $graph->is_editable,
+                    'visible' => !! $graph->is_visible,
+                    'statisticsType' => $graph->id,
+                    'data' => array_values(collect($categories)->map(function ($category, $key) use ($statistics) {
                         return [
-                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 
-                            'x' => $category, 
-                            'y' => (int) ($newLeadsFirst[$category] ?? 0),
+                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'),
+                            'x' => $category,
+                            'y' => (int) ($statistics[$category] ?? 0),
                         ];
                     })->toArray()),
-                    "color" => "#db9876",
-                    'description' => 'Данные загружаются вручную',
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Конверсия подключении к WhatsApp'],
-            "xAxis" => [
-                'type' => 'datetime',
-            ],
-            'yAxis' => [
-                'labels' => [
-                    'format' => '{value}%'
-                ],
-                'title' => [
-                    'enabled' => false
-                ],
-            ],
-            "series" => [
-                [
-                    // 'editable' => true,
-                    'statisticsType' => StatisticsModel::FIRST_STATISTICS,
-                    "name" => "Новые лиды (Instagram)",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsFirst, $connectedToWhatsapp) {
-                        $newLead = (is_numeric($newLeadsFirst[$category] ?? 0) && ($newLeadsFirst[$category] ?? 0) != 0) ? $newLeadsFirst[$category] : 1;
-                        $connectToWhatsapp = (is_numeric($connectedToWhatsapp[$category] ?? 0) && ($connectedToWhatsapp[$category] ?? 0) != 0) ? $connectedToWhatsapp[$category] : 1;
-                        // dd($newLead, $connectToWhatsapp);
-                        $conversion = ($newLead > $connectToWhatsapp) ? round($connectToWhatsapp / $newLead * 100, 1) : 0;
-                        // dd($conversion);
-                        return [
-                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 
-                            'x' => $category, 
-                            'y' => $conversion,
-                        ];
-                    })->toArray()),
-                    "color" => "#db9876",
-                    'description' => '(Подключились к WhatsApp) / (Новые лиды) * 100',
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-
-        $outflowClients = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::THIRD_STATISTICS)->get()->pluck('value', 'key');
-        $outflowTrials = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FOURTH_STATISTICS)->get()->pluck('value', 'key');
-        $inflowClientsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::NINTH_STATISTICS)->get()->pluck('value', 'key');
-
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Конверсия из пробных в клиенты'],
-            "xAxis" => [
-                'type' => 'datetime',
-            ],
-            'yAxis' => [
-                'labels' => [
-                    'format' => '{value}%'
-                ],
-                'title' => [
-                    'enabled' => false
-                ],
-            ],
-            "series" => [
-                [
-                    // 'editable' => true,
-                    'statisticsType' => StatisticsModel::FIRST_STATISTICS,
-                    "name" => "Конверсия из пробных в клиенты - (Показатели с задержкой в 2 недели)",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($inflowClientsAtStartedAt, $connectedToWhatsapp) {
-                        $conWhat = (is_numeric($connectedToWhatsapp[$category] ?? 0) && ($connectedToWhatsapp[$category] ?? 0) != 0) ? $connectedToWhatsapp[$category] : 1;
-                        $clients = (is_numeric($inflowClientsAtStartedAt[$category] ?? 0) && ($inflowClientsAtStartedAt[$category] ?? 0) != 0) ? $inflowClientsAtStartedAt[$category] : 1;
-                        $conversion = ($conWhat > $clients) ? round($clients / $conWhat * 100, 1) : 0;
-                        // dd($conversion);
-                        return [
-                            'name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 
-                            'x' => $category, 
-                            'y' => $conversion,
-                        ];
-                    })->toArray()),
-                    "color" => "#db9876",
-                    'description' => '(По дате старта) Клиенты совершившие 1 платеж/ Подключились к WhatsApp * 100',
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Динамика базы клиентов (по факту)'],
-            'xAxis' => [
-                'type' => 'datetime',
-            ],
-            "series" => [
-                [
-                    'editable' => false,
-                    "name" => "Новые платежи",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($newLeadsSecond) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($newLeadsSecond[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#c2de80",
-                    'description' => 'Оплатили первый платеж в этот период.',
-                ],
-                [
-                    'editable' => false,
-                    "name" => "Отток клиентов",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($outflowClients) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($outflowClients[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#db9876",
-                    'description' => 'Есть хотя бы один платеж | Отказались в этот период',
-                ],
-                [
-                    'visible' => false,
-                    'editable' => false,
-                    "name" => "Отток пробных",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($outflowTrials) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($outflowTrials[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#2adaca",
-                    'description' => 'Нету платежа | Отказались в этот период',
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-
-        $outflowClientsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::EIGHTH_STATISTICS)->get()->pluck('value', 'key');
-        $outflowTrialsAtStartedAt = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::SEVENTH_STATISTICS)->get()->pluck('value', 'key');
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Динамика базы клиентов (по дате старта) - Показатели с задержкой в 2 недели'],
-            'xAxis' => [
-                'type' => 'datetime',
-            ],
-            "series" => [
-                [
-                    'editable' => false,
-                    "name" => "Приток клиентов",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($inflowClientsAtStartedAt) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($inflowClientsAtStartedAt[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#c2de80",
-                    'description' => 'Клиенты которые подключились в этот период, занимаются на данный момент',
-                ],
-                [
-                    'editable' => false,
-                    "name" => "Отток клиентов",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($outflowClientsAtStartedAt) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($outflowClientsAtStartedAt[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#db9876",
-                    'description' => 'Есть хотя бы один платеж | Клиенты которые подключились в этот период, отказались на данный момент',
-                ],
-                [
-                    'visible' => false,
-                    'editable' => false,
-                    "name" => "Отток пробных",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($outflowTrialsAtStartedAt) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($outflowTrialsAtStartedAt[$category] ?? 0)];
-                    })->toArray()),
-                    'description' => 'Нету платежа | Пробные которые подключились в этот период, отказались на данный момент',
-                    "color" => "#2adaca",
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-
-        $twoPaymentsSubscriptions = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::TENTH_STATISTICS)->get()->pluck('value', 'key');
-        $onePaymentRefusedSubscriptions = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::ELEVENTH_STATISTICS)->get()->pluck('value', 'key');
-
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Оплата второго месяца - Показатели с задержкой в 2 недели'],
-            'xAxis' => [
-                'type' => 'datetime',
-            ],
-            "series" => [
-                [
-                    'editable' => false,
-                    "name" => "Купили второй абонемент.",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($twoPaymentsSubscriptions) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($twoPaymentsSubscriptions[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#c2de80",
-                    'description' => 'Количество клиентов, у которых два успешных платежа',
-                ],
-                [
-                    'editable' => false,
-                    "name" => "Есть один платеж, но отказались",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($onePaymentRefusedSubscriptions) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($onePaymentRefusedSubscriptions[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#db9876",
-                    'description' => 'Количество клиентов, у которых один успешный платеж и статус абонемента - Отказался',
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                    ],
-                ],
-            ],
-        ]);
-
-        $activeSubscriptions = StatisticsModel::where('period_type', $request->get('period'))
-            ->where('product_id', $request->get('productId'))
-            ->where('type', StatisticsModel::SIXTEENTH_STATISTICS)
-            ->get()
-            ->pluck('value', 'key');
-
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Активные абонементы (общее)'],
-            'xAxis' => [
-                'type' => 'datetime',
-            ],
-            "series" => [
-                [
-                    'editable' => false,
-                    "name" => "Общее",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptions) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptions[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#c2de80",
-                    'statisticsType' => StatisticsModel::SIXTEENTH_STATISTICS,
-                    'description' => 'Тип оплаты: (cloudpayments|прямой перевод) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
-                    'stacking' => 'normal'
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                        'color' => '#000',
-                        'className' => 'temirlan',
-                    ],
-                    'label' => [
-                        'style' => [
-                            'color' => '#000'
-                        ]
-                    ]
-                ],
-            ],
-        ]);
-
-        $activeSubscriptionsCP = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::TWELFTH_STATISTICS)->get()->pluck('value', 'key');
-        $activeSubscriptionsDT = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('type', StatisticsModel::FIFTEENTH_STATISTICS)->get()->pluck('value', 'key');
-        $chats->push([
-            'type' => 'highchart',
-            'chart' => [
-                'type' => 'area',
-            ],
-            "title" => ["text" => 'Активные абонементы. (прямой перевод + подписка)'],
-            'xAxis' => [
-                'type' => 'datetime',
-            ],
-            "series" => [
-                [
-                    'editable' => false,
-                    "name" => "Cloudpayments (подписка)",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptionsCP) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptionsCP[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#46a6cd6b",
-                    'statisticsType' => StatisticsModel::TWELFTH_STATISTICS,
-                    'description' => 'Тип оплаты: (cloudpayments) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
-                    'stacking' => 'normal'
-                ],
-                [
-                    'editable' => false,
-                    "name" => "Прямой перевод",
-                    "data" => array_values(collect($categories)->map(function ($category, $key) use ($activeSubscriptionsDT) {
-                        return ['name' => Carbon::parse((int) $category / 1000)->setTimezone('Asia/Almaty')->isoFormat('DD MMM, YY'), 'x' => $category, 'y' => (int) ($activeSubscriptionsDT[$category] ?? 0)];
-                    })->toArray()),
-                    "color" => "#db9876",
-                    'statisticsType' => StatisticsModel::FIFTEENTH_STATISTICS,
-                    'description' => 'Тип оплаты: (прямой перевод) | Есть один платеж | Статус абонемента: (Оплачено, Жду оплату)',
-                    'stacking' => 'normal'
-                ],
-            ],
-            'plotOptions' => [
-                'area' => [
-                    'fillOpacity' => 0.5,
-                    'dataLabels' => [
-                        'enabled' => true,
-                        'color' => '#000',
-                        'className' => 'temirlan',
-                    ],
-                    'label' => [
-                        'style' => [
-                            'color' => '#000'
-                        ]
-                    ]
-                ],
-            ],
-        ]);
+                ];
+            }
+        }
 
         $reasons = Subscription::join('reasons', 'subscriptions.reason_id', '=', 'reasons.id')
             ->select(
@@ -524,14 +188,13 @@ class StatisticsController extends Controller
                 });
             })->toArray();
 
-        // dd($reasons);
         $reasonsSeries = [];
         
         foreach ($reasons as $key => $reason) {
-            $data = [];
+            $reasonData = [];
 
             foreach ($reason as $date => $total) {
-                $data[] = [
+                $reasonData[] = [
                     'y' => $total,
                     'x' => $date,
                 ];
@@ -539,11 +202,11 @@ class StatisticsController extends Controller
 
             $reasonsSeries[] = [
                 'name' => $key,
-                'data' => $data,
+                'data' => $reasonData,
             ];
         }
 
-        $chats->push([
+        $data['reason'] = [
             'type' => 'highchart',
             'chart' => [
                 'type' => 'column'
@@ -579,8 +242,9 @@ class StatisticsController extends Controller
                     'borderWidth' => 0
                 ],
             ],
-        ]);
+        ];
 
+        $chats = $data;
         return view('pages.statistics', compact('products', 'chats'));
     }
 
@@ -780,7 +444,7 @@ class StatisticsController extends Controller
             StatisticsModel::updateOrCreate([
                 'period_type' => $request->get('period'),
                 'product_id' => (int) $request->get('productId'),
-                'type' => (int) $request->input('item.statisticsType'),
+                'graph_id' => (int) $request->input('item.statisticsType'),
                 'key' => $item['x'],
             ], [
                 'value' => $item['y'],
@@ -807,7 +471,7 @@ class StatisticsController extends Controller
         StatisticsModel::updateOrCreate([
             'period_type' => $request->get('period'),
             'product_id' => (int) $request->get('productId'),
-            'type' => (int) $item['statisticsType'],
+            'graph_id' => (int) $item['statisticsType'],
             'key' => $item['key'],
         ], [
             'value' => $item['data'],

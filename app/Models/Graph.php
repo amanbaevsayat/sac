@@ -10,10 +10,12 @@ class Graph extends Model
 
     protected $fillable = [
         'name',
+        'type',
         'description',
         'color',
         'order',
         'chart_id',
+        'is_visible',
     ];
 
     protected $dates = [

@@ -12,6 +12,7 @@ use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductTeamsResource;
 use App\Http\Resources\ProductUsersResource;
 use App\Models\Chart;
+use App\Models\Graph;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Price;
@@ -171,7 +172,7 @@ class ProductController extends Controller
                 'message' => $message,
             ]);
         } else {
-            return redirect()->to(route("{$this->root}.show", [$product->id]))->with('success', $message);
+            return redirect()->to(route("{$this->root}.index"))->with('success', $message);
         }
     }
 
@@ -186,7 +187,7 @@ class ProductController extends Controller
         $productTeams = $request['productTeams'] ?? [];
         $paymentTypes = $request['paymentTypes'] ?? [];
         $productReasons = $request['reasons'] ?? [];
-        $productCharts = $request['charts'] ?? [];
+        $productCharts = $request['productCharts'] ?? [];
 
         if ($type == 'update') {
             $product->update($request);
@@ -269,10 +270,19 @@ class ProductController extends Controller
         }
 
         $product->charts()->detach();
+        $product->graphs()->detach();
         foreach ($productCharts as $productChart) {
             $product->charts()->attach([
                 $productChart['id'],
             ]);
+
+            $graphs = Graph::whereChartId($productChart['id'])->get();
+
+            foreach ($graphs as $graph) {
+                $product->graphs()->attach([
+                    $graph->id,
+                ]);
+            }
         }
     }
 
