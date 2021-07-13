@@ -64,6 +64,7 @@ class StatisticsController extends Controller
         $to = Carbon::createFromFormat('Y-m-d', $request->input('to'), 'Asia/Almaty')->endOfDay()->setTimezone('Asia/Almaty');
         $categories = $this->getPeriods($request->get('period'), $from, $to);
         $productId = $request->input('productId');
+        $period = $request->input('period');
         $product = Product::whereId($productId)->firstOrFail();
 
         $eventsOfWeek = StatisticsModel::where('period_type', $request->get('period'))->where('product_id', $request->get('productId'))->where('graph_id', StatisticsModel::EVENTS_OF_WEEK)->get()->pluck('value', 'key');
