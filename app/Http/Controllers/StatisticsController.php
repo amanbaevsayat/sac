@@ -207,7 +207,7 @@ class StatisticsController extends Controller
             ];
         }
 
-        $data['reason'] = [
+        $data[1000] = [
             'type' => 'highchart',
             'chart' => [
                 'type' => 'column'
