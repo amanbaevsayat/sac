@@ -30,6 +30,13 @@
  */
 
 /*!
+ * Splide.js
+ * Version  : 2.4.20
+ * License  : MIT
+ * Copyright: 2020 Naotoshi Fujita
+ */
+
+/*!
  * The buffer module from node.js, for the browser.
  *
  * @author   Feross Aboukhadijeh <http://feross.org>

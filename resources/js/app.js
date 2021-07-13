@@ -56,6 +56,7 @@ Vue.component('product-teams-component', require('./components/ProductTeamsCompo
 Vue.component('product-charts-component', require('./components/ProductChartsComponent.vue').default);
 Vue.component('product-users-component', require('./components/ProductUserComponent.vue').default);
 Vue.component('users-bonuses-component', require('./components/UsersBonusesComponent.vue').default);
+Vue.component('thank-you-carousel-component', require('./components/ThankYouCarousel.vue').default);
 
 Vue.component('phone-component', require('./components/PhoneComponent.vue').default);
 Vue.component('date-component', require('./components/DateComponent.vue').default);
@@ -183,7 +184,9 @@ Vue.use(VCalendar, {
 // Vue.component(Select.name, Select);
 // Vue.component(Option.name, Select);
 
-
+import VueSplide from '@splidejs/vue-splide';
+import '@splidejs/splide/dist/css/themes/splide-default.min.css';
+Vue.use( VueSplide );
 
 const app = new Vue({
     el: '#app',

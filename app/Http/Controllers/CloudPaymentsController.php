@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ThankYouProductResource;
+use App\Models\Product;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -120,8 +122,11 @@ class CloudPaymentsController extends Controller
             abort(404);
         });
 
+        $products = Product::select('title', 'data')->where('id', '!=', $subscription->product_id)->get();
+
         return view('cloudpayments.thank-you', [
             'subscription' => $subscription,
+            'products' => ThankYouProductResource::collection($products),
         ]);
     }
 

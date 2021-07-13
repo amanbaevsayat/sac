@@ -24,25 +24,31 @@
             </div>
             <div class="col-sm-6">
             <div class="trener-body">
-                <div style="text-align: center">
-                <div class="success-icon" style="margin: 12px auto"></div>
-                <h4>Оплата завершена успешно!</h4>
-                </div>
+				<div style="display: flex; margin: 13px 0px;">
+					<img src="/images/success.svg" alt="" style="height: 40px;margin-right: 12px; vertical-align: middle;">
+						<div class="content-heading" style="margin: auto 0;">
+							Спасибо за оплату! Хороших тренировок!
+						</div>
+					</div>
                 <div>
-                <blockquote class="blockquote" style="border-left: 0.7rem solid rgb(30 190 136)">
-                    <p class="mb-0">{{ $subscription->product->data['name'] ?? '' }}</p>
-                    <footer style="font-size: 14px; color: #3c2529;" class="blockquote-footer">{{ $subscription->product->data['position'] ?? '' }}</footer>
-                </blockquote>
-                <div style="padding-left: 10px">
-                    <p style="font-size: 15px; margin-bottom: 9px;">По всем вопросам можно обратиться по номеру: </p>
-                    <a style="font-size: 15px" href="tel:{{ $subscription->product->data['phone'] ?? '' }}">{{ $subscription->product->data['phone'] ?? '' }}</a>
-                    <p style="font-size: 15px; margin: 9px 0px">Больше полезных видео у меня в инстаграм: </p>
-                    <a href="https://www.instagram.com/{{ $subscription->product->data['instagram'] ?? '' }}/">
-                    <img style="width: 30px" src="/images/instagram.svg" alt="">
-                    <span style="font-size: 16px; margin-left: 5px"> {{ '@' . $subscription->product->data['instagram'] ?? '' }}</span>
-                    </a>
+					<blockquote class="blockquote" style="border-left: 0.7rem solid rgb(30 190 136); margin: 15px auto">
+						<p class="mb-0">{{ $subscription->product->data['name'] ?? '' }}</p>
+						<footer style="font-size: 14px; color: #3c2529;" class="blockquote-footer">{{ $subscription->product->data['position'] ?? '' }}</footer>
+					</blockquote>
+					
+					
+					<div style="padding-left: 10px">
+						<p style="font-size: 15px; margin-bottom: 9px;">Номер для связи: </p>
+						<a style="font-size: 15px" href="tel:{{ $subscription->product->data['phone'] ?? '' }}">{{ $subscription->product->data['phone'] ?? '' }}</a>
+						<p style="font-size: 15px; margin: 9px 0px">Больше полезных видео у меня в инстаграм: </p>
+						<a href="https://www.instagram.com/{{ $subscription->product->data['instagram'] ?? '' }}/">
+						<img style="width: 30px" src="/images/instagram.svg" alt="">
+						<span style="font-size: 16px; margin-left: 5px"> {{ '@' . $subscription->product->data['instagram'] ?? '' }}</span>
+						</a>
+					</div>
                 </div>
-                </div>
+				<hr>
+				<thank-you-carousel-component :products-prop="{{ json_encode($products) }}"></thank-you-carousel-component>
             </div>
             </div>
         </div>
@@ -61,12 +67,11 @@
 	 border-color: #dc3545;
 }
  .success-icon {
-	 background: url(/images/success.svg) no-repeat;
-	 display: block;
-	 width: 81px;
-	 height: 88px;
-	 margin: 0 auto 40px;
-	 background-position: center;
+	background: url(/images/success.svg) no-repeat;
+    width: 66px;
+    background-size: 65px 44px;
+    height: 55px;
+    float: left!important;
 }
  .error-icon {
 	 background: url(/images/error.svg) no-repeat;

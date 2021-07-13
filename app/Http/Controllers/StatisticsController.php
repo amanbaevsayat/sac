@@ -3,14 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chart;
-use App\Models\Payment;
 use App\Models\Product;
-use App\Models\Reason;
 use App\Models\StatisticsModel;
 use App\Models\Subscription;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 class StatisticsController extends Controller
 {
@@ -135,10 +132,15 @@ class StatisticsController extends Controller
                 ],
                 'plotOptions' => [
                     'area' => [
-                        'fillOpacity' => 0.5,
                         'dataLabels' => [
                             'enabled' => true,
+                            'allowOverlap' => true,
+                            'inside' => false,
+                            'position' => 'right',
+                            
                         ],
+                        'fillOpacity' => 0.5,
+                        'trackByArea' => true,
                     ],
                 ],
             ];
