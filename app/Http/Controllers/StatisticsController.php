@@ -147,7 +147,7 @@ class StatisticsController extends Controller
             }
 
             foreach ($chart->graphs as $graph) {
-                $statistics = $graph->statistics()->where('product_id', $product->id)->get()->pluck('value', 'key');
+                $statistics = $graph->statistics()->where('product_id', $product->id)->where('period_type', $period)->get()->pluck('value', 'key');
 
                 $data[$chart->id]['series'][] = [
                     'name' => $graph->name,
