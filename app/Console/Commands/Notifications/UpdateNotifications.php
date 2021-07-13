@@ -63,7 +63,9 @@ class UpdateNotifications extends Command
             ]);
         }
 
-        $fourthTypeSubscriptions = Subscription::whereIn('status', ['waiting', 'paid', 'tries'])->wherePaymentType('transfer')->whereDate('ended_at', '<', $now)->get();
+        $fourthTypeSubscriptions = Subscription::whereHas('payments', function ($q) {
+            $q->where('status', 'Completed');
+        })->whereIn('status', ['waiting', 'paid', 'tries'])->wherePaymentType('transfer')->whereDate('ended_at', '<', $now)->get();
         $fourthTypeSubscriptionsIds = [];
         foreach ($fourthTypeSubscriptions as $subscription) {
             $fourthTypeSubscriptionsIds[] = $subscription->id;
