@@ -43,6 +43,7 @@ class UpdateNotifications extends Command
     {
         $now = Carbon::now()->addDays(2)->toDateString();
         $threeDaysAhead = Carbon::now()->addDays(6)->toDateString();
+        $fiveDaysAhead = Carbon::now()->addDays(5)->toDateString();
 
         $secondTypePayments = Payment::where('type', 'cloudpayments')->whereHas('subscription', function ($q) {
             $q->where('status', '!=', 'refused');
@@ -76,7 +77,7 @@ class UpdateNotifications extends Command
         }
         Notification::where('type', Notification::TYPE_ENDED_SUBSCRIPTIONS_DT)->whereNotIn('subscription_id', $fourthTypeSubscriptionsIds)->delete();
 
-        $fifthTypeSubscriptions = Subscription::whereIn('status', ['waiting', 'paid', 'tries'])->wherePaymentType('transfer')->whereBetween('ended_at', [$now, $threeDaysAhead])->get();
+        $fifthTypeSubscriptions = Subscription::whereIn('status', ['waiting', 'paid', 'tries'])->wherePaymentType('transfer')->whereBetween('ended_at', [$now, $fiveDaysAhead])->get();
         $fifthTypeSubscriptionsIds = [];
         foreach ($fifthTypeSubscriptions as $subscription) {
             $fifthTypeSubscriptionsIds[] = $subscription->id;

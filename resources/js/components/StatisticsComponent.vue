@@ -284,6 +284,7 @@ import { VueEditor } from "vue2-editor";
                     if (response.data.message) {
                         Vue.$toast.success(message);
                     }
+                    window.location.reload()
                     this.spinnerData.loading = false;
                 })
                 .catch(err => {
