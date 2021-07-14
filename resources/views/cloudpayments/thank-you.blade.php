@@ -37,9 +37,9 @@
 					</blockquote>
 					
 					<div style="padding-left: 10px">
-						<p style="font-size: 15px; margin-bottom: 9px;">Номер для связи: </p>
+						<p style="font-size: 15px; margin-bottom: 9px;">{{ $product->data['phone_title'] ?? 'Номер для связи' }}: </p>
 						<a style="font-size: 15px" href="https://wa.me/{{ str_replace(' ', '', ($product->data['phone'] ?? '')) }}">{{ $product->data['phone'] ?? '' }}</a>
-						<p style="font-size: 15px; margin: 9px 0px">Больше полезных видео у меня в инстаграм: </p>
+						<p style="font-size: 15px; margin: 9px 0px">{{ $product->data['instagram_title'] ?? 'Больше полезных видео у меня в инстаграм' }}: </p>
 						<a href="https://www.instagram.com/{{ $product->data['instagram'] ?? '' }}/">
 						<img style="width: 30px" src="/images/instagram.svg" alt="">
 						<span style="font-size: 16px; margin-left: 5px"> {{ '@' . $product->data['instagram'] ?? '' }}</span>

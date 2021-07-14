@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Filters\ProductFilter;
 use App\Http\Resources\PaymentTypeResource;
+use App\Http\Resources\ProductAdditionalsResource;
 use App\Http\Resources\ProductChartsResource;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductTeamsResource;
@@ -83,9 +84,11 @@ class ProductController extends Controller
         $users = User::all()->pluck('account', 'id')->toArray();
         $teams = Team::all()->pluck('name', 'id')->toArray();
         $charts = Chart::all()->pluck('title', 'id')->toArray();
+        $additionals = Product::get()->pluck('title', 'id')->toArray();
 
         return view("{$this->root}.create", [
             'paymentTypes' => $paymentTypes,
+            'additionals' => $additionals,
             'users' => $users,
             'teams' => $teams,
             'charts' => $charts,
@@ -133,19 +136,23 @@ class ProductController extends Controller
         $productPrices = $product->prices()->pluck('price');
         $productTeams = $product->teams;
         $productCharts = $product->charts;
+        $productAdditionals = $product->additionals;
         $reasons = $product->reasons()->where('is_active', true)->pluck('title');
         $users = User::all()->pluck('account', 'id')->toArray();
         $teams = Team::all()->pluck('name', 'id')->toArray();
         $charts = Chart::all()->pluck('title', 'id')->toArray();
         $productPaymentTypes = $product->paymentTypes;
         $paymentTypes = PaymentType::whereIsActive(true)->get()->pluck('title', 'name')->toArray();
+        $additionals = Product::where('id', '!=', $product->id)->get()->pluck('title', 'id')->toArray();
 
         return view("{$this->root}.edit", [
             'product' => $product,
+            'additionals' => $additionals,
             'productPrices' => $productPrices,
             'reasons' => $reasons,
-            'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
             'paymentTypes' => $paymentTypes,
+            'productPaymentTypes' => PaymentTypeResource::collection($productPaymentTypes),
+            'productAdditionals' => ProductAdditionalsResource::collection($productAdditionals),
             'productTeams' => ProductTeamsResource::collection($productTeams),
             'productCharts' => ProductChartsResource::collection($productCharts),
             'teams' => $teams,
@@ -188,6 +195,7 @@ class ProductController extends Controller
         $paymentTypes = $request['paymentTypes'] ?? [];
         $productReasons = $request['reasons'] ?? [];
         $productCharts = $request['productCharts'] ?? [];
+        $productAdditionals = $request['productAdditionals'] ?? [];
 
         if ($type == 'update') {
             $product->update($request);
@@ -266,6 +274,14 @@ class ProductController extends Controller
         foreach ($productTeams as $productTeam) {
             $product->teams()->attach([
                 $productTeam['id'],
+            ]);
+        }
+
+        $product->additionals()->detach();
+
+        foreach ($productAdditionals as $productAdditional) {
+            $product->additionals()->attach([
+                $productAdditional['id'],
             ]);
         }
 

@@ -88,9 +88,23 @@
             </div>
 
             <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Заголовок телефона</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ $product->data['phone_title'] ?? null }}" name="data[phone_title]">
+                </div>
+            </div>
+
+            <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Телефон</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="title" value="{{ $product->data['phone'] ?? null }}" name="data[phone]">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Заголовок Instagram-а</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ $product->data['instagram_title'] ?? null }}" name="data[instagram_title]">
                 </div>
             </div>
 
@@ -120,6 +134,13 @@
                     {{--<div>
                         <iframe src="{{ route('cloudpayments.thank_you', [$product->id]) }}" frameborder="0" style="width: 100%; height: 100vh"></iframe>
                     </div>--}}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="prices" class="col-sm-2 col-form-label">Связанные продукты для рекламы в thank you page</label>
+                <div class="col-sm-10">
+                    <product-additionals-component :product-additionals-prop="{{ json_encode($productAdditionals) }}" :additionals-prop="{{ json_encode($additionals) }}"></product-additionals-component>
                 </div>
             </div>
 

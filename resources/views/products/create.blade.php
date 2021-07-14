@@ -53,7 +53,7 @@
             <div class="form-group row">
                 <label for="prices" class="col-sm-2 col-form-label">Команда продукта</label>
                 <div class="col-sm-10">
-                    <product-teams-component :product-teams-prop="{{ json_encode(old('productTeams') }}" :teams-prop="{{ json_encode($teams) }}"></product-teams-component>
+                    <product-teams-component :product-teams-prop="{{ json_encode(old('productTeams') ?? []) }}" :teams-prop="{{ json_encode($teams) }}"></product-teams-component>
                 </div>
             </div>
             <hr>
@@ -67,7 +67,7 @@
             <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Имя мастера</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" id="title" value="{{ old('data.name') }}" name="data[name]">
+                    <input type="text" class="form-control" id="title" value="{{ old('data.name') ?? 'Екатерина Скурихина' }}" name="data[name]">
                 </div>
             </div>
 
@@ -79,6 +79,13 @@
             </div>
 
             <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Заголовок телефона</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ old('data.phone_title') ?? 'Номер для связи' }}" name="data[phone_title]">
+                </div>
+            </div>
+
+            <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Телефон</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="title" value="{{ old('data.phone') }}" name="data[phone]">
@@ -86,9 +93,16 @@
             </div>
 
             <div class="form-group row">
+                <label for="title" class="col-sm-2 col-form-label">Заголовок Instagram-а</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="title" value="{{ old('data.instagram_title') ?? 'Больше полезных видео у меня в инстаграм' }}" name="data[instagram_title]">
+                </div>
+            </div>
+
+            <div class="form-group row">
                 <label for="title" class="col-sm-2 col-form-label">Instagram (ссылка)</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" id="title" value="{{ old('data.instagram') }}" name="data[instagram]">
+                    <input type="text" class="form-control" id="title" value="{{ old('data.instagram') ?? 'strela_academy' }}" name="data[instagram]">
                 </div>
             </div>
 
@@ -98,6 +112,15 @@
                     <div style="max-width: 300px">
                         <upload-file name-prop="data[image]" value-prop="{{ old('data.image') }}"></upload-file>
                     </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="form-group row">
+                <label for="prices" class="col-sm-2 col-form-label">Связанные продукты для рекламы в thank you page</label>
+                <div class="col-sm-10">
+                    <product-additionals-component :product-additionals-prop="{{ json_encode(old('productAdditionals')) }}" :additionals-prop="{{ json_encode($additionals) }}"></product-additionals-component>
                 </div>
             </div>
 

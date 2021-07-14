@@ -122,7 +122,7 @@ class CloudPaymentsController extends Controller
             abort(404);
         });
 
-        $products = Product::select('title', 'description', 'data')->where('id', '!=', $product->id)->get();
+        $products = $product->additionals;
 
         return view('cloudpayments.thank-you', [
             'product' => $product,
