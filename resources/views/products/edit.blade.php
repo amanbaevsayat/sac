@@ -104,7 +104,22 @@
             <div class="form-group row">
                 <label for="period" class="col-sm-2 col-form-label">Добавить картинку</label>
                 <div class="col-sm-10">
-                    <upload-file name-prop="data[image]" value-prop="{{ $product->data['image'] ?? null }}"></upload-file>
+                    <div style="max-width: 300px">
+                        <upload-file name-prop="data[image]" value-prop="{{ $product->data['image'] ?? null }}"></upload-file>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <div class="form-group row">
+                <label for="period" class="col-sm-2 col-form-label">Thank you page</label>
+                <div class="col-sm-10">
+                    <div style="margin-bottom: 15px">
+                        <a class="btn btn-success" href="{{ route('cloudpayments.thank_you', [$product->id]) }}" target="_blank">Перейти по ссылке</a>
+                    </div>
+                    {{--<div>
+                        <iframe src="{{ route('cloudpayments.thank_you', [$product->id]) }}" frameborder="0" style="width: 100%; height: 100vh"></iframe>
+                    </div>--}}
                 </div>
             </div>
 

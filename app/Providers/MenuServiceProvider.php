@@ -85,11 +85,11 @@ class MenuServiceProvider extends ServiceProvider
                 "url" => "statistics/financial",
             ]);
 
-            $event->menu->addIn('statistics', [
-                "key" => "statistic_type_3",
-                "text" => 'Итоговые',
-                "url" => "statistics/total",
-            ]);
+            // $event->menu->addIn('statistics', [
+            //     "key" => "statistic_type_3",
+            //     "text" => 'Итоговые',
+            //     "url" => "statistics/total",
+            // ]);
         });
     }
 

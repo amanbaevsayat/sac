@@ -16,7 +16,7 @@ class ThankYouProductResource extends JsonResource
     {
         return [
             'title' => $this->title,
-            'description' => 'Lorem Ipsum Dolor Color. Lorem Ipsum Dolor Color. Lorem Ipsum Dolor Color. Lorem Ipsum Dolor Color.',
+            'description' => $this->description,
             'image' => $this->data['image'] ?? '',
             'phone' => str_replace(' ', '', ($this->data['phone'] ?? '')),
         ];

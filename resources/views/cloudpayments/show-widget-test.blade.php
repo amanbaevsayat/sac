@@ -84,7 +84,7 @@ $( "#cloudpayment-widget-form" ).submit(function( event ) {
         data: data
     },
     function (options) { // success
-        window.location.href = "{{ route('cloudpayments.thank_you', [$subscription->id]) }}";
+        window.location.href = "{{ route('cloudpayments.thank_you', [$subscription->product->id]) }}";
     },
     function (reason, options) { // fail
         window.location.href = "{{ route('cloudpayments.show_widget', [$subscription->id]) }}";

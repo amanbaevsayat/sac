@@ -6,9 +6,9 @@
                 <div class="circular">
                     <img :src="product.image" alt="" >
                 </div>
-                <p style="font-size: 13px; color: #48403e;">{{ product.description }}</p>
+                <div style="font-size: 13px; color: #48403e; margin-bottom: 15px" v-html="product.description"></div>
                 <a class="btn btn-success" :href="'https://wa.me/' + product.phone">
-                    Подробнее <i class="fab fa-whatsapp"></i>
+                    Написать оператору в Whatsapp <i class="fab fa-whatsapp"></i>
                 </a>
             </div> 
 		</splide-slide>

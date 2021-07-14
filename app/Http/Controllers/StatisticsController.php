@@ -328,7 +328,7 @@ class StatisticsController extends Controller
             'chart' => [
                 'type' => 'area',
             ],
-            "title" => ["text" => 'Рентабельность услуги'],
+            "title" => ["text" => 'Общий оборот'],
             "xAxis" => [
                 "type" => 'datetime',
             ],

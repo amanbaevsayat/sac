@@ -95,9 +95,12 @@
             <div class="form-group row">
                 <label for="period" class="col-sm-2 col-form-label">Добавить картинку</label>
                 <div class="col-sm-10">
-                    <upload-file name-prop="data[image]" value-prop="{{ old('data.image') }}"></upload-file>
+                    <div style="max-width: 300px">
+                        <upload-file name-prop="data[image]" value-prop="{{ old('data.image') }}"></upload-file>
+                    </div>
                 </div>
             </div>
+
             <div class="form-group">
                 <input type="submit" value="Добавить" class="btn btn-success" />
             </div>

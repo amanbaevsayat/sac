@@ -116,16 +116,16 @@ class CloudPaymentsController extends Controller
         ]);
     }
 
-    public function thankYou(int $subscriptionId, Request $request)
+    public function thankYou(int $productId, Request $request)
     {
-        $subscription = Subscription::whereId($subscriptionId)->firstOr(function () {
+        $product = Product::whereId($productId)->firstOr(function () {
             abort(404);
         });
 
-        $products = Product::select('title', 'data')->where('id', '!=', $subscription->product_id)->get();
+        $products = Product::select('title', 'description', 'data')->where('id', '!=', $product->id)->get();
 
         return view('cloudpayments.thank-you', [
-            'subscription' => $subscription,
+            'product' => $product,
             'products' => ThankYouProductResource::collection($products),
         ]);
     }

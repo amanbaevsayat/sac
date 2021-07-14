@@ -19,7 +19,7 @@
             <div class="lp-pom-image-container" style="overflow: hidden;border-style: none;
                 border-radius: 20px;"
             >
-                <img style="width: 100%" src="{{ $subscription->product->data['image'] ?? '/images/trener2.jpeg' }}" alt="" loading="lazy" data-src-desktop-1x="//d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/635043a6-alex-shaw-msjsiqcm6og-unsplash_10mv0gs0kl0gs01500001o.jpg" data-src-mobile-1x="//d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/635043a6-alex-shaw-msjsiqcm6og-unsplash_107s06n07s06c00000501o.jpg" srcset="">
+                <img style="width: 100%" src="{{ $product->data['image'] ?? '/images/trener2.jpeg' }}" alt="" loading="lazy" data-src-desktop-1x="//d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/635043a6-alex-shaw-msjsiqcm6og-unsplash_10mv0gs0kl0gs01500001o.jpg" data-src-mobile-1x="//d9hhrg4mnvzow.cloudfront.net/unbouncepages.com/yogawa/635043a6-alex-shaw-msjsiqcm6og-unsplash_107s06n07s06c00000501o.jpg" srcset="">
             </div>
             </div>
             <div class="col-sm-6">
@@ -32,22 +32,22 @@
 					</div>
                 <div>
 					<blockquote class="blockquote" style="border-left: 0.7rem solid rgb(30 190 136); margin: 15px auto">
-						<p class="mb-0">{{ $subscription->product->data['name'] ?? '' }}</p>
-						<footer style="font-size: 14px; color: #3c2529;" class="blockquote-footer">{{ $subscription->product->data['position'] ?? '' }}</footer>
+						<p class="mb-0">{{ $product->data['name'] ?? '' }}</p>
+						<footer style="font-size: 14px; color: #3c2529;" class="blockquote-footer">{{ $product->data['position'] ?? '' }}</footer>
 					</blockquote>
-					
 					
 					<div style="padding-left: 10px">
 						<p style="font-size: 15px; margin-bottom: 9px;">Номер для связи: </p>
-						<a style="font-size: 15px" href="tel:{{ $subscription->product->data['phone'] ?? '' }}">{{ $subscription->product->data['phone'] ?? '' }}</a>
+						<a style="font-size: 15px" href="https://wa.me/{{ str_replace(' ', '', ($product->data['phone'] ?? '')) }}">{{ $product->data['phone'] ?? '' }}</a>
 						<p style="font-size: 15px; margin: 9px 0px">Больше полезных видео у меня в инстаграм: </p>
-						<a href="https://www.instagram.com/{{ $subscription->product->data['instagram'] ?? '' }}/">
+						<a href="https://www.instagram.com/{{ $product->data['instagram'] ?? '' }}/">
 						<img style="width: 30px" src="/images/instagram.svg" alt="">
-						<span style="font-size: 16px; margin-left: 5px"> {{ '@' . $subscription->product->data['instagram'] ?? '' }}</span>
+						<span style="font-size: 16px; margin-left: 5px"> {{ '@' . $product->data['instagram'] ?? '' }}</span>
 						</a>
 					</div>
                 </div>
 				<hr>
+				<h2 style="font-size: 20px; color: #423b39;">Вы так же можете приобрести</h2>
 				<thank-you-carousel-component :products-prop="{{ json_encode($products) }}"></thank-you-carousel-component>
             </div>
             </div>
